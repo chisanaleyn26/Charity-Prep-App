@@ -20,7 +20,8 @@ import {
   Bell,
   Building2,
   Sparkles,
-  Calendar
+  Calendar,
+  Search
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +39,12 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       href: '/dashboard',
       icon: LayoutDashboard,
       description: 'Overview & metrics'
+    },
+    {
+      name: 'Search',
+      href: '/search',
+      icon: Search,
+      description: 'Search all content'
     },
     {
       name: 'Safeguarding',
@@ -66,6 +73,14 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       href: '/compliance/score',
       icon: BarChart3,
       description: 'Overall compliance health'
+    },
+    {
+      name: 'Smart Import',
+      href: '/import',
+      icon: Sparkles,
+      badge: 'AI',
+      badgeType: 'default' as const,
+      description: 'Email & document import'
     },
     {
       name: 'Documents',
@@ -130,48 +145,49 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        'h-screen bg-gunmetal text-white flex flex-col transition-all duration-300',
+        'h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-300',
         collapsed ? 'w-20' : 'w-[280px]'
       )}
     >
       {/* Header */}
-      <div className="p-6 flex items-center justify-between border-b border-white/10">
+      <div className="p-6 flex items-center justify-between border-b border-gray-100">
         <div className={cn(
           'transition-opacity duration-300',
           collapsed && 'opacity-0 w-0 overflow-hidden'
         )}>
-          <Logo variant="white" size="sm" />
+          <Logo size="sm" />
         </div>
         <button
           onClick={onToggle}
-          className="p-2 hover:bg-white/10 rounded-md transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? (
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 text-gray-600" />
           ) : (
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5 text-gray-600" />
           )}
         </button>
       </div>
 
       {/* Organization Selector */}
       {!collapsed && (
-        <div className="px-3 py-4 border-b border-white/10">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white/10 transition-colors">
-            <Building2 className="h-5 w-5 text-mist-300" />
-            <div className="flex-1 text-left">
-              <p className="text-sm font-medium">St. Mary&apos;s Trust</p>
-              <p className="text-xs text-mist-400">Charity No. 1234567</p>
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-white" />
             </div>
-            <ChevronLeft className="h-4 w-4 rotate-180 text-mist-400" />
-          </button>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">St. Mary&apos;s Trust</p>
+              <p className="text-xs text-gray-500">Charity No. 1234567</p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Main Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <div className="space-y-1">
+      <nav className="flex-1 px-6 py-6">
+        <div className="space-y-2">
           {mainNavigation.map((item) => {
             const isActive = pathname === item.href
             return (
@@ -179,15 +195,16 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-md transition-all group relative',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative',
                   isActive
-                    ? 'bg-primary text-gunmetal font-medium'
-                    : 'text-mist-300 hover:bg-white/10 hover:text-white'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 )}
               >
                 <item.icon className={cn(
                   'shrink-0',
-                  collapsed ? 'h-6 w-6' : 'h-5 w-5'
+                  collapsed ? 'h-6 w-6' : 'h-5 w-5',
+                  isActive ? 'text-primary' : ''
                 )} />
                 <span className={cn(
                   'flex-1 transition-opacity duration-300',
@@ -198,7 +215,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 {item.badge && !collapsed && (
                   <span className={cn(
                     'px-2 py-0.5 text-xs font-medium rounded-full',
-                    badgeColors[item.badgeType || 'default']
+                    'bg-red-100 text-red-600'
                   )}>
                     {item.badge}
                   </span>
@@ -206,7 +223,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gunmetal text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                     {item.name}
                     {item.badge && (
                       <span className="ml-2 text-xs">({item.badge})</span>
@@ -220,16 +237,16 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
         {/* AI Features Section */}
         {!collapsed && (
-          <div className="mt-6">
-            <p className="px-3 text-xs font-medium text-mist-400 uppercase tracking-wider">
+          <div className="mt-8">
+            <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
               AI Features
             </p>
-            <div className="mt-2 space-y-1">
+            <div className="space-y-1">
               {aiFeatures.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-md text-mist-300 hover:bg-white/10 hover:text-white transition-all"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
                 >
                   <item.icon className="h-5 w-5" />
                   <span>{item.name}</span>
@@ -241,13 +258,13 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       </nav>
 
       {/* Bottom Navigation */}
-      <div className="border-t border-white/10 p-3">
-        <div className="space-y-1 mb-4">
+      <div className="border-t border-gray-100 p-6">
+        <div className="space-y-1 mb-6">
           {bottomNavigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md text-mist-300 hover:bg-white/10 hover:text-white transition-all group relative"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all group relative"
             >
               <item.icon className={cn(
                 'shrink-0',
@@ -260,17 +277,14 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 {item.name}
               </span>
               {item.badge && !collapsed && (
-                <span className={cn(
-                  'px-2 py-0.5 text-xs font-medium rounded-full',
-                  badgeColors[item.badgeType || 'default']
-                )}>
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
                   {item.badge}
                 </span>
               )}
               
               {/* Tooltip for collapsed state */}
               {collapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gunmetal text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                   {item.name}
                 </div>
               )}
@@ -280,30 +294,30 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
         {/* User Menu */}
         <div className={cn(
-          'border-t border-white/10 pt-4',
+          'border-t border-gray-100 pt-4',
           collapsed && 'flex justify-center'
         )}>
           {collapsed ? (
-            <button className="p-2 hover:bg-white/10 rounded-md transition-colors group relative">
-              <Users className="h-5 w-5 text-mist-300" />
-              <div className="absolute left-full ml-2 px-2 py-1 bg-gunmetal text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+            <button className="p-2 hover:bg-gray-100 rounded-md transition-colors group relative">
+              <Users className="h-5 w-5 text-gray-600" />
+              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                 Profile Menu
               </div>
             </button>
           ) : (
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-gunmetal font-semibold">
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
                 JD
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">John Doe</p>
-                <p className="text-xs text-mist-400 truncate">Trustee</p>
+                <p className="text-sm font-medium text-gray-900 truncate">John Doe</p>
+                <p className="text-xs text-gray-500 truncate">Trustee</p>
               </div>
               <button 
-                className="p-1 hover:bg-white/10 rounded transition-colors"
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
                 aria-label="Sign out"
               >
-                <LogOut className="h-4 w-4 text-mist-300" />
+                <LogOut className="h-4 w-4 text-gray-500" />
               </button>
             </div>
           )}

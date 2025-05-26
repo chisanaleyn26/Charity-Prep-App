@@ -2,7 +2,7 @@ import React from 'react'
 
 export function Footer() {
   return (
-    <footer className="py-16 px-4 bg-gradient-to-t from-gray-50/30 to-white border-t border-[#f0f0f0]">
+    <footer className="py-16 px-4 bg-gradient-to-t from-gray-100 to-gray-50 border-t border-[#f0f0f0]">
       <div className="max-w-4xl mx-auto text-center">
         <div className="mb-8">
           <h3 className="text-xl font-medium text-[#1a1a1a] mb-2">

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 
 export default function Hero() {
   return (
-    <section id="hero" className="relative bg-gradient-to-br from-white via-gray-50/30 to-gray-100/20 py-32 px-4 overflow-hidden">
+    <section id="hero" className="relative bg-gradient-to-br from-white via-gray-50 to-gray-100 py-32 px-4 overflow-hidden">
       {/* CSS-only geometric background - Asymmetrical & Organic */}
       <div className="absolute inset-0 z-0">
         {/* Primary focal area - Top-right with bold elements */}

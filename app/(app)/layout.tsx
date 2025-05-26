@@ -11,7 +11,7 @@ export default function AppLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   return (
-    <div className="flex h-screen bg-[#F8F8F8]">
+    <div className="flex h-screen bg-gray-50">
       <Sidebar 
         collapsed={sidebarCollapsed} 
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 

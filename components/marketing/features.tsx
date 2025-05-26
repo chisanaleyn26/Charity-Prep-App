@@ -55,7 +55,7 @@ export function Features() {
   }
 
   return (
-    <section id="features" className="py-32 px-4 bg-gradient-to-b from-gray-100/20 via-white to-gray-50/40">
+    <section id="features" className="py-32 px-4 bg-gradient-to-b from-gray-100 via-gray-50 to-white">
       <div className="max-w-4xl mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}

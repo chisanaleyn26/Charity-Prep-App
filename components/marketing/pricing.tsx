@@ -61,7 +61,7 @@ export function Pricing() {
   }
 
   return (
-    <section id="pricing" className="py-32 px-4 bg-gradient-to-br from-gray-50/60 via-gray-50/40 to-white">
+    <section id="pricing" className="py-32 px-4 bg-gradient-to-br from-gray-50 via-white to-gray-50">
       <div className="max-w-4xl mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}

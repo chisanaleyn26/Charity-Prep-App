@@ -38,7 +38,8 @@
       "WebFetch(domain:www.behance.net)",
       "Bash(npx tsc:*)",
       "Bash(timeout 10s npm run dev -- --port 3001)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(timeout 10s npm run dev -- --port 3002)"
     ],
     "deny": []
   }

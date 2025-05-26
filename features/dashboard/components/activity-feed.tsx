@@ -122,67 +122,84 @@ const typeStyles = {
 }
 
 export function ActivityFeed() {
-  return (
-    <div className="bg-white rounded-xl border border-mist-200 h-full flex flex-col">
-      <div className="p-6 pb-4 border-b border-mist-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gunmetal">
-              Recent Activity
-            </h3>
-            <p className="text-sm text-mist-700 mt-1">
-              Latest updates and actions
-            </p>
-          </div>
-          <Activity className="h-5 w-5 text-mist-500" />
-        </div>
-      </div>
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'success': return 'bg-green-50 text-green-600 border border-green-100'
+      case 'warning': return 'bg-red-50 text-red-600 border border-red-100'
+      case 'info': return 'bg-gray-100 text-gray-600 border border-gray-200'
+      default: return 'bg-gray-100 text-gray-600 border border-gray-200'
+    }
+  }
 
-      {/* Scrollable activity list */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 max-h-[400px]">
-        {activities.map((activity) => {
-          const style = typeStyles[activity.type]
-          
-          return (
-            <div
-              key={activity.id}
-              className={cn(
-                'flex gap-3 p-3 rounded-lg border transition-all hover:shadow-sm',
-                style.bg,
-                style.border
-              )}
-            >
-              <div className={cn('p-2 rounded-lg h-fit', style.bg)}>
-                <activity.icon className={cn('h-4 w-4', style.icon)} />
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium text-gunmetal">
-                  {activity.title}
-                </h4>
-                <p className="text-sm text-mist-700 mt-0.5 truncate">
-                  {activity.description}
-                </p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-mist-600">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {activity.time}
-                  </span>
-                  {activity.user && (
-                    <span>by {activity.user}</span>
-                  )}
+  return (
+    <div className="bg-white border border-gray-200 rounded-3xl flex flex-col hover:border-gray-300 transition-all duration-300 relative">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-transparent opacity-20" />
+      
+      <div className="relative z-10">
+        <div className="p-6 pb-5 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-900 tracking-tight leading-tight">Live Activity</h3>
+              <p className="text-gray-600 text-sm font-medium tracking-wide">Real-time updates</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-green-50 rounded-xl px-3 py-2 border border-green-200">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-green-700 font-bold tracking-wider uppercase">LIVE</span>
                 </div>
               </div>
             </div>
-          )
-        })}
-      </div>
+          </div>
+        </div>
 
-      {/* View all link */}
-      <div className="p-4 border-t border-mist-200">
-        <button className="w-full text-sm font-medium text-primary hover:text-primary-600 transition-colors">
-          View all activity →
-        </button>
+        {/* Compressed activity list - only 3 items */}
+        <div className="flex-1 p-6 space-y-3">
+          {activities.slice(0, 3).map((activity, index) => (
+            <div 
+              key={activity.id} 
+              className="flex gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all duration-300 group cursor-pointer border border-transparent hover:border-gray-200"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className={cn(
+                'h-8 w-8 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm',
+                getActivityColor(activity.type)
+              )}>
+                <activity.icon className="h-4 w-4" />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-gray-900 leading-tight tracking-wide">
+                    {activity.title}
+                  </h4>
+                  <span className="text-xs text-gray-500 ml-2 font-medium tracking-wide">
+                    {activity.time}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed line-clamp-1 font-normal">
+                  {activity.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Minimalistic footer */}
+        <div className="p-6 pt-5 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="bg-gray-100 rounded-xl px-3 py-2">
+              <span className="text-xs text-gray-700 font-bold tracking-wider uppercase">
+                {activities.length} Activities
+              </span>
+            </div>
+            <button className="group bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-800 transition-all duration-300 flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200">
+              <span className="text-sm font-semibold tracking-wide">View all</span>
+              <span className="transition-transform group-hover:translate-x-1 text-sm font-bold">→</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
