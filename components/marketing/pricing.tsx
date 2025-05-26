@@ -61,7 +61,7 @@ export function Pricing() {
   }
 
   return (
-    <section id="pricing" className="py-32 px-4 bg-[#fafafa]">
+    <section id="pricing" className="py-32 px-4 bg-gradient-to-br from-gray-50/60 via-gray-50/40 to-white">
       <div className="max-w-4xl mx-auto">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
@@ -108,19 +108,23 @@ export function Pricing() {
                 plan.popular ? 'border-[#B1FA63]' : 'border-[#eee] hover:border-[#B1FA63]'
               }`}
             >
-              {plan.popular && (
-                <motion.div 
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                  className="inline-block bg-[#B1FA63] text-[#1a1a1a] text-xs font-medium px-3 py-1 rounded-full mb-6"
-                >
-                  Popular
-                </motion.div>
-              )}
+              {/* Fixed height badge area */}
+              <div className="h-8 mb-6">
+                {plan.popular && (
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                    className="inline-block bg-[#B1FA63] text-[#1a1a1a] text-xs font-medium px-3 py-1 rounded-full"
+                  >
+                    Popular
+                  </motion.div>
+                )}
+              </div>
               
-              <div className="mb-8">
+              {/* Fixed height header area */}
+              <div className="mb-8 min-h-[120px]">
                 <h3 className="text-2xl font-medium text-[#1a1a1a] mb-2">
                   {plan.name}
                 </h3>
@@ -134,7 +138,8 @@ export function Pricing() {
                 <p className="text-sm text-[#999] font-light">{plan.note}</p>
               </div>
               
-              <ul className="space-y-3 mb-8 flex-grow">
+              {/* Features list with consistent spacing */}
+              <ul className="space-y-3 mb-8 flex-grow min-h-[160px]">
                 {plan.features.map((feature, featureIndex) => (
                   <motion.li 
                     key={featureIndex} 
