@@ -111,7 +111,7 @@ async function processImageOCR(
   
   try {
     // Import OCR service dynamically to avoid circular dependencies
-    const { extractFromImage } = await import('./ocr-service')
+    const { extractFromImage } = await import('./document-ocr')
     
     const extraction = await extractFromImage(
       request.file_url,

@@ -71,12 +71,44 @@ export function ReportGenerator() {
   const [length, setLength] = useState<'brief' | 'detailed'>('detailed')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null)
-  const [availableReports, setAvailableReports] = useState<any[]>([])
-
-  // Load available reports on mount
-  useState(() => {
-    getAvailableReports().then(setAvailableReports)
-  })
+  const [availableReports, setAvailableReports] = useState<any[]>([
+    {
+      type: 'annual_report',
+      name: 'Annual Report',
+      description: 'Comprehensive yearly overview for trustees and regulators',
+      icon: 'FileText'
+    },
+    {
+      type: 'safeguarding_summary',
+      name: 'Safeguarding Summary',
+      description: 'Overview of safeguarding compliance and training status',
+      icon: 'Shield'
+    },
+    {
+      type: 'financial_overview',
+      name: 'Financial Overview',
+      description: 'Income analysis with donor insights and trends',
+      icon: 'TrendingUp'
+    },
+    {
+      type: 'overseas_impact',
+      name: 'Overseas Impact Report',
+      description: 'Summary of international activities and beneficiary reach',
+      icon: 'Globe'
+    },
+    {
+      type: 'quarterly_update',
+      name: 'Quarterly Update',
+      description: 'Three-month progress report for stakeholders',
+      icon: 'Calendar'
+    },
+    {
+      type: 'trustee_report',
+      name: 'Trustee Report',
+      description: 'Governance-focused report for board meetings',
+      icon: 'Users'
+    }
+  ])
 
   const handleGenerateReport = async () => {
     setIsGenerating(true)

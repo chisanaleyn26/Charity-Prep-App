@@ -183,6 +183,14 @@ export function CSVImportWizard({ onComplete, onCancel }: CSVImportWizardProps) 
       // Convert file to CSV string
       const csvContent = await file.text()
       
+      // Convert column mapping to simple string record
+      const simpleMappings: Record<string, string> = {}
+      for (const [field, mapping] of Object.entries(columnMapping.mappings)) {
+        if (mapping.csv_column) {
+          simpleMappings[mapping.csv_column] = field
+        }
+      }
+      
       // Call appropriate import function based on type
       let result: ImportResult
       
@@ -191,7 +199,7 @@ export function CSVImportWizard({ onComplete, onCancel }: CSVImportWizardProps) 
           result = await importSafeguardingRecords(
             membership.organization_id,
             csvContent,
-            columnMapping.mappings
+            simpleMappings
           )
           break
           
@@ -199,7 +207,7 @@ export function CSVImportWizard({ onComplete, onCancel }: CSVImportWizardProps) 
           result = await importOverseasActivities(
             membership.organization_id,
             csvContent,
-            columnMapping.mappings
+            simpleMappings
           )
           break
           
@@ -207,7 +215,7 @@ export function CSVImportWizard({ onComplete, onCancel }: CSVImportWizardProps) 
           result = await importIncomeRecords(
             membership.organization_id,
             csvContent,
-            columnMapping.mappings
+            simpleMappings
           )
           break
           

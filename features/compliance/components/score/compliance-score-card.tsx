@@ -114,3 +114,6 @@ export function ComplianceScoreCard({ score, previousScore }: ComplianceScoreCar
     </Card>
   )
 }
+
+// Export alias for backward compatibility
+export { ComplianceScoreCard as ComplianceScore }

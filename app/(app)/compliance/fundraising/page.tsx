@@ -86,17 +86,23 @@ async function FundraisingStats() {
   return (
     <>
       {statCards.map((stat, index) => (
-        <Card key={index} className="hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+        <Card key={index} className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-300">
+          <div className="flex items-center justify-between mb-3">
+            <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
+              <stat.icon className="h-4 w-4 text-gray-600" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider leading-tight">
               {stat.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stat.value}</div>
-            <p className="text-xs text-muted-foreground">{stat.description}</p>
-          </CardContent>
+            </h3>
+            <p className="text-3xl font-extralight text-gray-900 tracking-tight leading-none">
+              {stat.value}
+            </p>
+            <p className="text-xs text-gray-600 font-medium tracking-wide">
+              {stat.description}
+            </p>
+          </div>
         </Card>
       ))}
     </>
@@ -111,15 +117,15 @@ async function ActivitiesTable() {
 export default function FundraisingPage() {
   return (
     <div className="space-y-8">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <DollarSign className="h-8 w-8 text-primary" />
+      {/* Enhanced Typography Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div className="space-y-3">
+          <h1 className="text-5xl font-extralight text-gray-900 tracking-tight leading-none flex items-center gap-4">
+            <DollarSign className="h-12 w-12 text-gray-600" />
             Fundraising
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage fundraising activities and ensure compliance
+          <p className="text-lg text-gray-600 font-normal leading-relaxed tracking-wide">
+            Manage fundraising activities and ensure compliance with regulations.
           </p>
         </div>
         
@@ -142,8 +148,8 @@ export default function FundraisingPage() {
         </Dialog>
       </div>
 
-      {/* Stats Cards - Bento Style Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Enhanced Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Suspense fallback={
           <>
             <StatCardSkeleton />

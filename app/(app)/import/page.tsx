@@ -59,6 +59,25 @@ export default function ImportPage() {
   const handleFileUpload = async (file: File) => {
     const supabase = createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      toast.error('Not authenticated')
+      return
+    }
+    
+    // Get organization
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .single()
+      
+    if (!membership) {
+      toast.error('No organization found')
+      return
+    }
+    
     // Upload file to storage
     const fileName = `imports/${Date.now()}-${file.name}`
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -72,19 +91,18 @@ export default function ImportPage() {
 
     // Create AI task for extraction
     const { error: taskError } = await supabase
-      .from('ai_tasks')
+      .from('ai_tasks' as any)
       .insert({
-        type: 'extract',
+        organization_id: membership.organization_id,
+        task_type: 'extract',
         status: 'pending',
-        input: {
+        input_data: {
           file_path: fileName,
           file_type: file.type,
-          file_name: file.name
-        },
-        metadata: {
+          file_name: file.name,
           source: 'manual_upload'
         }
-      })
+      } as any)
 
     if (taskError) {
       toast.error('Failed to create extraction task')

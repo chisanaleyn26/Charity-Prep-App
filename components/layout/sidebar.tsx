@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Logo } from '@/components/common/logo'
@@ -21,7 +21,10 @@ import {
   Building2,
   Sparkles,
   Calendar,
-  Search
+  Search,
+  ChevronDown,
+  ChevronRight,
+  Bot
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +35,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  const [reportsExpanded, setReportsExpanded] = useState(pathname?.startsWith('/reports') || false)
 
   const mainNavigation = [
     {
@@ -75,6 +79,12 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       description: 'Overall compliance health'
     },
     {
+      name: 'Compliance Chat',
+      href: '/compliance/chat',
+      icon: Bot,
+      description: 'AI compliance assistant'
+    },
+    {
       name: 'Smart Import',
       href: '/import',
       icon: Sparkles,
@@ -89,12 +99,6 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       badge: '2',
       badgeType: 'error' as const,
       description: 'Policies & certificates'
-    },
-    {
-      name: 'Reports',
-      href: '/reports',
-      icon: FileText,
-      description: 'Annual returns & exports'
     },
   ]
 
@@ -233,6 +237,76 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               </Link>
             )
           })}
+        </div>
+
+        {/* Reports Section */}
+        <div className="mt-4">
+          {/* Reports Main Item */}
+          <button
+            onClick={() => setReportsExpanded(!reportsExpanded)}
+            className={cn(
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative',
+              (pathname?.startsWith('/reports') || pathname === '/reports/ai')
+                ? 'bg-gray-100 text-gray-900 font-medium'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            )}
+          >
+            <FileText className={cn(
+              'shrink-0',
+              collapsed ? 'h-6 w-6' : 'h-5 w-5',
+              (pathname?.startsWith('/reports') || pathname === '/reports/ai') ? 'text-primary' : ''
+            )} />
+            <span className={cn(
+              'flex-1 text-left transition-opacity duration-300',
+              collapsed && 'opacity-0 w-0 overflow-hidden'
+            )}>
+              Reports
+            </span>
+            {!collapsed && (
+              reportsExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )
+            )}
+            
+            {/* Tooltip for collapsed state */}
+            {collapsed && (
+              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                Reports
+              </div>
+            )}
+          </button>
+
+          {/* Reports Sub-items */}
+          {reportsExpanded && !collapsed && (
+            <div className="ml-8 mt-1 space-y-1">
+              <Link
+                href="/reports"
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm',
+                  pathname === '/reports'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                )}
+              >
+                <FileText className="h-4 w-4" />
+                <span>Annual Returns</span>
+              </Link>
+              <Link
+                href="/reports/ai"
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm',
+                  pathname === '/reports/ai'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                )}
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>AI Reports</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* AI Features Section */}

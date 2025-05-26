@@ -1,5 +1,3 @@
-'use server'
-
 import { openrouter } from '@/lib/ai/openrouter'
 import { z } from 'zod'
 
