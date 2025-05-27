@@ -1,15 +1,27 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-// MOCK MODE - Set to false to use real authentication
-const MOCK_MODE = true
-
 export async function middleware(request: NextRequest) {
-  if (MOCK_MODE) {
-    // In mock mode, skip authentication checks
+  // Check for dev session cookie
+  const devSession = request.cookies.get('dev-auth-session')
+  
+  // If dev session exists, allow through
+  if (devSession) {
     return NextResponse.next()
   }
   
+  // For auth routes and dev routes, always allow through
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || 
+                     request.nextUrl.pathname.startsWith('/verify') ||
+                     request.nextUrl.pathname.startsWith('/callback') ||
+                     request.nextUrl.pathname.startsWith('/api/dev-auto-login') ||
+                     request.nextUrl.pathname.startsWith('/api/dev-logout')
+  
+  if (isAuthRoute) {
+    return NextResponse.next()
+  }
+  
+  // Otherwise use Supabase auth
   return await updateSession(request)
 }
 

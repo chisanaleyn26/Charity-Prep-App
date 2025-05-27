@@ -9,9 +9,10 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Building2, Mail, Phone, Globe, Calendar, ArrowRight } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
+import { FormErrorBoundary } from '@/components/common/error-boundary'
 
-// MOCK MODE - Set to false to show onboarding
-const MOCK_MODE = true
+// Check for dev mode
+const isDevMode = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_AUTO_LOGIN === 'true'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -19,7 +20,8 @@ export default function OnboardingPage() {
   const [error, setError] = useState('')
   
   useEffect(() => {
-    if (MOCK_MODE) {
+    // Skip onboarding in dev mode
+    if (isDevMode) {
       router.push('/dashboard')
     }
   }, [router])
@@ -78,7 +80,8 @@ export default function OnboardingPage() {
           </EtherealCardHeader>
 
           <EtherealCardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <FormErrorBoundary onError={(error) => console.error('Onboarding form error:', error)}>
+              <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-[#243837]">Basic Information</h3>
@@ -251,6 +254,7 @@ export default function OnboardingPage() {
                 )}
               </EtherealButton>
             </form>
+            </FormErrorBoundary>
           </EtherealCardContent>
         </EtherealCard>
       </div>

@@ -290,7 +290,7 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
                 )}
               >
                 <FileText className="h-4 w-4" />
-                <span>Annual Returns</span>
+                <span>All Reports</span>
               </Link>
               <Link
                 href="/reports/ai"

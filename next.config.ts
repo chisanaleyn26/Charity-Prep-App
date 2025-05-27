@@ -37,13 +37,14 @@ const securityHeaders = [
 const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' blob: data: https://imagedelivery.net https://www.google-analytics.com;
-  font-src 'self' https://fonts.gstatic.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com;
+  img-src 'self' blob: data: https://imagedelivery.net https://www.google-analytics.com https://*.supabase.co;
+  font-src 'self' https://fonts.gstatic.com data:;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
   frame-ancestors 'none';
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openrouter.ai;
   block-all-mixed-content;
   upgrade-insecure-requests;
 `
@@ -87,35 +88,11 @@ const nextConfig: NextConfig = {
   
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
-    // Only run optimizations in production
-    if (!dev) {
-      // Bundle analyzer (comment out for normal builds)
-      // if (process.env.ANALYZE === 'true') {
-      //   const withBundleAnalyzer = require('@next/bundle-analyzer')({
-      //     enabled: true,
-      //   })
-      //   return withBundleAnalyzer(config)
-      // }
-      
-      // Optimize bundle size
+    // Production optimizations only
+    if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              enforce: true,
-            },
-          },
-        },
+        minimize: true,
       }
     }
     
@@ -124,7 +101,7 @@ const nextConfig: NextConfig = {
   
   // Experimental features for performance
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false, // Disabled due to critters issue
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
@@ -141,7 +118,7 @@ const nextConfig: NextConfig = {
   },
   
   // Static generation optimization
-  output: 'standalone',
+  // output: 'standalone', // Temporarily disabled to fix build issues
   
   // Headers
   async headers() {
@@ -204,4 +181,4 @@ const nextConfig: NextConfig = {
   }
 };
 
-module.exports = nextConfig;
+export default nextConfig;

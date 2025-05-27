@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { toast } from 'sonner'
+import { FormErrorBoundary } from '@/components/common/error-boundary'
 
 // Minimal form that only uses existing schema fields
 export function OverseasActivitiesForm({ activity, onSuccess }: any) {
@@ -36,8 +37,9 @@ export function OverseasActivitiesForm({ activity, onSuccess }: any) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <FormErrorBoundary onError={(error) => console.error('Overseas form error:', error)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="activity_name"
@@ -58,5 +60,6 @@ export function OverseasActivitiesForm({ activity, onSuccess }: any) {
         </Button>
       </form>
     </Form>
+    </FormErrorBoundary>
   )
 }

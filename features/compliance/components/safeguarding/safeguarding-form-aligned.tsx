@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { createSafeguardingRecord, updateSafeguardingRecord } from '../../services/safeguarding-aligned'
 import type { SafeguardingRecord, SafeguardingRoleType, DBSCheckType } from '../../types/safeguarding-aligned'
+import { FormErrorBoundary } from '@/components/common/error-boundary'
 
 interface SafeguardingFormProps {
   record?: SafeguardingRecord
@@ -76,7 +77,8 @@ export function SafeguardingFormAligned({ record, onSubmit, onCancel }: Safeguar
   return (
     <Card>
       <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormErrorBoundary onError={(error) => console.error('Safeguarding form error:', error)}>
+          <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="person_name">Person Name *</Label>
@@ -259,6 +261,7 @@ export function SafeguardingFormAligned({ record, onSubmit, onCancel }: Safeguar
             </Button>
           </div>
         </form>
+        </FormErrorBoundary>
       </CardContent>
     </Card>
   )

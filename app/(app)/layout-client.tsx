@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { MobileSidebar, MobileHeader } from '@/components/layout/mobile-sidebar'
 import { OrganizationProvider } from '@/features/organizations/components/organization-provider'
+import { DevToolbar } from '@/components/dev/dev-toolbar'
 import { Tables } from '@/lib/types/database.types'
 
 type Organization = Tables<'organizations'>
@@ -32,7 +33,7 @@ export function AppLayoutClient({
 
   return (
     <OrganizationProvider>
-      <div className="flex h-screen bg-gray-50 touch-manipulation">
+      <div className="flex h-screen bg-background touch-manipulation">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
           <Sidebar 
@@ -65,6 +66,16 @@ export function AppLayoutClient({
           </main>
         </div>
       </div>
+      
+      {/* Dev Toolbar - only shown in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <DevToolbar 
+          user={{
+            email: 'dev@charityprep.uk',
+            role: 'admin'
+          }}
+        />
+      )}
     </OrganizationProvider>
   )
 }

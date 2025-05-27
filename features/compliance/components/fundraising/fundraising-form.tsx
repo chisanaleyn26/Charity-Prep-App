@@ -14,6 +14,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Checkbox } from '@/components/ui/checkbox'
 import { FundraisingActivity, FundraisingActivityFormData, incomeRecordSchema } from '../../types/fundraising'
 import { createFundraisingActivity, updateFundraisingActivity } from '../../actions/fundraising'
+import { FormErrorBoundary } from '@/components/common/error-boundary'
 
 interface FundraisingFormProps {
   activity?: FundraisingActivity
@@ -83,8 +84,9 @@ export function FundraisingForm({ activity, onSuccess }: FundraisingFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormErrorBoundary onError={(error) => console.error('Fundraising form error:', error)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -374,5 +376,6 @@ export function FundraisingForm({ activity, onSuccess }: FundraisingFormProps) {
         </div>
       </form>
     </Form>
+    </FormErrorBoundary>
   )
 }

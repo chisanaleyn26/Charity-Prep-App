@@ -1,37 +1,42 @@
 'use client'
 
-import { ComplianceChatWorking } from '@/features/ai/components/compliance-chat-working'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Bot,
-  Info
-} from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
+
+// Dynamic import with ssr: false to prevent hydration mismatch
+const ComplianceChat = dynamic(
+  () => import('@/features/ai/components/compliance-chat-fixed').then(mod => mod.ComplianceChatFixed),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+        <div className="lg:col-span-2">
+          <Card className="h-full">
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[400px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-32" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+)
 
 export default function ComplianceChatPage() {
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Bot className="h-8 w-8 text-primary" />
-          Compliance Assistant
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Get instant answers to your charity compliance questions
-        </p>
-      </div>
-
-      {/* Info Alert */}
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          This AI assistant provides guidance based on UK charity regulations and best practices. 
-          For critical decisions, always verify information with official sources or seek professional advice.
-        </AlertDescription>
-      </Alert>
-
-      {/* Chat Interface */}
-      <ComplianceChatWorking />
-    </div>
-  )
+  return <ComplianceChat />
 }

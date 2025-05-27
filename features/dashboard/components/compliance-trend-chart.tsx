@@ -3,11 +3,9 @@
 import React from 'react'
 import { TrendingUp, Calendar } from 'lucide-react'
 import { mockComplianceTrend } from '@/lib/mock-data'
+import { appConfig } from '@/lib/config'
 
-// MOCK MODE
-const MOCK_MODE = true
-
-const monthlyData = MOCK_MODE ? mockComplianceTrend.map(item => ({
+const monthlyData = appConfig.features.mockMode ? mockComplianceTrend.map(item => ({
   month: new Date(item.date).toLocaleString('default', { month: 'short' }),
   score: item.score
 })) : [

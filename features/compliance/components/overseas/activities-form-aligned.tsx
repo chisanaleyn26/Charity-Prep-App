@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { OverseasActivity, OverseasActivityFormData, overseasActivitySchema } from '../../types/overseas-activities'
 import { createOverseasActivity, updateOverseasActivity } from '../../actions/overseas-activities'
 import { countries } from '@/lib/data/countries'
+import { FormErrorBoundary } from '@/components/common/error-boundary'
 
 interface OverseasActivitiesFormProps {
   activity?: OverseasActivity
@@ -86,8 +87,9 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <FormErrorBoundary onError={(error) => console.error('Overseas activities form error:', error)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Basic Information */}
         <div className="space-y-4">
           <FormField
@@ -512,5 +514,6 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
         </div>
       </form>
     </Form>
+    </FormErrorBoundary>
   )
 }

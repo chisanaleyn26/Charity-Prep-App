@@ -2,34 +2,35 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-// import { 
-//   mapCSVColumns, 
-//   getModuleSchema 
-// } from '@/lib/ai/csv-mapper'
-// import { 
-//   extractDocumentData,
-//   extractDBSCertificate,
-//   extractReceipt 
-// } from '@/lib/ai/ocr-extraction'
-// import { 
-//   processComplianceEmail,
-//   parseEmailWebhook,
-//   type EmailData
-// } from '@/lib/ai/email-processor'
-// import { searchCompliance } from '@/lib/ai/search'
-// import { 
-//   generateBoardNarrative,
-//   generateAnnualReturnNarratives,
-//   generateActionSummary,
-//   generateRiskAssessment,
-//   type NarrativeOptions
-// } from '@/lib/ai/narrative-generator'
-// import { 
-//   answerComplianceQuestion,
-//   getSuggestedQuestions,
-//   searchRegulations,
-//   generateComplianceChecklist
-// } from '@/lib/ai/compliance-qa'
+import { withErrorHandling, DatabaseError, ValidationError, NetworkError } from '@/lib/utils/error-handling'
+import { 
+  mapCSVColumns, 
+  getModuleSchema 
+} from '@/lib/ai/csv-mapper'
+import { 
+  extractDocumentData,
+  extractDBSCertificate,
+  extractReceipt 
+} from '@/lib/ai/ocr-extraction'
+import { 
+  processComplianceEmail,
+  parseEmailWebhook,
+  type EmailData
+} from '@/lib/ai/email-processor'
+import { searchCompliance } from '@/lib/ai/search'
+import { 
+  generateBoardNarrative,
+  generateAnnualReturnNarratives,
+  generateActionSummary,
+  generateRiskAssessment,
+  type NarrativeOptions
+} from '@/lib/ai/narrative-generator'
+import { 
+  answerComplianceQuestion,
+  getSuggestedQuestions,
+  searchRegulations,
+  generateComplianceChecklist
+} from '@/lib/ai/compliance-qa'
 
 // Input schemas
 const csvMappingSchema = z.object({
@@ -76,25 +77,37 @@ export async function aiMapCSVColumns(
   organizationId: string,
   input: unknown
 ) {
-  const validated = csvMappingSchema.safeParse(input)
-  if (!validated.success) {
-    return { error: 'Invalid input' }
+  const result = await withErrorHandling(async () => {
+    const validated = csvMappingSchema.safeParse(input)
+    if (!validated.success) {
+      throw new ValidationError('Invalid input: ' + validated.error.message)
+    }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error('Unauthorized')
+    }
+
+    const schema = getModuleSchema(validated.data.moduleType)
+    const mappingResult = await mapCSVColumns(
+      validated.data.headers,
+      schema,
+      validated.data.moduleType
+    )
+
+    return mappingResult
+  }, {
+    component: 'ai-api',
+    operation: 'aiMapCSVColumns',
+    organizationId
+  })
+
+  if (!result.success) {
+    return { error: result.error }
   }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { error: 'Unauthorized' }
-  }
-
-  // const schema = getModuleSchema(validated.data.moduleType)
-  // const result = await mapCSVColumns(
-  //   validated.data.headers,
-  //   schema,
-  //   validated.data.moduleType
-  // )
-
-  return { mappings: {}, confidence: 0, suggestions: [] }
+  return result.data
 }
 
 /**
@@ -127,12 +140,12 @@ export async function aiExtractDocument(
     return { error: 'Access denied' }
   }
 
-  // const result = await extractDocumentData(
-  //   validated.data.imageBase64,
-  //   validated.data.documentHint
-  // )
+  const result = await extractDocumentData(
+    validated.data.imageBase64,
+    validated.data.documentHint
+  )
 
-  return { data: {}, confidence: 0, suggestions: [] }
+  return result
 }
 
 /**
@@ -142,39 +155,37 @@ export async function aiProcessEmailWebhook(
   provider: string,
   payload: any
 ) {
-  return { error: 'Email processing temporarily unavailable' }
+  // Parse webhook based on provider
+  const emailData = parseEmailWebhook(provider, payload)
+  if (!emailData) {
+    return { error: 'Unsupported email provider' }
+  }
+
+  // Extract organization ID from email address
+  // Expected format: data-{orgId}@charityprep.uk
+  const match = emailData.to.match(/data-([a-f0-9-]+)@/)
+  if (!match) {
+    return { error: 'Invalid recipient address' }
+  }
+
+  const organizationId = match[1]
   
-  // // Parse webhook based on provider
-  // const emailData = parseEmailWebhook(provider, payload)
-  // if (!emailData) {
-  //   return { error: 'Unsupported email provider' }
-  // }
+  // Verify organization exists
+  const supabase = await createClient()
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('id')
+    .eq('id', organizationId)
+    .single()
 
-  // // Extract organization ID from email address
-  // // Expected format: data-{orgId}@charityprep.uk
-  // const match = emailData.to.match(/data-([a-f0-9-]+)@/)
-  // if (!match) {
-  //   return { error: 'Invalid recipient address' }
-  // }
+  if (!org) {
+    return { error: 'Organization not found' }
+  }
 
-  // const organizationId = match[1]
+  // Process the email
+  const result = await processComplianceEmail(emailData, organizationId)
   
-  // // Verify organization exists
-  // const supabase = await createClient()
-  // const { data: org } = await supabase
-  //   .from('organizations')
-  //   .select('id')
-  //   .eq('id', organizationId)
-  //   .single()
-
-  // if (!org) {
-  //   return { error: 'Organization not found' }
-  // }
-
-  // // Process the email
-  // const result = await processComplianceEmail(emailData, organizationId)
-  
-  // return result
+  return result
 }
 
 /**
@@ -207,16 +218,16 @@ export async function aiSearchCompliance(
     return { error: 'Access denied' }
   }
 
-  // const result = await searchCompliance(
-  //   validated.data.query,
-  //   organizationId,
-  //   {
-  //     types: validated.data.types,
-  //     limit: validated.data.limit
-  //   }
-  // )
+  const result = await searchCompliance(
+    validated.data.query,
+    organizationId,
+    {
+      types: validated.data.types,
+      limit: validated.data.limit
+    }
+  )
 
-  return { results: [], totalCount: 0 }
+  return result
 }
 
 /**
@@ -287,17 +298,17 @@ export async function aiGenerateBoardNarrative(
     countries || []
   )
 
-  // const result = await generateBoardNarrative(
-  //   org.name,
-  //   scores,
-  //   {
-  //     start: new Date(validated.data.period.start),
-  //     end: new Date(validated.data.period.end)
-  //   },
-  //   validated.data.options
-  // )
+  const result = await generateBoardNarrative(
+    org.name,
+    scores,
+    {
+      start: new Date(validated.data.period.start),
+      end: new Date(validated.data.period.end)
+    },
+    validated.data.options
+  )
 
-  return { narrative: "Board narrative generation temporarily unavailable", recommendations: [] }
+  return result
 }
 
 /**
@@ -318,16 +329,16 @@ export async function aiAnswerCompliance(
     return { error: 'Unauthorized' }
   }
 
-  // const result = await answerComplianceQuestion(
-  //   validated.data.question,
-  //   {
-  //     organizationId,
-  //     userId: user.id,
-  //     conversationHistory: validated.data.conversationHistory
-  //   }
-  // )
+  const result = await answerComplianceQuestion(
+    validated.data.question,
+    {
+      organizationId,
+      userId: user.id,
+      conversationHistory: validated.data.conversationHistory
+    }
+  )
 
-  return { answer: "AI compliance Q&A temporarily unavailable", sources: [] }
+  return result
 }
 
 /**
@@ -340,9 +351,9 @@ export async function aiGetSuggestedQuestions(organizationId: string) {
     return { error: 'Unauthorized' }
   }
 
-  // const questions = await getSuggestedQuestions(organizationId)
+  const questions = await getSuggestedQuestions(organizationId)
   
-  return { questions: [] }
+  return { questions }
 }
 
 /**
@@ -365,10 +376,10 @@ export async function aiGenerateChecklist(
     .eq('id', organizationId)
     .single()
 
-  // const result = await generateComplianceChecklist(topic, {
-  //   income_band: org?.income_band,
-  //   charity_type: org?.charity_type
-  // })
+  const result = await generateComplianceChecklist(topic, {
+    income_band: org?.income_band,
+    charity_type: org?.charity_type
+  })
 
-  return { checklist: [], description: "Checklist generation temporarily unavailable" }
+  return result
 }
