@@ -3,6 +3,11 @@
 import React from 'react'
 import { Shield, Globe, Coins, FileText, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { DashboardData } from '@/lib/api/dashboard'
+
+interface CategoryBreakdownProps {
+  breakdown: DashboardData['compliance']['breakdown']
+}
 
 interface Category {
   name: string
@@ -12,38 +17,30 @@ interface Category {
   items: number
 }
 
-const categories: Category[] = [
-  {
-    name: 'Safeguarding',
-    score: 95,
-    icon: Shield,
-    color: 'bg-primary',
-    items: 47
-  },
-  {
-    name: 'International',
-    score: 88,
-    icon: Globe,
-    color: 'bg-sage',
-    items: 12
-  },
-  {
-    name: 'Fundraising',
-    score: 92,
-    icon: Coins,
-    color: 'bg-mist',
-    items: 23
-  },
-  {
-    name: 'Documents',
-    score: 85,
-    icon: FileText,
-    color: 'bg-warning',
-    items: 18
-  }
-]
-
-export function CategoryBreakdownChart() {
+export function CategoryBreakdownChart({ breakdown }: CategoryBreakdownProps) {
+  const categories: Category[] = [
+    {
+      name: 'Safeguarding',
+      score: breakdown.safeguarding,
+      icon: Shield,
+      color: 'bg-primary',
+      items: 0 // Will be updated with real data
+    },
+    {
+      name: 'International',
+      score: breakdown.overseas,
+      icon: Globe,
+      color: 'bg-sage',
+      items: 0
+    },
+    {
+      name: 'Fundraising',
+      score: breakdown.income,
+      icon: Coins,
+      color: 'bg-mist',
+      items: 0
+    }
+  ]
   const averageScore = Math.round(categories.reduce((sum, cat) => sum + cat.score, 0) / categories.length)
   
   const getScoreColor = (score: number) => {

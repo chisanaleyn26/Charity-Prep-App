@@ -1,41 +1,162 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { Check, Crown, Zap } from 'lucide-react'
+import { STRIPE_PRODUCTS, formatPrice, getPriceId, getStripeClient, createCheckoutSession, type SubscriptionTier } from '@/lib/payments/stripe'
+import { useAuthStore } from '@/stores/auth-store'
+import { getSubscriptionOverview } from '@/features/subscription/services/subscription-service'
+import { toast } from 'sonner'
+
+interface CurrentSubscription {
+  tier: SubscriptionTier | null
+  status: string | null
+  billingCycle: 'monthly' | 'yearly' | null
+}
 
 export function Pricing() {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly')
+  const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription>({
+    tier: null,
+    status: null,
+    billingCycle: null
+  })
+  
+  const { user, currentOrganization } = useAuthStore()
+
+  // Load current subscription status
+  useEffect(() => {
+    async function loadSubscription() {
+      if (!currentOrganization?.id) return
+      
+      try {
+        const overview = await getSubscriptionOverview(currentOrganization.id)
+        setCurrentSubscription({
+          tier: overview.tier,
+          status: overview.status,
+          billingCycle: overview.billingCycle
+        })
+      } catch (error) {
+        console.error('Error loading subscription:', error)
+      }
+    }
+    
+    loadSubscription()
+  }, [currentOrganization?.id])
+
   const plans = [
     {
+      tier: 'ESSENTIALS' as const,
       name: 'Essentials',
-      price: '£199',
-      period: '/year',
-      description: 'For smaller charities',
-      note: 'Income under £100k',
-      features: [
-        'All compliance modules',
-        'AI email processing',
-        'Annual return generation',
-        'Smart reminders',
-        '2 user accounts',
-      ],
+      description: 'Perfect for small charities getting started',
+      note: 'Great for charities under £100k income',
+      popular: false,
+      icon: <Zap className="w-6 h-6" />,
+      price: STRIPE_PRODUCTS.ESSENTIALS.price,
+      features: STRIPE_PRODUCTS.ESSENTIALS.features,
+      limits: STRIPE_PRODUCTS.ESSENTIALS.limits
     },
     {
+      tier: 'STANDARD' as const,
       name: 'Standard',
-      price: '£549',
-      period: '/year',
-      description: 'For growing charities',
-      note: '£100k - £1M income',
+      description: 'Most popular for growing charities',
+      note: 'Perfect for charities £100k - £1M income',
       popular: true,
-      features: [
-        'Everything in Essentials',
-        'Up to 5 user accounts',
-        'Document OCR extraction',
-        'Priority support',
-        'Advanced reporting',
-      ],
+      icon: <Crown className="w-6 h-6" />,
+      price: STRIPE_PRODUCTS.STANDARD.price,
+      features: STRIPE_PRODUCTS.STANDARD.features,
+      limits: STRIPE_PRODUCTS.STANDARD.limits
+    },
+    {
+      tier: 'PREMIUM' as const,
+      name: 'Premium',
+      description: 'For large charities and multi-charity advisors',
+      note: 'Unlimited features for complex needs',
+      popular: false,
+      icon: <Crown className="w-6 h-6 text-yellow-500" />,
+      price: STRIPE_PRODUCTS.PREMIUM.price,
+      features: STRIPE_PRODUCTS.PREMIUM.features,
+      limits: STRIPE_PRODUCTS.PREMIUM.limits
     },
   ]
+
+  const handleSubscribe = async (tier: SubscriptionTier) => {
+    if (!user || !currentOrganization) {
+      toast.error('Please log in first')
+      return
+    }
+
+    if (currentSubscription.tier === tier) {
+      toast.info('You are already subscribed to this plan')
+      return
+    }
+
+    setIsLoading(tier)
+
+    try {
+      const priceId = getPriceId(tier, billingCycle)
+      
+      const response = await fetch('/api/billing/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          organizationId: currentOrganization.id,
+          successUrl: `${window.location.origin}/dashboard?checkout=success`,
+          cancelUrl: `${window.location.origin}/?checkout=canceled`,
+          customerEmail: user.email,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
+      }
+
+      const { sessionId } = await response.json()
+      const stripe = await getStripeClient()
+      
+      if (!stripe) {
+        throw new Error('Stripe not loaded')
+      }
+
+      const { error } = await stripe.redirectToCheckout({ sessionId })
+      
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      toast.error('Failed to start checkout process')
+    } finally {
+      setIsLoading(null)
+    }
+  }
+
+  const getButtonText = (tier: SubscriptionTier) => {
+    if (!user) return 'Sign up'
+    if (currentSubscription.tier === tier) {
+      return currentSubscription.status === 'active' ? 'Current plan' : 'Reactivate'
+    }
+    if (currentSubscription.tier && currentSubscription.tier !== tier) {
+      return 'Upgrade'
+    }
+    return 'Subscribe'
+  }
+
+  const getButtonVariant = (tier: SubscriptionTier, popular: boolean) => {
+    if (currentSubscription.tier === tier && currentSubscription.status === 'active') {
+      return 'outline'
+    }
+    return popular ? 'default' : 'outline'
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -86,10 +207,36 @@ export function Pricing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-xl text-[#666] font-light"
+            className="text-xl text-[#666] font-light mb-8"
           >
             Choose what works for your charity.
           </motion.p>
+          
+          {/* Billing cycle toggle */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+            className="flex items-center justify-center gap-4 p-4 bg-white rounded-full border border-gray-200 max-w-xs mx-auto"
+          >
+            <Label htmlFor="billing-toggle" className={`text-sm font-medium transition-colors ${
+              billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'
+            }`}>
+              Monthly
+            </Label>
+            <Switch
+              id="billing-toggle"
+              checked={billingCycle === 'yearly'}
+              onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
+            />
+            <Label htmlFor="billing-toggle" className={`text-sm font-medium transition-colors ${
+              billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'
+            }`}>
+              Yearly
+              <Badge variant="secondary" className="ml-2 text-xs">2 months free</Badge>
+            </Label>
+          </motion.div>
         </motion.div>
 
         <motion.div 
@@ -97,81 +244,129 @@ export function Pricing() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto"
+          className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
         >
-          {plans.map((plan, index) => (
-            <motion.div
-              key={index}
-              variants={cardVariants}
-              whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className={`bg-white border rounded-2xl p-8 transition-all duration-200 hover:shadow-sm flex flex-col h-full ${
-                plan.popular ? 'border-[#B1FA63]' : 'border-[#eee] hover:border-[#B1FA63]'
-              }`}
-            >
-              {/* Fixed height badge area */}
-              <div className="h-8 mb-6">
-                {plan.popular && (
-                  <motion.div 
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                    className="inline-block bg-[#B1FA63] text-[#1a1a1a] text-xs font-medium px-3 py-1 rounded-full"
-                  >
-                    Popular
-                  </motion.div>
-                )}
-              </div>
-              
-              {/* Fixed height header area */}
-              <div className="mb-8 min-h-[120px]">
-                <h3 className="text-2xl font-medium text-[#1a1a1a] mb-2">
-                  {plan.name}
-                </h3>
-                <div className="mb-2">
-                  <span className="text-4xl font-light text-[#1a1a1a]">
-                    {plan.price}
-                  </span>
-                  <span className="text-[#666] ml-2">{plan.period}</span>
-                </div>
-                <p className="text-[#666] font-light mb-1">{plan.description}</p>
-                <p className="text-sm text-[#999] font-light">{plan.note}</p>
-              </div>
-              
-              {/* Features list with consistent spacing */}
-              <ul className="space-y-3 mb-8 flex-grow min-h-[160px]">
-                {plan.features.map((feature, featureIndex) => (
-                  <motion.li 
-                    key={featureIndex} 
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.6 + featureIndex * 0.1, duration: 0.4 }}
-                    className="flex items-start gap-3"
-                  >
-                    <span className="w-1.5 h-1.5 bg-[#1a1a1a] rounded-full mt-2 flex-shrink-0"></span>
-                    <span className="text-[#1a1a1a] font-light">{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
-              
+          {plans.map((plan, index) => {
+            const currentPrice = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly
+            const isCurrentPlan = currentSubscription.tier === plan.tier
+            
+            return (
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                key={plan.tier}
+                variants={cardVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className={`bg-white border rounded-2xl p-8 transition-all duration-200 hover:shadow-lg flex flex-col h-full relative ${
+                  plan.popular 
+                    ? 'border-[#B1FA63] shadow-md ring-2 ring-[#B1FA63]/20' 
+                    : isCurrentPlan 
+                      ? 'border-blue-200 ring-2 ring-blue-200/20'
+                      : 'border-[#eee] hover:border-[#B1FA63]'
+                }`}
               >
-                <Link
-                  href="/login"
-                  className={`block w-full text-center py-3 rounded-full font-medium transition-colors duration-200 ${
-                    plan.popular 
-                      ? 'bg-[#B1FA63] text-[#1a1a1a] hover:bg-[#9FE050]'
-                      : 'border border-[#1a1a1a] text-[#1a1a1a] hover:bg-[#B1FA63] hover:text-[#1a1a1a]'
-                  }`}
+                {/* Current plan indicator */}
+                {isCurrentPlan && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-blue-500 hover:bg-blue-500">
+                      Current Plan
+                    </Badge>
+                  </div>
+                )}
+                
+                {/* Fixed height badge area */}
+                <div className="h-8 mb-6">
+                  {plan.popular && !isCurrentPlan && (
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                      className="inline-block bg-[#B1FA63] text-[#1a1a1a] text-xs font-medium px-3 py-1 rounded-full"
+                    >
+                      Most Popular
+                    </motion.div>
+                  )}
+                </div>
+                
+                {/* Fixed height header area */}
+                <div className="mb-8 min-h-[140px]">
+                  <div className="flex items-center gap-3 mb-3">
+                    {plan.icon}
+                    <h3 className="text-2xl font-medium text-[#1a1a1a]">
+                      {plan.name}
+                    </h3>
+                  </div>
+                  <div className="mb-3">
+                    <span className="text-4xl font-light text-[#1a1a1a]">
+                      {formatPrice(currentPrice)}
+                    </span>
+                    <span className="text-[#666] ml-2">/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                    {billingCycle === 'yearly' && (
+                      <div className="text-sm text-green-600 font-medium mt-1">
+                        Save {formatPrice(plan.price.monthly * 12 - plan.price.yearly)} per year
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[#666] font-light mb-1">{plan.description}</p>
+                  <p className="text-sm text-[#999] font-light">{plan.note}</p>
+                </div>
+                
+                {/* Features list with consistent spacing */}
+                <ul className="space-y-3 mb-8 flex-grow">
+                  {plan.features.map((feature, featureIndex) => (
+                    <motion.li 
+                      key={featureIndex} 
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.6 + featureIndex * 0.1, duration: 0.4 }}
+                      className="flex items-start gap-3"
+                    >
+                      <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-[#1a1a1a] font-light text-sm">{feature}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+                
+                {/* Usage limits */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Plan includes:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div>Users: {plan.limits.users === -1 ? 'Unlimited' : plan.limits.users}</div>
+                    <div>Storage: {plan.limits.storage === -1 ? 'Unlimited' : `${Math.round(plan.limits.storage / (1024 * 1024))}MB`}</div>
+                    <div>AI Requests: {plan.limits.aiRequests === -1 ? 'Unlimited' : plan.limits.aiRequests}/month</div>
+                    <div>Exports: {plan.limits.exports === -1 ? 'Unlimited' : plan.limits.exports}/month</div>
+                  </div>
+                </div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Try CharityPrep
-                </Link>
+                  <Button
+                    onClick={() => user ? handleSubscribe(plan.tier) : null}
+                    disabled={isLoading === plan.tier || (isCurrentPlan && currentSubscription.status === 'active')}
+                    variant={getButtonVariant(plan.tier, plan.popular)}
+                    className={`w-full ${
+                      plan.popular && !isCurrentPlan
+                        ? 'bg-[#B1FA63] text-[#1a1a1a] hover:bg-[#9FE050] border-[#B1FA63]'
+                        : ''
+                    }`}
+                    asChild={!user}
+                  >
+                    {!user ? (
+                      <Link href="/login">
+                        {getButtonText(plan.tier)}
+                      </Link>
+                    ) : (
+                      <span>
+                        {isLoading === plan.tier ? 'Loading...' : getButtonText(plan.tier)}
+                      </span>
+                    )}
+                  </Button>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          ))}
+            )
+          })}
         </motion.div>
         
         <motion.div 
@@ -181,12 +376,14 @@ export function Pricing() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-16"
         >
-          <div className="flex justify-center items-center gap-8 text-sm text-[#999] font-light">
-            <span>30-day trial</span>
-            <span className="w-1 h-1 bg-[#ddd] rounded-full"></span>
-            <span>No credit card required</span>
-            <span className="w-1 h-1 bg-[#ddd] rounded-full"></span>
+          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-[#999] font-light">
+            <span>30-day free trial</span>
+            <span className="w-1 h-1 bg-[#ddd] rounded-full hidden sm:block"></span>
+            <span>No credit card required for trial</span>
+            <span className="w-1 h-1 bg-[#ddd] rounded-full hidden sm:block"></span>
             <span>Cancel anytime</span>
+            <span className="w-1 h-1 bg-[#ddd] rounded-full hidden sm:block"></span>
+            <span>Secure payments by Stripe</span>
           </div>
         </motion.div>
       </div>

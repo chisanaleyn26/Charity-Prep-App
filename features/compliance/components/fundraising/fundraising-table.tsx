@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ResponsiveTable, type TableColumn } from '@/components/ui/responsive-table'
 import { FundraisingActivity, getActivityTypeLabel, getStatusColor, calculateProgress, getProgressColor, requiresComplianceCheck, getDaysRemaining, getMethodLabel } from '../../types/fundraising'
 import { FundraisingForm } from './fundraising-form'
 import { deleteFundraisingActivity, markComplianceComplete } from '../../actions/fundraising'
@@ -85,6 +85,151 @@ export function FundraisingTable({ initialActivities }: FundraisingTableProps) {
     })
   }
 
+  const columns: TableColumn[] = [
+    {
+      key: 'details',
+      label: 'Income Details',
+      mobile: 'primary',
+      render: (_, activity: FundraisingActivity) => (
+        <div>
+          <div className="font-medium">
+            {activity.campaign_name || activity.donor_name || 'Income Record'}
+          </div>
+          {activity.notes && (
+            <div className="text-sm text-muted-foreground line-clamp-2">
+              {activity.notes}
+            </div>
+          )}
+          {activity.donor_name && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Donor: {activity.donor_name}
+            </div>
+          )}
+          {activity.reference_number && (
+            <div className="text-xs text-muted-foreground">
+              Ref: {activity.reference_number}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'source',
+      label: 'Source',
+      mobile: 'visible',
+      render: (_, activity: FundraisingActivity) => (
+        <Badge variant="outline" className="bg-mist-50 text-mist-700 border-mist-200">
+          {getActivityTypeLabel(activity.source)}
+        </Badge>
+      )
+    },
+    {
+      key: 'amount',
+      label: 'Amount',
+      mobile: 'secondary',
+      render: (_, activity: FundraisingActivity) => (
+        <div className="space-y-1">
+          <div className="text-lg font-semibold">
+            {formatCurrency(activity.amount)}
+          </div>
+          {activity.gift_aid_eligible && (
+            <div className="text-xs text-success">
+              Gift Aid Eligible
+            </div>
+          )}
+          {activity.restricted_funds && (
+            <div className="text-xs text-warning">
+              Restricted
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'method',
+      label: 'Method',
+      mobile: 'hidden',
+      render: (_, activity: FundraisingActivity) => (
+        activity.fundraising_method ? (
+          <Badge variant="outline" className="bg-sage-50 text-sage-700 border-sage-200">
+            {getMethodLabel(activity.fundraising_method)}
+          </Badge>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        )
+      )
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      mobile: 'visible',
+      render: (_, activity: FundraisingActivity) => (
+        <div className="text-sm">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3 text-muted-foreground" />
+            {formatDate(activity.date_received)}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            FY {activity.financial_year}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'compliance',
+      label: 'Compliance',
+      mobile: 'visible',
+      render: (_, activity: FundraisingActivity) => {
+        const needsCompliance = requiresComplianceCheck(activity)
+        return needsCompliance ? (
+          <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Review Required
+          </Badge>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        )
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobile: 'visible',
+      render: (_, activity: FundraisingActivity) => (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setEditingActivity(activity)
+                  setShowEditDialog(true)
+                }}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => handleDelete(activity.id)}
+                className="text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )
+    }
+  ]
+
   return (
     <>
       <Card>
@@ -95,174 +240,39 @@ export function FundraisingTable({ initialActivities }: FundraisingTableProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Input
-              placeholder="Search income records..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="all">All Sources</option>
-              <option value="donations_legacies">Donations & Legacies</option>
-              <option value="charitable_activities">Charitable Activities</option>
-              <option value="other_trading">Other Trading</option>
-              <option value="investments">Investments</option>
-              <option value="other">Other</option>
-            </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="all">All Records</option>
-              <option value="completed">Received</option>
-            </select>
-          </div>
-
-          {/* Table */}
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Income Details</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Compliance</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredActivities.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      No income records found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredActivities.map((activity) => {
-                    const needsCompliance = requiresComplianceCheck(activity)
-                    
-                    return (
-                      <TableRow key={activity.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {activity.campaign_name || activity.donor_name || 'Income Record'}
-                            </div>
-                            {activity.notes && (
-                              <div className="text-sm text-muted-foreground line-clamp-1">
-                                {activity.notes}
-                              </div>
-                            )}
-                            {activity.donor_name && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                Donor: {activity.donor_name}
-                              </div>
-                            )}
-                            {activity.reference_number && (
-                              <div className="text-xs text-muted-foreground">
-                                Ref: {activity.reference_number}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-mist-50 text-mist-700 border-mist-200">
-                            {getActivityTypeLabel(activity.source)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="text-lg font-semibold">
-                              {formatCurrency(activity.amount)}
-                            </div>
-                            {activity.gift_aid_eligible && (
-                              <div className="text-xs text-success">
-                                Gift Aid Eligible
-                              </div>
-                            )}
-                            {activity.restricted_funds && (
-                              <div className="text-xs text-warning">
-                                Restricted
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {activity.fundraising_method ? (
-                            <Badge variant="outline" className="bg-sage-50 text-sage-700 border-sage-200">
-                              {getMethodLabel(activity.fundraising_method)}
-                            </Badge>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3 text-muted-foreground" />
-                              {formatDate(activity.date_received)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              FY {activity.financial_year}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {needsCompliance ? (
-                            <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              Review Required
-                            </Badge>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditingActivity(activity)
-                                  setShowEditDialog(true)
-                                }}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(activity.id)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            data={filteredActivities}
+            columns={columns}
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search income records..."
+            emptyMessage="No income records found"
+            className="mt-6"
+            filters={[
+              {
+                label: 'Source',
+                value: filterType,
+                onChange: setFilterType,
+                options: [
+                  { value: 'all', label: 'All Sources' },
+                  { value: 'donations_legacies', label: 'Donations & Legacies' },
+                  { value: 'charitable_activities', label: 'Charitable Activities' },
+                  { value: 'other_trading', label: 'Other Trading' },
+                  { value: 'investments', label: 'Investments' },
+                  { value: 'other', label: 'Other' }
+                ]
+              },
+              {
+                label: 'Status',
+                value: filterStatus,
+                onChange: setFilterStatus,
+                options: [
+                  { value: 'all', label: 'All Records' },
+                  { value: 'completed', label: 'Received' }
+                ]
+              }
+            ]}
+          />
         </CardContent>
       </Card>
 

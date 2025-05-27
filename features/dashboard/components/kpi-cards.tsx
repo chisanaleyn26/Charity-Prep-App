@@ -11,6 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { DashboardData } from '@/lib/api/dashboard'
 
 interface KPICard {
   title: string
@@ -22,46 +23,49 @@ interface KPICard {
   bgColor: string
 }
 
-const kpiData: KPICard[] = [
-  {
-    title: 'Compliance Score',
-    value: '92%',
-    change: 4.5,
-    changeType: 'increase',
-    icon: Shield,
-    iconColor: 'text-primary',
-    bgColor: 'bg-primary/10'
-  },
-  {
-    title: 'Active DBS Checks',
-    value: 47,
-    change: 3,
-    changeType: 'increase', 
-    icon: Users,
-    iconColor: 'text-sage',
-    bgColor: 'bg-sage/10'
-  },
-  {
-    title: 'Overseas Activities',
-    value: 12,
-    change: -2,
-    changeType: 'decrease',
-    icon: Globe,
-    iconColor: 'text-mist',
-    bgColor: 'bg-mist/10'
-  },
-  {
-    title: 'Expiring Soon',
-    value: 5,
-    change: 2,
-    changeType: 'increase',
-    icon: AlertCircle,
-    iconColor: 'text-warning',
-    bgColor: 'bg-warning/10'
-  }
-]
+interface KPICardsProps {
+  dashboardData: DashboardData
+}
 
-export function KPICards() {
+export function KPICards({ dashboardData }: KPICardsProps) {
+  const kpiData: KPICard[] = [
+    {
+      title: 'Compliance Score',
+      value: `${dashboardData.compliance.score}%`,
+      change: 4.5,
+      changeType: 'increase',
+      icon: Shield,
+      iconColor: 'text-primary',
+      bgColor: 'bg-primary/10'
+    },
+    {
+      title: 'Active DBS Checks',
+      value: dashboardData.quickStats.safeguarding.total,
+      change: 3,
+      changeType: 'increase', 
+      icon: Users,
+      iconColor: 'text-sage',
+      bgColor: 'bg-sage/10'
+    },
+    {
+      title: 'Overseas Countries',
+      value: dashboardData.quickStats.overseas.countries,
+      change: dashboardData.quickStats.overseas.highRisk > 0 ? -2 : 2,
+      changeType: dashboardData.quickStats.overseas.highRisk > 0 ? 'decrease' : 'increase',
+      icon: Globe,
+      iconColor: 'text-mist',
+      bgColor: 'bg-mist/10'
+    },
+    {
+      title: 'Expiring Soon',
+      value: dashboardData.quickStats.safeguarding.expiring,
+      change: dashboardData.quickStats.safeguarding.expiring > 0 ? 2 : 0,
+      changeType: dashboardData.quickStats.safeguarding.expiring > 0 ? 'increase' : 'decrease',
+      icon: AlertCircle,
+      iconColor: 'text-warning',
+      bgColor: 'bg-warning/10'
+    }
+  ]
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {kpiData.map((kpi, index) => (

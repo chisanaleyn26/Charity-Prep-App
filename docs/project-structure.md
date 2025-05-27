@@ -95,7 +95,7 @@ app/
 │   │   └── email/
 │   │       └── route.ts     # Email ingestion
 │   ├── webhooks/
-│   │   ├── paddle/
+│   │   ├── stripe/
 │   │   │   └── route.ts     # Payment webhooks
 │   │   └── email/
 │   │       └── route.ts     # Inbound email
@@ -298,7 +298,7 @@ services/
 │   └── annual-return.ts     # AR format
 │
 └── payments/
-    ├── paddle.ts            # Paddle SDK
+    ├── stripe.ts            # Stripe SDK
     ├── checkout.ts          # Checkout flow
     └── webhooks.ts          # Webhook handlers
 
@@ -473,9 +473,9 @@ RESEND_API_KEY=
 INBOUND_EMAIL_DOMAIN=
 
 # Payments
-PADDLE_API_KEY=
-PADDLE_PUBLIC_KEY=
-PADDLE_WEBHOOK_SECRET=
+STRIPE_SECRET_KEY=
+STRIPE_PUBLIC_KEY=
+STRIPE_WEBHOOK_SECRET=
 
 # Feature Flags
 NEXT_PUBLIC_ENABLE_AI_CHAT=
@@ -538,7 +538,7 @@ npm run start       # Start production
 
 ### Day 5: Polish & Deploy
 
-- `/app/api/webhooks` - Paddle
+- `/app/api/webhooks` - Stripe
 - `/app/api/cron` - Scheduled jobs
 - Error handling
 - Production deployment

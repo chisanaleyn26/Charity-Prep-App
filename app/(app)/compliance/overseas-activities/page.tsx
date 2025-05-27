@@ -6,6 +6,10 @@ import { getOverseasActivities, getOverseasStats } from '@/features/compliance/s
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { mockOverseasActivities } from '@/lib/mock-data'
+
+// MOCK MODE
+const MOCK_MODE = true
 
 function StatCardSkeleton() {
   return (
@@ -40,7 +44,12 @@ function TableSkeleton() {
 }
 
 async function OverseasStats() {
-  const stats = await getOverseasStats()
+  const stats = MOCK_MODE ? {
+    totalCountries: new Set(mockOverseasActivities.map(a => a.country_code).filter(Boolean)).size,
+    activeActivities: mockOverseasActivities.length,
+    totalAnnualSpend: mockOverseasActivities.reduce((sum, activity) => sum + (activity.amount_gbp || 0), 0),
+    highRiskActivities: 0
+  } : await getOverseasStats()
 
   const statCards = [
     {
@@ -105,7 +114,7 @@ async function OverseasStats() {
 }
 
 async function ActivitiesTable() {
-  const activities = await getOverseasActivities()
+  const activities = MOCK_MODE ? mockOverseasActivities : await getOverseasActivities()
   return <OverseasActivitiesTable initialActivities={activities} />
 }
 

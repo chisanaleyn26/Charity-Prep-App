@@ -41,7 +41,14 @@
       "Bash(curl:*)",
       "Bash(timeout 10s npm run dev -- --port 3002)",
       "Bash(node:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(env)",
+      "mcp__supabase__execute_sql",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(touch:*)",
+      "Bash(PORT=3001 npm run dev)",
+      "Bash(kill:*)"
     ],
     "deny": []
   }

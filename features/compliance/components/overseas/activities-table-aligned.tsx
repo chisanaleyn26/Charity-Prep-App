@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ResponsiveTable, type TableColumn } from '@/components/ui/responsive-table'
 import { OverseasActivity, getActivityTypeLabel, getTransferMethodColor, getRiskLevel, getRiskColor } from '../../types/overseas-activities'
 import { OverseasActivitiesForm } from './activities-form-aligned'
 import { deleteOverseasActivity } from '../../actions/overseas-activities'
@@ -35,9 +35,9 @@ export function OverseasActivitiesTable({ initialActivities }: OverseasActivitie
 
   const filteredActivities = activities.filter(activity => {
     const matchesSearch = 
-      activity.activity_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      getCountryName(activity.country_code).toLowerCase().includes(searchTerm.toLowerCase())
+      (activity.activity_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (activity.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getCountryName(activity.country_code || '').toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesType = filterType === 'all' || activity.activity_type === filterType
 
@@ -75,6 +75,143 @@ export function OverseasActivitiesTable({ initialActivities }: OverseasActivitie
     })
   }
 
+  const columns: TableColumn[] = [
+    {
+      key: 'activity',
+      label: 'Activity',
+      mobile: 'primary',
+      render: (_, activity: OverseasActivity) => (
+        <div>
+          <div className="font-medium">{activity.activity_name}</div>
+          {activity.description && (
+            <div className="text-sm text-muted-foreground line-clamp-2">
+              {activity.description}
+            </div>
+          )}
+          {activity.project_code && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Code: {activity.project_code}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'country',
+      label: 'Country',
+      mobile: 'secondary',
+      render: (_, activity: OverseasActivity) => (
+        <div className="flex items-center gap-2">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          {getCountryName(activity.country_code)}
+        </div>
+      )
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      mobile: 'visible',
+      render: (_, activity: OverseasActivity) => (
+        <Badge variant="outline" className="bg-mist-50 text-mist-700 border-mist-200">
+          {getActivityTypeLabel(activity.activity_type)}
+        </Badge>
+      )
+    },
+    {
+      key: 'amount',
+      label: 'Amount',
+      mobile: 'visible',
+      render: (_, activity: OverseasActivity) => (
+        <div className="text-sm">
+          <div className="font-medium">
+            {formatCurrency(activity.amount_gbp, 'GBP')}
+          </div>
+          {activity.currency && activity.currency !== 'GBP' && (
+            <div className="text-xs text-muted-foreground">
+              {formatCurrency(activity.amount, activity.currency)}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'transfer',
+      label: 'Transfer',
+      mobile: 'hidden',
+      render: (_, activity: OverseasActivity) => (
+        <div className="space-y-1">
+          <Badge variant="outline" className={getTransferMethodColor(activity.transfer_method)}>
+            {activity.transfer_method.replace(/_/g, ' ')}
+          </Badge>
+          <div className="text-xs text-muted-foreground">
+            {formatDate(activity.transfer_date)}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'compliance',
+      label: 'Compliance',
+      mobile: 'visible',
+      render: (_, activity: OverseasActivity) => {
+        const riskLevel = getRiskLevel(activity)
+        return (
+          <div className="space-y-1">
+            {activity.sanctions_check_completed ? (
+              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                Sanctions ✓
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
+                Sanctions Pending
+              </Badge>
+            )}
+            <Badge variant="outline" className={getRiskColor(riskLevel)}>
+              {riskLevel} risk
+            </Badge>
+          </div>
+        )
+      }
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      mobile: 'visible',
+      render: (_, activity: OverseasActivity) => (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setEditingActivity(activity)
+                  setShowEditDialog(true)
+                }}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => handleDelete(activity.id)}
+                className="text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )
+    }
+  ]
+
   return (
     <>
       <Card>
@@ -85,159 +222,33 @@ export function OverseasActivitiesTable({ initialActivities }: OverseasActivitie
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Input
-              placeholder="Search activities..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="all">All Types</option>
-              <option value="humanitarian_aid">Humanitarian Aid</option>
-              <option value="development">Development</option>
-              <option value="education">Education</option>
-              <option value="healthcare">Healthcare</option>
-              <option value="emergency_relief">Emergency Relief</option>
-              <option value="capacity_building">Capacity Building</option>
-              <option value="advocacy">Advocacy</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          {/* Table */}
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Country</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Transfer</TableHead>
-                  <TableHead>Compliance</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredActivities.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      No overseas activities found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredActivities.map((activity) => {
-                    const riskLevel = getRiskLevel(activity)
-                    
-                    return (
-                      <TableRow key={activity.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{activity.activity_name}</div>
-                            {activity.description && (
-                              <div className="text-sm text-muted-foreground line-clamp-1">
-                                {activity.description}
-                              </div>
-                            )}
-                            {activity.project_code && (
-                              <div className="text-xs text-muted-foreground mt-1">
-                                Code: {activity.project_code}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4 text-muted-foreground" />
-                            {getCountryName(activity.country_code)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-mist-50 text-mist-700 border-mist-200">
-                            {getActivityTypeLabel(activity.activity_type)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="font-medium">
-                              {formatCurrency(activity.amount_gbp, 'GBP')}
-                            </div>
-                            {activity.currency && activity.currency !== 'GBP' && (
-                              <div className="text-xs text-muted-foreground">
-                                {formatCurrency(activity.amount, activity.currency)}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Badge variant="outline" className={getTransferMethodColor(activity.transfer_method)}>
-                              {activity.transfer_method.replace(/_/g, ' ')}
-                            </Badge>
-                            <div className="text-xs text-muted-foreground">
-                              {formatDate(activity.transfer_date)}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {activity.sanctions_check_completed ? (
-                              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                                Sanctions ✓
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
-                                Sanctions Pending
-                              </Badge>
-                            )}
-                            <Badge variant="outline" className={getRiskColor(riskLevel)}>
-                              {riskLevel} risk
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditingActivity(activity)
-                                  setShowEditDialog(true)
-                                }}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(activity.id)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            data={filteredActivities}
+            columns={columns}
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search activities..."
+            emptyMessage="No overseas activities found"
+            className="mt-6"
+            filters={[
+              {
+                label: 'Type',
+                value: filterType,
+                onChange: setFilterType,
+                options: [
+                  { value: 'all', label: 'All Types' },
+                  { value: 'humanitarian_aid', label: 'Humanitarian Aid' },
+                  { value: 'development', label: 'Development' },
+                  { value: 'education', label: 'Education' },
+                  { value: 'healthcare', label: 'Healthcare' },
+                  { value: 'emergency_relief', label: 'Emergency Relief' },
+                  { value: 'capacity_building', label: 'Capacity Building' },
+                  { value: 'advocacy', label: 'Advocacy' },
+                  { value: 'other', label: 'Other' }
+                ]
+              }
+            ]}
+          />
         </CardContent>
       </Card>
 

@@ -442,11 +442,11 @@ Tasks:
 
 **Day 3 Complete When:**
 
-- [ ]  Email forwarding creates records
-- [ ]  CSV import with AI mapping works
-- [ ]  Document OCR extracts accurately
-- [ ]  Natural language search returns results
-- [ ]  Q&A bot answers compliance questions
+- [x]  Email forwarding creates records
+- [x]  CSV import with AI mapping works
+- [x]  Document OCR extracts accurately
+- [x]  Natural language search returns results
+- [x]  Q&A bot answers compliance questions
 
 ---
 
@@ -562,13 +562,13 @@ Features:
 ```
 Build:
 - app/(app)/settings/billing/page.tsx
-- services/payments/paddle-integration.ts
-- app/api/webhooks/paddle/route.ts
+- services/payments/stripe-integration.ts
+- app/api/webhooks/stripe/route.ts
 - features/subscription/UpgradeFlow.tsx
 
 Features:
 - Tier selection
-- Paddle checkout
+- Stripe checkout
 - Usage tracking
 - Feature limits
 
@@ -596,7 +596,7 @@ Tasks:
 - [x]  Board pack creates professional PDF (BACKEND COMPLETE)
 - [x]  All data exportable (BACKEND COMPLETE - via import/export APIs)
 - [x]  Multi-charity switching works (BACKEND COMPLETE)
-- [x]  Payment flow complete (BACKEND COMPLETE - Paddle integration)
+- [x]  Payment flow complete (BACKEND COMPLETE - Stripe integration)
 - [ ]  Annual Return UI (PENDING - Frontend)
 - [ ]  Board pack UI (PENDING - Frontend)
 - [ ]  Export UI (PENDING - Frontend)

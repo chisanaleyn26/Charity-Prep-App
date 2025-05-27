@@ -1,0 +1,83 @@
+{
+  "name": "Charity Prep - Compliance Management",
+  "short_name": "Charity Prep",
+  "description": "AI-powered compliance management for UK charities",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#B1FA63",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-GB",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View compliance dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/favicon-16x16.png", "sizes": "16x16" }]
+    },
+    {
+      "name": "Add DBS Record",
+      "short_name": "Add DBS",
+      "description": "Add new DBS record",
+      "url": "/compliance/safeguarding",
+      "icons": [{ "src": "/favicon-16x16.png", "sizes": "16x16" }]
+    },
+    {
+      "name": "Reports",
+      "short_name": "Reports",
+      "description": "Generate compliance reports",
+      "url": "/reports",
+      "icons": [{ "src": "/favicon-16x16.png", "sizes": "16x16" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Charity Prep Dashboard"
+    },
+    {
+      "src": "/screenshot-narrow.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Charity Prep Mobile"
+    }
+  ]
+}

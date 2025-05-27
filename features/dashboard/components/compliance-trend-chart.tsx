@@ -2,8 +2,15 @@
 
 import React from 'react'
 import { TrendingUp, Calendar } from 'lucide-react'
+import { mockComplianceTrend } from '@/lib/mock-data'
 
-const monthlyData = [
+// MOCK MODE
+const MOCK_MODE = true
+
+const monthlyData = MOCK_MODE ? mockComplianceTrend.map(item => ({
+  month: new Date(item.date).toLocaleString('default', { month: 'short' }),
+  score: item.score
+})) : [
   { month: 'Jul', score: 78 },
   { month: 'Aug', score: 82 },
   { month: 'Sep', score: 85 },
@@ -12,7 +19,7 @@ const monthlyData = [
   { month: 'Dec', score: 92 },
 ]
 
-export function ComplianceTrendChart() {
+export function ComplianceTrendChart({ organizationId }: { organizationId?: string }) {
   const maxScore = 100
   const chartHeight = 200
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { ComplianceChat } from '@/features/ai/components/compliance-chat'
+import { ComplianceChatWorking } from '@/features/ai/components/compliance-chat-working'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   Bot,
@@ -31,7 +31,7 @@ export default function ComplianceChatPage() {
       </Alert>
 
       {/* Chat Interface */}
-      <ComplianceChat />
+      <ComplianceChatWorking />
     </div>
   )
 }

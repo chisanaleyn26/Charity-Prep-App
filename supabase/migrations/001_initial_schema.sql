@@ -93,9 +93,9 @@ CREATE TABLE subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     
-    -- Paddle integration
-    paddle_subscription_id VARCHAR(255) UNIQUE,
-    paddle_customer_id VARCHAR(255),
+    -- Stripe integration
+    stripe_subscription_id VARCHAR(255) UNIQUE,
+    stripe_customer_id VARCHAR(255),
     
     -- Subscription details
     tier subscription_tier NOT NULL DEFAULT 'essentials',

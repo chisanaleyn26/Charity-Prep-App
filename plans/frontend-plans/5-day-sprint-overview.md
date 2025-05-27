@@ -30,7 +30,7 @@
 - Annual Return generator
 - Board pack creation
 - Multi-charity portal
-- Subscription billing with Paddle
+- Subscription billing with Stripe
 - Export functionality
 
 ### Day 5: Polish & Launch 🎯
@@ -81,7 +81,7 @@
 - **Database**: Supabase with Row-Level Security
 - **Styling**: Tailwind + Shadcn with Ethereal theme
 - **AI**: OpenRouter (Gemini 2.5 Flash)
-- **Payments**: Paddle
+- **Payments**: Stripe
 - **Deployment**: Vercel
 
 ## 🚦 Ready to Start!

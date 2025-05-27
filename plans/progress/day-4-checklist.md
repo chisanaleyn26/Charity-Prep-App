@@ -71,12 +71,12 @@ Complete Annual Return generator, board reports, and data exports that prove val
 
 ### Dev 3: Subscription & Billing (Hours 5-7)
 - [ ] Build app/(app)/settings/billing/page.tsx
-- [x] Create services/payments/paddle-integration.ts (BACKEND COMPLETE)
-- [x] Create app/api/webhooks/paddle/route.ts (BACKEND COMPLETE)
+- [x] Create services/payments/stripe-integration.ts (BACKEND COMPLETE)
+- [x] Create app/api/webhooks/stripe/route.ts (BACKEND COMPLETE)
 - [ ] Build features/subscription/UpgradeFlow.tsx
 - **Features:**
   - [ ] Tier selection
-  - [ ] Paddle checkout
+  - [ ] Stripe checkout
   - [ ] Usage tracking
   - [ ] Feature limits
 - [ ] **Test: Complete upgrade flow, webhook updates status**
@@ -103,7 +103,7 @@ Complete Annual Return generator, board reports, and data exports that prove val
   - ✅ Board Pack PDF generator with React PDF (`lib/api/board-pack.ts`)
   - ✅ Compliance certificates generator (`lib/api/certificates.ts`)
   - ✅ Multi-organization support backend (`lib/api/multi-org.ts`)
-  - ✅ Paddle billing integration (`lib/api/billing.ts`)
+  - ✅ Stripe billing integration (`lib/api/billing.ts`)
   - ✅ Data export functionality (included in Day 2 import/export)
 - **Pending**: All frontend UI components
 - **Backend Complete**: 100% of Day 4 backend tasks
@@ -111,6 +111,6 @@ Complete Annual Return generator, board reports, and data exports that prove val
 
 ## Notes
 - Consider using React PDF for report generation
-- Paddle integration needs webhook setup
+- Stripe integration needs webhook setup
 - Multi-org support already in database schema
 - Export functions can leverage existing API layer

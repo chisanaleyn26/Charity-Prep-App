@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUserOrganization } from '@/lib/supabase/server'
 import type { AITask, AITaskStatus, AITaskType } from '../types/extraction'
 
 // Create an AI task

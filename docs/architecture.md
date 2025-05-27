@@ -79,7 +79,7 @@
 - **Edge Functions**: Vercel Edge Functions
 - **Background Jobs**: Vercel Cron
 - **Email**: Resend
-- **Payments**: Paddle
+- **Payments**: Stripe
 
 ### AI/ML Stack
 
@@ -693,42 +693,46 @@ export async function sendWeeklyDigests() {
 
 ## Payment Processing
 
-### Paddle Integration
+### Stripe Integration
 
 ```tsx
-// services/payments/paddle.ts
+// services/payments/stripe.ts
 export class PaymentService {
   async createCheckoutSession(params: CheckoutParams) {
-    const session = await paddle.checkouts.create({
-      items: [{
-        priceId: PRICE_IDS[params.tier],
+    const session = await stripe.checkout.sessions.create({
+      line_items: [{
+        price: PRICE_IDS[params.tier],
         quantity: 1
       }],
-      customData: {
+      metadata: {
         organizationId: params.organizationId,
         userId: params.userId
       },
-      successUrl: `${BASE_URL}/payment/success`,
-      customer: {
-        email: params.email,
-        businessName: params.charityName,
-        taxNumber: params.charityNumber // For VAT
+      success_url: `${BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${BASE_URL}/payment/cancel`,
+      customer_email: params.email,
+      client_reference_id: params.organizationId,
+      subscription_data: {
+        metadata: {
+          charityName: params.charityName,
+          charityNumber: params.charityNumber
+        }
       }
     });
 
     return session;
   }
 
-  async handleWebhook(event: PaddleEvent) {
-    switch (event.eventType) {
-      case 'subscription.created':
-        await activateSubscription(event.data);
+  async handleWebhook(event: Stripe.Event) {
+    switch (event.type) {
+      case 'customer.subscription.created':
+        await activateSubscription(event.data.object);
         break;
-      case 'subscription.updated':
-        await updateSubscription(event.data);
+      case 'customer.subscription.updated':
+        await updateSubscription(event.data.object);
         break;
-      case 'subscription.cancelled':
-        await handleCancellation(event.data);
+      case 'customer.subscription.deleted':
+        await handleCancellation(event.data.object);
         break;
     }
   }
@@ -827,8 +831,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 SUPABASE_SERVICE_KEY=xxx
 OPENAI_API_KEY=sk-xxx
 ANTHROPIC_API_KEY=sk-ant-xxx
-PADDLE_API_KEY=xxx
-PADDLE_WEBHOOK_SECRET=xxx
+STRIPE_SECRET_KEY=sk_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
 RESEND_API_KEY=re_xxx
 SENTRY_DSN=https://xxx@sentry.io/xxx
 

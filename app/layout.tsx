@@ -13,6 +13,27 @@ export const metadata: Metadata = {
   description: 'AI-powered compliance management for UK charities. Track DBS records, manage overseas activities, and generate annual returns effortlessly.',
   keywords: 'charity compliance, annual return, DBS records, UK charity, compliance management',
   authors: [{ name: 'Charity Prep' }],
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  themeColor: [{
+    media: '(prefers-color-scheme: light)',
+    color: '#ffffff'
+  }, {
+    media: '(prefers-color-scheme: dark)', 
+    color: '#000000'
+  }],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Charity Prep'
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: 'Charity Prep - Annual Return Stress? Sorted in minutes.',
     description: 'AI-powered compliance management for UK charities.',
@@ -39,6 +60,7 @@ export const metadata: Metadata = {
     shortcut: '/favicon-16x16.png',
     apple: '/apple-touch-icon.png',
   },
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({
@@ -48,7 +70,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-sans antialiased">
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="msapplication-tap-highlight" content="no" />
+      </head>
+      <body className="font-sans antialiased touch-manipulation">
         {children}
       </body>
     </html>

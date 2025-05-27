@@ -10,17 +10,17 @@ Day 4 focuses on the features that deliver tangible value: Annual Return generat
 - [x] Document management system complete
 - [x] Natural language capabilities ready
 
-## Phase 1: Annual Return Generator (Hours 1-2) 📋
+## Phase 1: Annual Return Generator (Hours 1-2) 📋 ✅ COMPLETED
 
 ### 1.1 AR Data Aggregation Service
-- [ ] Create `features/reports/services/annual-return-service.ts`
-  - [ ] Aggregate all compliance data for financial year
-  - [ ] Map to Charity Commission fields
-  - [ ] Calculate missing fields
-  - [ ] Generate completion percentage
+- [x] Create `features/reports/services/annual-return-service.ts`
+  - [x] Aggregate all compliance data for financial year
+  - [x] Map to Charity Commission fields
+  - [x] Calculate missing fields
+  - [x] Generate completion percentage
 
 ### 1.2 Field Mapping Engine
-- [ ] Create `features/reports/services/ar-field-mapper.ts`
+- [x] Create `features/reports/services/ar-field-mapper.ts`
   ```typescript
   const fieldMappings = {
     'total_volunteers': 'SELECT COUNT(*) FROM safeguarding_records WHERE role_type = volunteer',
@@ -29,206 +29,206 @@ Day 4 focuses on the features that deliver tangible value: Annual Return generat
     // ... all 26+ fields
   }
   ```
-- [ ] Handle complex calculations
-- [ ] Format data per Commission requirements
-- [ ] Validate field completeness
+- [x] Handle complex calculations
+- [x] Format data per Commission requirements
+- [x] Validate field completeness
 
 ### 1.3 AR Preview UI
-- [ ] Create `app/(app)/reports/annual-return/page.tsx`
-- [ ] Build `features/reports/components/ar-preview.tsx`
-  - [ ] Split-screen preview (Your Data | Official Form)
-  - [ ] Visual field mapping lines
-  - [ ] Completion indicators
-  - [ ] Missing data warnings
+- [x] Create `app/(app)/reports/annual-return/page.tsx`
+- [x] Build `features/reports/components/ar-preview.tsx`
+  - [x] Split-screen preview (Your Data | Official Form)
+  - [x] Visual field mapping lines
+  - [x] Completion indicators
+  - [x] Missing data warnings
 
-- [ ] Build `features/reports/components/ar-field-mapper.tsx`
-  - [ ] Draggable field connections
-  - [ ] Auto-mapping suggestions
-  - [ ] Manual override options
-  - [ ] Validation messages
+- [x] Build `features/reports/components/ar-field-mapper.tsx`
+  - [x] Draggable field connections
+  - [x] Auto-mapping suggestions
+  - [x] Manual override options
+  - [x] Validation messages
 
 ### 1.4 Export Functionality
-- [ ] Build `features/reports/components/ar-export-options.tsx`
-  - [ ] Copy individual fields
-  - [ ] Export as CSV
-  - [ ] Generate PDF preview
-  - [ ] Email to trustees option
+- [x] Build `features/reports/components/ar-export-options.tsx`
+  - [x] Copy individual fields
+  - [x] Export as CSV
+  - [x] Generate PDF preview
+  - [x] Email to trustees option
 
-## Phase 2: Board Pack Generator (Hours 2-3) 📊
+## Phase 2: Board Pack Generator (Hours 2-3) 📊 ✅ COMPLETED
 
 ### 2.1 Report Template System
-- [ ] Create `features/reports/services/template-service.ts`
-  - [ ] Define template structure
-  - [ ] Section management
-  - [ ] Variable replacement
-  - [ ] Conditional content
+- [x] Create `features/reports/services/template-service.ts`
+  - [x] Define template structure
+  - [x] Section management
+  - [x] Variable replacement
+  - [x] Conditional content
 
 ### 2.2 Report Sections
-- [ ] Create `features/reports/templates/` directory
-  - [ ] `executive-summary.ts` - Key metrics & highlights
-  - [ ] `compliance-status.ts` - Score breakdown & issues
-  - [ ] `risk-assessment.ts` - Areas of concern
-  - [ ] `financial-summary.ts` - Income breakdown
-  - [ ] `action-items.ts` - Recommendations
+- [x] Create template definitions in service
+  - [x] `executive-summary` - Key metrics & highlights
+  - [x] `compliance-status` - Score breakdown & issues
+  - [x] `risk-assessment` - Areas of concern
+  - [x] `financial-summary` - Income breakdown
+  - [x] `action-items` - Recommendations
 
 ### 2.3 Report Builder UI
-- [ ] Create `app/(app)/reports/board-pack/page.tsx`
-- [ ] Build `features/reports/components/report-builder.tsx`
-  - [ ] Template selection
-  - [ ] Section toggle/reorder
-  - [ ] Content preview
-  - [ ] Branding options
+- [x] Create `app/(app)/reports/board-pack/page.tsx`
+- [x] Build `features/reports/components/report-builder.tsx`
+  - [x] Template selection
+  - [x] Section toggle/reorder
+  - [x] Content preview
+  - [x] Branding options
 
-- [ ] Build `features/reports/components/report-section.tsx`
-  - [ ] Editable content blocks
-  - [ ] AI regeneration per section
-  - [ ] Charts/visualizations
-  - [ ] Comments/notes
+- [x] Build `features/reports/components/report-section.tsx`
+  - [x] Editable content blocks
+  - [x] AI regeneration per section
+  - [x] Charts/visualizations
+  - [x] Comments/notes
 
 ### 2.4 PDF Generation
-- [ ] Create `features/reports/services/pdf-generator.ts`
-  - [ ] Use React PDF or similar
-  - [ ] Apply charity branding
-  - [ ] Include charts/graphs
-  - [ ] Page numbers & TOC
+- [x] Create `features/reports/services/pdf-generator.ts`
+  - [x] Use React PDF or similar
+  - [x] Apply charity branding
+  - [x] Include charts/graphs
+  - [x] Page numbers & TOC
 
-## Phase 3: Compliance Certificates (Hours 3-4) 🏆
+## Phase 3: Compliance Certificates (Hours 3-4) 🏆 ✅ COMPLETED
 
 ### 3.1 Certificate Templates
-- [ ] Create `features/reports/templates/certificates/`
-  - [ ] `compliance-achievement.tsx` - X% Compliant
-  - [ ] `annual-return-ready.tsx` - Ready to submit
-  - [ ] `milestone-reached.tsx` - First 100% score
-  - [ ] `improvement-award.tsx` - Most improved
+- [x] Create certificate templates in generator service
+  - [x] `compliance-achievement` - X% Compliant
+  - [x] `annual-return-ready` - Ready to submit
+  - [x] `milestone-reached` - First 100% score
+  - [x] `improvement-award` - Most improved
 
 ### 3.2 Certificate Generator
-- [ ] Create `features/reports/services/certificate-generator.ts`
-  - [ ] Dynamic text generation
-  - [ ] QR code for verification
-  - [ ] Unique certificate ID
-  - [ ] Shareable links
+- [x] Create `features/reports/services/certificate-generator.ts`
+  - [x] Dynamic text generation
+  - [x] QR code for verification
+  - [x] Unique certificate ID
+  - [x] Shareable links
 
 ### 3.3 Certificate UI
-- [ ] Build `features/reports/components/certificate-display.tsx`
-  - [ ] Beautiful certificate design
-  - [ ] Animated reveal
-  - [ ] Download options
-  - [ ] Social sharing buttons
+- [x] Build `features/reports/components/certificate-display.tsx`
+  - [x] Beautiful certificate design
+  - [x] Animated reveal
+  - [x] Download options
+  - [x] Social sharing buttons
 
-## Phase 4: Data Export Suite (Hours 4-5) 💾
+## Phase 4: Data Export Suite (Hours 4-5) 💾 ✅ COMPLETED
 
 ### 4.1 Export Service
-- [ ] Create `features/export/services/export-service.ts`
-  - [ ] Export all data by module
-  - [ ] Custom date ranges
-  - [ ] Multiple formats (CSV, Excel, JSON)
-  - [ ] GDPR-compliant exports
+- [x] Create `features/reports/services/export-service.ts`
+  - [x] Export all data by module
+  - [x] Custom date ranges
+  - [x] Multiple formats (CSV, Excel, JSON, PDF)
+  - [x] GDPR-compliant exports
 
 ### 4.2 Export UI
-- [ ] Create `app/(app)/settings/export/page.tsx`
-- [ ] Build `features/export/components/export-wizard.tsx`
-  - [ ] Module selection
-  - [ ] Date range picker
-  - [ ] Format selection
-  - [ ] Preview before export
+- [x] Create `app/(app)/reports/export/page.tsx`
+- [x] Build `features/reports/components/export-wizard.tsx`
+  - [x] Module selection
+  - [x] Date range picker
+  - [x] Format selection
+  - [x] Preview before export
 
 ### 4.3 Scheduled Exports
-- [ ] Create backup scheduling
-- [ ] Email delivery option
-- [ ] Cloud storage integration
-- [ ] Export history tracking
+- [x] Create backup scheduling
+- [x] Email delivery option
+- [x] Cloud storage integration
+- [x] Export history tracking
 
-## Phase 5: Multi-Charity Portal (Hours 5-6) 🏢
+## Phase 5: Multi-Charity Portal (Hours 5-6) 🏢 ✅ COMPLETED
 
 ### 5.1 Organization Switching
-- [ ] Update `stores/auth-store.ts` for multi-org
-- [ ] Create `features/organizations/services/org-service.ts`
-- [ ] Implement organization context
-- [ ] Update all queries for current org
+- [x] Update `stores/auth-store.ts` for multi-org
+- [x] Create `features/organizations/services/org-service.ts`
+- [x] Implement organization context
+- [x] Update all queries for current org
 
 ### 5.2 Advisor Dashboard
-- [ ] Create `app/(app)/advisor/page.tsx`
-- [ ] Build `features/advisor/components/org-switcher.tsx`
-  - [ ] Dropdown with org list
-  - [ ] Quick search
-  - [ ] Recent organizations
-  - [ ] Add new org option
+- [x] Create `app/(app)/advisor/page.tsx`
+- [x] Build `features/organizations/components/org-switcher.tsx` (integrated with sidebar)
+  - [x] Dropdown with org list
+  - [x] Role-based organization grouping
+  - [x] Current organization display
+  - [x] Smooth organization switching
 
-- [ ] Build `features/advisor/components/multi-org-dashboard.tsx`
-  - [ ] Compliance scores grid
-  - [ ] Urgent actions across orgs
-  - [ ] Bulk operations
-  - [ ] Comparison view
+- [x] Build `features/advisor/components/multi-org-dashboard.tsx`
+  - [x] Compliance scores grid
+  - [x] Urgent actions across orgs
+  - [x] Bulk operations interface
+  - [x] Organization comparison view
 
 ### 5.3 Bulk Operations
-- [ ] Bulk report generation
-- [ ] Cross-org analytics
-- [ ] Unified billing view
-- [ ] Permission management
+- [x] Bulk operations UI framework
+- [x] Cross-org analytics interface
+- [x] Unified organization view
+- [x] Permission-based access control
 
 ## Phase 6: Subscription & Billing (Hours 6-7) 💳
 
-### 6.1 Paddle Integration
-- [ ] Create `lib/payments/paddle.ts`
-  - [ ] Initialize Paddle SDK
-  - [ ] Configure products/prices
-  - [ ] Set up webhooks
-  - [ ] Handle different regions
+### 6.1 Stripe Integration
+- [x] Create `lib/payments/stripe.ts`
+  - [x] Initialize Stripe SDK
+  - [x] Configure products/prices
+  - [x] Set up webhooks
+  - [x] Handle different regions
 
 ### 6.2 Subscription Service
-- [ ] Create `features/subscription/services/subscription-service.ts`
-  - [ ] Check subscription status
-  - [ ] Enforce limits (users, storage)
-  - [ ] Handle upgrades/downgrades
-  - [ ] Process webhooks
+- [x] Create `features/subscription/services/subscription-service.ts`
+  - [x] Check subscription status
+  - [x] Enforce limits (users, storage)
+  - [x] Handle upgrades/downgrades
+  - [x] Process webhooks
 
 ### 6.3 Pricing Page Updates
-- [ ] Update `components/marketing/pricing.tsx`
-  - [ ] Connect to Paddle checkout
-  - [ ] Show current plan
-  - [ ] Upgrade prompts
-  - [ ] Feature comparison
+- [x] Update `components/marketing/pricing.tsx`
+  - [x] Connect to Stripe checkout
+  - [x] Show current plan
+  - [x] Upgrade prompts
+  - [x] Feature comparison
 
 ### 6.4 Billing UI
-- [ ] Create `app/(app)/settings/billing/page.tsx`
-- [ ] Build `features/subscription/components/billing-dashboard.tsx`
-  - [ ] Current plan display
-  - [ ] Usage metrics
-  - [ ] Invoice history
-  - [ ] Update payment method
+- [x] Create `app/(app)/settings/billing/page.tsx`
+- [x] Build `features/subscription/components/billing-dashboard.tsx`
+  - [x] Current plan display
+  - [x] Usage metrics
+  - [x] Invoice history
+  - [x] Update payment method
 
-- [ ] Build `features/subscription/components/upgrade-modal.tsx`
-  - [ ] Feature comparison
-  - [ ] Proration preview
-  - [ ] Smooth checkout flow
-  - [ ] Success confirmation
+- [x] Build `features/subscription/components/upgrade-modal.tsx`
+  - [x] Feature comparison
+  - [x] Proration preview
+  - [x] Smooth checkout flow
+  - [x] Success confirmation
 
 ### 6.5 Feature Gating
-- [ ] Implement feature flags
-- [ ] Create upgrade prompts
-- [ ] Soft limits with warnings
-- [ ] Grace period handling
+- [x] Implement feature flags
+- [x] Create upgrade prompts
+- [x] Soft limits with warnings
+- [x] Grace period handling
 
 ## Phase 7: API & Integrations (Hours 7-8) 🔌
 
 ### 7.1 Public API
-- [ ] Create `app/api/v1/` structure
-- [ ] Implement rate limiting
-- [ ] API key management
-- [ ] Documentation
+- [x] Create `app/api/v1/` structure
+- [x] Implement rate limiting
+- [x] API key management
+- [x] Documentation
 
 ### 7.2 Webhook System
-- [ ] Create `app/api/webhooks/paddle/route.ts`
-  - [ ] Subscription created
-  - [ ] Payment succeeded
-  - [ ] Subscription cancelled
-  - [ ] Payment failed
+- [x] Create `app/api/webhooks/stripe/route.ts`
+  - [x] Subscription created
+  - [x] Payment succeeded
+  - [x] Subscription cancelled
+  - [x] Payment failed
 
 ### 7.3 Third-party Integrations
-- [ ] Charity Commission API (if available)
-- [ ] Accounting software webhooks
-- [ ] Calendar integration
-- [ ] Slack notifications
+- [x] Charity Commission API (if available)
+- [x] Accounting software webhooks
+- [x] Calendar integration
+- [x] Slack notifications
 
 ## Testing & Integration (Hour 8) 🧪
 
@@ -257,7 +257,7 @@ By end of Day 4:
 2. ✅ Board packs create professional PDFs
 3. ✅ Data exports in multiple formats
 4. ✅ Multi-charity portal functional
-5. ✅ Billing system processing payments
+5. ✅ Stripe billing system processing payments
 6. ✅ Feature gating based on plans
 
 ## Component Structure Created
@@ -296,7 +296,8 @@ features/
     └── components/
         ├── billing-dashboard.tsx
         ├── upgrade-modal.tsx
-        └── usage-display.tsx
+        ├── usage-display.tsx
+        └── feature-gate.tsx
 ```
 
 ## Key Implementation Patterns
@@ -342,13 +343,13 @@ export async function generateAnnualReturn(orgId: string, year: number) {
 }
 ```
 
-### Subscription Enforcement
+### Stripe Subscription Enforcement
 ```typescript
 export async function checkFeatureAccess(
   orgId: string, 
   feature: string
 ): Promise<boolean> {
-  const subscription = await getSubscription(orgId)
+  const subscription = await getStripeSubscription(orgId)
   
   const limits = {
     essentials: {

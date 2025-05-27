@@ -4,17 +4,17 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from './utils'
 import { SUBSCRIPTION_TIERS } from '@/lib/constants'
 
-// Paddle configuration (would be in env vars)
-const PADDLE_VENDOR_ID = process.env.PADDLE_VENDOR_ID
-const PADDLE_API_KEY = process.env.PADDLE_API_KEY
-const PADDLE_PUBLIC_KEY = process.env.NEXT_PUBLIC_PADDLE_PUBLIC_KEY
+// Stripe configuration (would be in env vars)
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY
+const STRIPE_PUBLIC_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
 
 export interface BillingInfo {
   organizationId: string
   subscriptionTier: 'free' | 'professional' | 'enterprise'
   subscriptionStatus: 'active' | 'cancelled' | 'past_due' | 'unpaid'
-  paddleSubscriptionId?: string
-  paddleCustomerId?: string
+  stripeSubscriptionId?: string
+  stripeCustomerId?: string
   currentPeriodEnd?: Date
   cancelAtPeriodEnd: boolean
   paymentMethod?: {
@@ -41,7 +41,7 @@ export interface Invoice {
   status: 'paid' | 'open' | 'void' | 'uncollectable'
   dueDate?: Date
   paidAt?: Date
-  paddleInvoiceId?: string
+  stripeInvoiceId?: string
   lineItems: Array<{
     description: string
     amount: number
@@ -103,8 +103,8 @@ export async function getBillingInfo(
       organizationId,
       subscriptionTier: org.subscription_tier,
       subscriptionStatus: org.subscriptions?.[0]?.status || 'active',
-      paddleSubscriptionId: org.subscriptions?.[0]?.paddle_subscription_id,
-      paddleCustomerId: org.paddle_customer_id,
+      stripeSubscriptionId: org.subscriptions?.[0]?.stripe_subscription_id,
+      stripeCustomerId: org.stripe_customer_id,
       currentPeriodEnd: org.subscriptions?.[0]?.current_period_end 
         ? new Date(org.subscriptions[0].current_period_end)
         : undefined,
@@ -119,9 +119,9 @@ export async function getBillingInfo(
       }
     }
     
-    // Get payment method from Paddle if subscribed
-    if (billing.paddleSubscriptionId) {
-      // This would call Paddle API to get payment method
+    // Get payment method from Stripe if subscribed
+    if (billing.stripeSubscriptionId) {
+      // This would call Stripe API to get payment method
       // For now, returning mock data
       billing.paymentMethod = {
         type: 'card',
@@ -174,15 +174,10 @@ export async function createCheckoutSession(
       return { error: 'Organization not found' }
     }
     
-    // Create Paddle checkout
-    // This would integrate with Paddle API
+    // Create Stripe checkout
+    // This would integrate with Stripe API
     // For now, returning a mock checkout URL
-    const checkoutUrl = `https://checkout.paddle.com/checkout/custom?vendor=${PADDLE_VENDOR_ID}&product=${tier}_${billingPeriod}&passthrough=${JSON.stringify({
-      organizationId,
-      userId: user.id,
-      tier,
-      billingPeriod
-    })}`
+    const checkoutUrl = `https://checkout.stripe.com/c/pay/cs_test_placeholder?organizationId=${organizationId}&userId=${user.id}&tier=${tier}&billingPeriod=${billingPeriod}`
     
     return { checkoutUrl }
     
@@ -222,12 +217,12 @@ export async function cancelSubscription(
       .eq('status', 'active')
       .single()
     
-    if (!subscription || !subscription.paddle_subscription_id) {
+    if (!subscription || !subscription.stripe_subscription_id) {
       return { error: 'No active subscription found' }
     }
     
-    // Cancel via Paddle API
-    // This would call Paddle API
+    // Cancel via Stripe API
+    // This would call Stripe API
     // For now, just update database
     
     const { error } = await supabase
@@ -283,8 +278,8 @@ export async function resumeSubscription(
       return { error: 'No cancelled subscription found' }
     }
     
-    // Resume via Paddle API
-    // This would call Paddle API
+    // Resume via Stripe API
+    // This would call Stripe API
     // For now, just update database
     
     const { error } = await supabase
@@ -335,13 +330,13 @@ export async function updatePaymentMethod(
       .eq('status', 'active')
       .single()
     
-    if (!subscription || !subscription.paddle_subscription_id) {
+    if (!subscription || !subscription.stripe_subscription_id) {
       return { error: 'No active subscription found' }
     }
     
-    // Generate Paddle update URL
-    // This would use Paddle API
-    const updateUrl = `https://checkout.paddle.com/subscription/update?subscription=${subscription.paddle_subscription_id}`
+    // Generate Stripe customer portal URL
+    // This would use Stripe API
+    const updateUrl = `https://billing.stripe.com/p/session/test_placeholder/${subscription.stripe_subscription_id}`
     
     return { updateUrl }
     
@@ -451,35 +446,35 @@ export async function downloadInvoice(
 }
 
 /**
- * Handle Paddle webhook
+ * Handle Stripe webhook
  */
-export async function handlePaddleWebhook(
+export async function handleStripeWebhook(
   event: any
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const supabase = await createClient()
     
     // Verify webhook signature
-    // This would verify the webhook came from Paddle
+    // This would verify the webhook came from Stripe
     
-    switch (event.alert_name) {
-      case 'subscription_created':
-      case 'subscription_updated':
+    switch (event.type) {
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
         // Update subscription in database
         await supabase
           .from('subscriptions')
           .upsert({
-            organization_id: event.passthrough.organizationId,
-            paddle_subscription_id: event.subscription_id,
-            paddle_plan_id: event.subscription_plan_id,
-            status: event.status,
-            current_period_end: event.next_bill_date,
-            cancel_at_period_end: event.cancelled_at ? true : false,
+            organization_id: event.data.object.metadata.organizationId,
+            stripe_subscription_id: event.data.object.id,
+            stripe_price_id: event.data.object.items.data[0].price.id,
+            status: event.data.object.status,
+            current_period_end: new Date(event.data.object.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: event.data.object.cancel_at_period_end,
             updated_at: new Date().toISOString()
           })
         break
         
-      case 'subscription_cancelled':
+      case 'customer.subscription.deleted':
         // Mark subscription as cancelled
         await supabase
           .from('subscriptions')
@@ -487,30 +482,30 @@ export async function handlePaddleWebhook(
             status: 'cancelled',
             cancelled_at: new Date().toISOString()
           })
-          .eq('paddle_subscription_id', event.subscription_id)
+          .eq('stripe_subscription_id', event.data.object.id)
         break
         
-      case 'subscription_payment_succeeded':
+      case 'invoice.payment_succeeded':
         // Create invoice record
         await supabase
           .from('invoices')
           .insert({
-            organization_id: event.passthrough.organizationId,
-            paddle_invoice_id: event.invoice_id,
-            invoice_number: `INV-${event.invoice_id}`,
-            amount: parseFloat(event.sale_gross),
-            currency: event.currency,
+            organization_id: event.data.object.subscription_details.metadata.organizationId,
+            stripe_invoice_id: event.data.object.id,
+            invoice_number: event.data.object.number,
+            amount: event.data.object.amount_paid / 100, // Convert from cents
+            currency: event.data.object.currency,
             status: 'paid',
-            paid_at: new Date().toISOString(),
-            line_items: [{
-              description: event.product_name,
-              amount: parseFloat(event.sale_gross),
-              quantity: 1
-            }]
+            paid_at: new Date(event.data.object.status_transitions.paid_at * 1000).toISOString(),
+            line_items: event.data.object.lines.data.map((line: any) => ({
+              description: line.description,
+              amount: line.amount / 100,
+              quantity: line.quantity
+            }))
           })
         break
         
-      case 'subscription_payment_failed':
+      case 'invoice.payment_failed':
         // Update subscription status
         await supabase
           .from('subscriptions')
@@ -518,14 +513,14 @@ export async function handlePaddleWebhook(
             status: 'past_due',
             updated_at: new Date().toISOString()
           })
-          .eq('paddle_subscription_id', event.subscription_id)
+          .eq('stripe_subscription_id', event.data.object.subscription)
         break
     }
     
     return { success: true }
     
   } catch (error) {
-    console.error('Paddle webhook error:', error)
+    console.error('Stripe webhook error:', error)
     return { error: 'Failed to process webhook' }
   }
 }

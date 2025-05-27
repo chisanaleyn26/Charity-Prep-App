@@ -1,11 +1,13 @@
 export interface ComplianceCategory {
-  id: string
+  id?: string
   name: string
   description: string
   weight: number // Percentage weight in overall score
-  maxPoints: number
-  currentPoints: number
-  items: ComplianceItem[]
+  maxPoints?: number
+  currentPoints?: number
+  items?: ComplianceItem[]
+  score?: number
+  issues?: string[]
 }
 
 export interface ComplianceItem {
@@ -29,12 +31,12 @@ export interface ComplianceScore {
 }
 
 export interface ComplianceRecommendation {
+  id: string
   priority: 'high' | 'medium' | 'low'
   category: string
   title: string
   description: string
-  action: string
-  impact: string // e.g., "+5 points"
+  actionRequired: string
 }
 
 export type ComplianceGrade = 'A' | 'B' | 'C' | 'D' | 'F'

@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUserOrganization } from '@/lib/supabase/server'
 import type { 
   SafeguardingRecord, 
   CreateSafeguardingRecordInput, 
@@ -41,6 +41,9 @@ export async function getSafeguardingRecords(): Promise<SafeguardingRecord[]> {
 export async function createSafeguardingRecord(input: CreateSafeguardingRecordInput): Promise<SafeguardingRecord> {
   const supabase = await createClient()
   
+  // Get current user's organization
+  const { organizationId } = await getCurrentUserOrganization()
+  
   // Validate DBS certificate number if provided
   if (input.dbs_certificate_number && !/^\d{12}$/.test(input.dbs_certificate_number)) {
     throw new Error('DBS certificate number must be exactly 12 digits')
@@ -52,6 +55,7 @@ export async function createSafeguardingRecord(input: CreateSafeguardingRecordIn
   }
   
   const insertData = {
+    organization_id: organizationId,
     person_name: input.person_name,
     role_title: input.role_title,
     role_type: input.role_type,

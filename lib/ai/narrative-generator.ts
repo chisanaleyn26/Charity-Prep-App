@@ -239,3 +239,27 @@ Maximum 300 words.`
   
   return { assessment: response.data }
 }
+
+// Export alias for compatibility
+export { generateBoardNarrative as generateComplianceNarrative }
+
+/**
+ * Generate generic narrative based on prompt
+ */
+export async function generateNarrative(
+  prompt: string,
+  context: string = 'general'
+): Promise<string> {
+  const ai = AIService.getInstance()
+  
+  const response = await ai.complete<string>(prompt, {
+    temperature: 0.6,
+    systemPrompt: `You are a charity compliance expert generating ${context} content.`
+  })
+  
+  if (!response.success || !response.data) {
+    return 'Unable to generate narrative at this time.'
+  }
+  
+  return response.data
+}

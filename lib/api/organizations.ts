@@ -18,6 +18,17 @@ export async function createOrganization(data: unknown) {
     return { error: 'Unauthorized' }
   }
 
+  // Ensure user profile exists
+  await supabase
+    .from('users')
+    .upsert({
+      id: user.id,
+      email: user.email!,
+      created_at: new Date().toISOString()
+    }, {
+      onConflict: 'id'
+    })
+
   const { data: org, error: orgError } = await supabase
     .from('organizations')
     .insert(validatedFields.data)

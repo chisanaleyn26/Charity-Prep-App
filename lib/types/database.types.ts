@@ -597,8 +597,8 @@ export type Database = {
           current_period_start: string
           id: string
           organization_id: string
-          paddle_customer_id: string | null
-          paddle_subscription_id: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           status: Database["public"]["Enums"]["subscription_status"]
           storage_used_bytes: number | null
           tier: Database["public"]["Enums"]["subscription_tier"]
@@ -613,8 +613,8 @@ export type Database = {
           current_period_start: string
           id?: string
           organization_id: string
-          paddle_customer_id?: string | null
-          paddle_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           storage_used_bytes?: number | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -629,8 +629,8 @@ export type Database = {
           current_period_start?: string
           id?: string
           organization_id?: string
-          paddle_customer_id?: string | null
-          paddle_subscription_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
           storage_used_bytes?: number | null
           tier?: Database["public"]["Enums"]["subscription_tier"]

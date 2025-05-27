@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { COMPLIANCE_THRESHOLDS } from '@/lib/constants'
-import { daysUntil } from './utils'
+import { daysUntil } from './helpers'
 
 // Notification schemas
 const createNotificationSchema = z.object({

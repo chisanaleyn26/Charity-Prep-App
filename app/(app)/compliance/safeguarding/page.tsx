@@ -9,18 +9,39 @@ import type { SafeguardingRecord } from '@/features/compliance/types/safeguardin
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { mockSafeguardingRecords } from '@/lib/mock-data'
+import { ExportButton } from '@/components/common/export-button'
+import { createClient } from '@/lib/supabase/client'
+
+// MOCK MODE
+const MOCK_MODE = true
 
 export default function SafeguardingPage() {
   const [records, setRecords] = useState<SafeguardingRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<SafeguardingRecord | undefined>()
+  const [organizationId, setOrganizationId] = useState<string>('')
 
   const fetchRecords = async () => {
     try {
       setLoading(true)
-      const data = await getSafeguardingRecords()
-      setRecords(data)
+      if (MOCK_MODE) {
+        // Convert mock data to SafeguardingRecord format
+        const mockRecords: SafeguardingRecord[] = mockSafeguardingRecords.map(record => ({
+          ...record,
+          is_active: true,
+          reference_checks_completed: true,
+          reference_check_date: record.dbs_check_date,
+          id_verified: true,
+          verification_date: record.dbs_check_date,
+          verification_method: 'passport'
+        }))
+        setRecords(mockRecords)
+      } else {
+        const data = await getSafeguardingRecords()
+        setRecords(data)
+      }
     } catch (error) {
       console.error('Failed to fetch safeguarding records:', error)
     } finally {
@@ -30,6 +51,22 @@ export default function SafeguardingPage() {
 
   useEffect(() => {
     fetchRecords()
+    // Get organization ID for export
+    const getOrgId = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: membership } = await supabase
+          .from('organization_members')
+          .select('organization_id')
+          .eq('user_id', user.id)
+          .single()
+        if (membership) {
+          setOrganizationId(membership.organization_id)
+        }
+      }
+    }
+    getOrgId()
   }, [])
 
   const handleFormSubmit = () => {
@@ -124,38 +161,47 @@ export default function SafeguardingPage() {
           </p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => {
-                setEditingRecord(undefined)
-                setIsDialogOpen(true)
-              }}
-            >
-              <UserCheck className="h-4 w-4 mr-2" />
-              Add Safeguarding Record
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingRecord ? 'Edit' : 'Add New'} Safeguarding Record
-              </DialogTitle>
-              <DialogDescription>
-                Record DBS checks and safeguarding information for staff and volunteers
-              </DialogDescription>
-            </DialogHeader>
-            <SafeguardingFormAligned 
-              record={editingRecord}
-              onSubmit={handleFormSubmit}
-              onCancel={() => {
-                setIsDialogOpen(false)
-                setEditingRecord(undefined)
-              }}
+        <div className="flex gap-2">
+          {organizationId && (
+            <ExportButton 
+              organizationId={organizationId}
+              dataType="safeguarding"
+              variant="outline"
             />
-          </DialogContent>
-        </Dialog>
+          )}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={() => {
+                  setEditingRecord(undefined)
+                  setIsDialogOpen(true)
+                }}
+              >
+                <UserCheck className="h-4 w-4 mr-2" />
+                Add Safeguarding Record
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingRecord ? 'Edit' : 'Add New'} Safeguarding Record
+                </DialogTitle>
+                <DialogDescription>
+                  Record DBS checks and safeguarding information for staff and volunteers
+                </DialogDescription>
+              </DialogHeader>
+              <SafeguardingFormAligned 
+                record={editingRecord}
+                onSubmit={handleFormSubmit}
+                onCancel={() => {
+                  setIsDialogOpen(false)
+                  setEditingRecord(undefined)
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Enhanced Stats Cards */}

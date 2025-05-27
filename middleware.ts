@@ -1,7 +1,15 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
+// MOCK MODE - Set to false to use real authentication
+const MOCK_MODE = true
+
 export async function middleware(request: NextRequest) {
+  if (MOCK_MODE) {
+    // In mock mode, skip authentication checks
+    return NextResponse.next()
+  }
+  
   return await updateSession(request)
 }
 

@@ -200,7 +200,7 @@ Day 5 focuses on polishing the application, ensuring production readiness, and p
   - [ ] Firefox
   - [ ] Safari
   - [ ] Edge
-- [ ] Test payment flow with Paddle
+- [ ] Test payment flow with Stripe
 - [ ] Test email notifications
 - [ ] Load testing with k6
 
@@ -255,7 +255,7 @@ Day 5 focuses on polishing the application, ensuring production readiness, and p
   NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
   SUPABASE_SERVICE_ROLE_KEY=xxx
   OPENROUTER_API_KEY=xxx
-  PADDLE_API_KEY=xxx
+  STRIPE_SECRET_KEY=xxx
   NEXT_PUBLIC_APP_URL=https://charityprep.co.uk
   ```
 - [ ] Vercel deployment

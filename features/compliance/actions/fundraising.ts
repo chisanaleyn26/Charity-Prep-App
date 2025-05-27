@@ -1,102 +1,100 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { fundraisingActivitySchema } from '../types/fundraising'
+import { getCurrentUserOrganization } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function createFundraisingActivity(formData: FormData) {
   const supabase = await createClient()
   
-  const rawData = {
-    activity_name: formData.get('activity_name') as string,
-    activity_type: formData.get('activity_type') as string,
-    description: formData.get('description') as string,
-    start_date: formData.get('start_date') as string,
-    end_date: formData.get('end_date') as string || null,
-    target_amount: Number(formData.get('target_amount')),
-    raised_amount: Number(formData.get('raised_amount') || 0),
-    status: formData.get('status') as string,
-    platform: formData.get('platform') as string || null,
-    is_regulated: formData.get('is_regulated') === 'true',
-    compliance_checks_completed: formData.get('compliance_checks_completed') === 'true',
-    risk_assessment: formData.get('risk_assessment') as string || null,
-    notes: formData.get('notes') as string || null,
+  try {
+    const { organizationId } = await getCurrentUserOrganization()
+    
+    const rawData = {
+      source: formData.get('source') as string,
+      amount: Number(formData.get('amount')),
+      date_received: formData.get('date_received') as string,
+      financial_year: Number(formData.get('financial_year')),
+      donor_name: formData.get('donor_name') as string || null,
+      donor_type: formData.get('donor_type') as string || null,
+      campaign_name: formData.get('campaign_name') as string || null,
+      fundraising_method: formData.get('fundraising_method') as string || null,
+      gift_aid_eligible: formData.get('gift_aid_eligible') === 'true',
+      gift_aid_claimed: formData.get('gift_aid_claimed') === 'true',
+      is_anonymous: formData.get('is_anonymous') === 'true',
+      is_related_party: formData.get('is_related_party') === 'true',
+      related_party_relationship: formData.get('related_party_relationship') as string || null,
+      restricted_funds: formData.get('restricted_funds') === 'true',
+      restriction_details: formData.get('restriction_details') as string || null,
+      reference_number: formData.get('reference_number') as string || null,
+      notes: formData.get('notes') as string || null,
+    }
+
+    const { data, error } = await supabase
+      .from('income_records')
+      .insert({
+        ...rawData,
+        organization_id: organizationId,
+        created_by: (await supabase.auth.getUser()).data.user?.id
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating income record:', error)
+      return { error: error.message }
+    }
+
+    revalidatePath('/compliance/fundraising')
+    return { data }
+  } catch (error) {
+    console.error('Error in createFundraisingActivity:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to create record' }
   }
-
-  const validated = fundraisingActivitySchema.safeParse(rawData)
-  if (!validated.success) {
-    return { error: validated.error.errors[0].message }
-  }
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { error: 'Unauthorized' }
-  }
-
-  const { data: membership } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!membership?.organization_id) {
-    return { error: 'No organization found' }
-  }
-
-  const { data, error } = await supabase
-    .from('income_records')
-    .insert({
-      ...validated.data,
-      organization_id: membership.organization_id
-    })
-    .select()
-    .single()
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/compliance/fundraising')
-  return { data }
 }
 
 export async function updateFundraisingActivity(id: string, formData: FormData) {
   const supabase = await createClient()
   
-  const rawData = {
-    activity_name: formData.get('activity_name') as string,
-    activity_type: formData.get('activity_type') as string,
-    description: formData.get('description') as string,
-    start_date: formData.get('start_date') as string,
-    end_date: formData.get('end_date') as string || null,
-    target_amount: Number(formData.get('target_amount')),
-    raised_amount: Number(formData.get('raised_amount') || 0),
-    status: formData.get('status') as string,
-    platform: formData.get('platform') as string || null,
-    is_regulated: formData.get('is_regulated') === 'true',
-    compliance_checks_completed: formData.get('compliance_checks_completed') === 'true',
-    risk_assessment: formData.get('risk_assessment') as string || null,
-    notes: formData.get('notes') as string || null,
+  try {
+    const rawData = {
+      source: formData.get('source') as string,
+      amount: Number(formData.get('amount')),
+      date_received: formData.get('date_received') as string,
+      financial_year: Number(formData.get('financial_year')),
+      donor_name: formData.get('donor_name') as string || null,
+      donor_type: formData.get('donor_type') as string || null,
+      campaign_name: formData.get('campaign_name') as string || null,
+      fundraising_method: formData.get('fundraising_method') as string || null,
+      gift_aid_eligible: formData.get('gift_aid_eligible') === 'true',
+      gift_aid_claimed: formData.get('gift_aid_claimed') === 'true',
+      is_anonymous: formData.get('is_anonymous') === 'true',
+      is_related_party: formData.get('is_related_party') === 'true',
+      related_party_relationship: formData.get('related_party_relationship') as string || null,
+      restricted_funds: formData.get('restricted_funds') === 'true',
+      restriction_details: formData.get('restriction_details') as string || null,
+      reference_number: formData.get('reference_number') as string || null,
+      notes: formData.get('notes') as string || null,
+    }
+
+    const { data, error } = await supabase
+      .from('income_records')
+      .update(rawData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating income record:', error)
+      return { error: error.message }
+    }
+
+    revalidatePath('/compliance/fundraising')
+    return { data }
+  } catch (error) {
+    console.error('Error in updateFundraisingActivity:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to update record' }
   }
-
-  const validated = fundraisingActivitySchema.safeParse(rawData)
-  if (!validated.success) {
-    return { error: validated.error.errors[0].message }
-  }
-
-  const { data, error } = await supabase
-    .from('income_records')
-    .update(validated.data)
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/compliance/fundraising')
-  return { data }
 }
 
 export async function deleteFundraisingActivity(id: string) {

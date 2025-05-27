@@ -6,6 +6,10 @@ import { getFundraisingActivities, getFundraisingStats } from '@/features/compli
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { mockFundraisingActivities } from '@/lib/mock-data'
+
+// MOCK MODE
+const MOCK_MODE = true
 
 function StatCardSkeleton() {
   return (
@@ -40,7 +44,13 @@ function TableSkeleton() {
 }
 
 async function FundraisingStats() {
-  const stats = await getFundraisingStats()
+  const stats = MOCK_MODE ? {
+    activeActivities: mockFundraisingActivities.filter(a => new Date(a.end_date || '') >= new Date()).length,
+    totalTarget: mockFundraisingActivities.reduce((sum, a) => sum + (a.target_amount || 0), 0),
+    totalRaised: mockFundraisingActivities.reduce((sum, a) => sum + (a.amount_raised || 0), 0),
+    averageProgress: 75,
+    needingCompliance: mockFundraisingActivities.filter(a => !a.marketing_materials_approved).length
+  } : await getFundraisingStats()
 
   const statCards = [
     {
@@ -110,7 +120,7 @@ async function FundraisingStats() {
 }
 
 async function ActivitiesTable() {
-  const activities = await getFundraisingActivities()
+  const activities = MOCK_MODE ? mockFundraisingActivities : await getFundraisingActivities()
   return <FundraisingTable initialActivities={activities} />
 }
 

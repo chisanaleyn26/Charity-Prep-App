@@ -253,11 +253,11 @@ export function calculateIncomeScore(records: IncomeRecord[]): IncomeScore {
 /**
  * Get compliance status level
  */
-export function getComplianceLevel(score: number): 'excellent' | 'good' | 'needs-attention' | 'at-risk' {
-  if (score >= 90) return 'excellent'
-  if (score >= 75) return 'good'
-  if (score >= 50) return 'needs-attention'
-  return 'at-risk'
+export function getComplianceLevel(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' {
+  if (score >= 90) return 'Excellent'
+  if (score >= 75) return 'Good'
+  if (score >= 50) return 'Fair'
+  return 'Poor'
 }
 
 /**
@@ -265,13 +265,13 @@ export function getComplianceLevel(score: number): 'excellent' | 'good' | 'needs
  */
 export function getComplianceMessage(level: ReturnType<typeof getComplianceLevel>): string {
   switch (level) {
-    case 'excellent':
+    case 'Excellent':
       return 'Your charity is fully compliant with all regulations'
-    case 'good':
+    case 'Good':
       return 'Good compliance standing with minor areas for improvement'
-    case 'needs-attention':
+    case 'Fair':
       return 'Several compliance issues need your attention'
-    case 'at-risk':
+    case 'Poor':
       return 'Urgent action required to meet compliance requirements'
   }
 }

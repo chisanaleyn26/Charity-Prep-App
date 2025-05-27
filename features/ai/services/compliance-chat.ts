@@ -2,6 +2,7 @@
 
 import { openrouter } from '@/lib/ai/openrouter'
 import { createClient } from '@/lib/supabase/server'
+import { randomUUID } from 'crypto'
 
 export interface ChatMessage {
   id: string
@@ -88,7 +89,7 @@ export async function processComplianceQuestion(
   context?: ChatContext,
   history?: ChatMessage[]
 ): Promise<ChatMessage> {
-  const supabase = await createClient()
+  const supabase = createClient()
   
   // Get organization-specific context if available
   let orgContext = ''
@@ -107,22 +108,31 @@ Organization context:
   const messages: any[] = [
     {
       role: 'system',
-      content: `You are a helpful UK charity compliance assistant. You provide accurate, practical guidance on charity regulations and best practices.
+      content: `You are a knowledgeable UK charity compliance assistant powered by Gemini AI. You help charity trustees, managers, and staff understand and comply with UK charity regulations.
 
-Your knowledge includes:
+COMPLIANCE KNOWLEDGE BASE:
 ${JSON.stringify(COMPLIANCE_KNOWLEDGE, null, 2)}
 
+ORGANIZATION CONTEXT:
 ${orgContext}
 
-Guidelines:
-1. Always cite specific regulations or guidance where relevant
-2. Provide practical, actionable advice
-3. Highlight important deadlines or requirements
-4. Suggest next steps when appropriate
-5. Be clear about what is legally required vs best practice
-6. If unsure, recommend consulting the Charity Commission or professional advice
+RESPONSE GUIDELINES:
+1. **Accuracy**: Only provide information based on current UK charity law and regulations
+2. **Specificity**: Cite specific Charity Commission guidance, legislation, or reference numbers when relevant
+3. **Clarity**: Use clear, concise language that non-legal professionals can understand
+4. **Actionability**: Always include specific next steps or actions the user can take
+5. **Timeliness**: Highlight important deadlines, renewal dates, or time-sensitive requirements
+6. **Risk awareness**: Point out potential compliance risks and how to mitigate them
+7. **Referrals**: When appropriate, recommend consulting official sources or professional advice
 
-Keep responses concise but comprehensive. Use bullet points for clarity.`
+RESPONSE FORMAT:
+- Use bullet points for lists and key requirements
+- Highlight deadlines with dates where possible
+- Include relevant website links or reference codes
+- Separate legal requirements from best practice recommendations
+- Keep responses focused and practical
+
+Remember: You're helping real charities stay compliant. Be helpful, accurate, and constructive.`
     }
   ]
 
@@ -143,20 +153,22 @@ Keep responses concise but comprehensive. Use bullet points for clarity.`
   })
 
   try {
+    // Use the OpenRouter with error handling
     const response = await openrouter.chat.completions.create({
       model: 'google/gemini-2.0-flash-exp:free',
       messages,
       temperature: 0.3,
-      max_tokens: 1000
+      max_tokens: 1000,
+      stream: false
     })
 
-    const content = response.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response.'
+    const content = response.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response. Please try rephrasing your question.'
     
     // Extract any regulatory references
     const sources = extractSources(content)
 
     return {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       role: 'assistant',
       content,
       timestamp: new Date(),
@@ -164,10 +176,24 @@ Keep responses concise but comprehensive. Use bullet points for clarity.`
     }
   } catch (error) {
     console.error('Chat error:', error)
+    
+    // Provide more specific error messages
+    let errorMessage = 'I apologize, but I encountered an error. Please try again.'
+    
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('unauthorized')) {
+        errorMessage = 'API authentication error. Please contact support.'
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+        errorMessage = 'Too many requests. Please wait a moment and try again.'
+      } else if (error.message.includes('402') || error.message.includes('insufficient')) {
+        errorMessage = 'Service temporarily unavailable. Please try again later.'
+      }
+    }
+    
     return {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       role: 'assistant',
-      content: 'I apologize, but I encountered an error. Please try again or contact support if the issue persists.',
+      content: errorMessage,
       timestamp: new Date()
     }
   }
@@ -301,7 +327,7 @@ export async function getComplianceAlerts(organizationId: string): Promise<{
   message: string
   dueDate?: Date
 }[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
   const alerts = []
   
   // Check for expiring DBS certificates

@@ -663,7 +663,7 @@
 
 ### 3.1 Payment Processing
 
-**Via Paddle**:
+**Via Stripe**:
 
 - Card payments
 - Direct debit

@@ -97,7 +97,7 @@ First affected returns are due late 2025/early 2026, creating immediate urgency 
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime, Storage)
 - **AI/ML**: Gemini 2.5 Flash via OpenRouter, Embeddings
 - **Infrastructure**: Vercel, Edge Functions
-- **Payments**: Paddle (handles UK VAT)
+- **Payments**: Stripe (handles UK VAT)
 - **Testing**: Playwright (E2E), Jest
 
 ### Key Technical Decisions

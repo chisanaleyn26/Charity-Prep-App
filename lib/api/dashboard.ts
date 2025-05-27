@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { calculateComplianceScore, getComplianceLevel, getComplianceMessage } from '@/lib/compliance/calculator'
-import { getCurrentFinancialYear } from './utils'
+import { getCurrentFinancialYear } from './helpers'
 import { COMPLIANCE_THRESHOLDS } from '@/lib/constants'
 
 export interface DashboardData {

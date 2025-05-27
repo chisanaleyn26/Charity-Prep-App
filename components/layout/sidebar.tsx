@@ -24,16 +24,23 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
-  Bot
+  Bot,
+  Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { signOutAction } from '@/lib/actions/auth'
+import { Tables } from '@/lib/types/database.types'
+import { OrgSwitcher } from '@/features/organizations/components/org-switcher'
+
+type Organization = Tables<'organizations'>
 
 interface SidebarProps {
   collapsed?: boolean
   onToggle?: () => void
+  organization?: Organization
 }
 
-export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggle, organization }: SidebarProps) {
   const pathname = usePathname()
   const [reportsExpanded, setReportsExpanded] = useState(pathname?.startsWith('/reports') || false)
 
@@ -174,18 +181,10 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </button>
       </div>
 
-      {/* Organization Selector */}
+      {/* Organization Switcher */}
       {!collapsed && (
         <div className="px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <Building2 className="h-4 w-4 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">St. Mary&apos;s Trust</p>
-              <p className="text-xs text-gray-500">Charity No. 1234567</p>
-            </div>
-          </div>
+          <OrgSwitcher />
         </div>
       )}
 
@@ -305,6 +304,18 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 <Sparkles className="h-4 w-4" />
                 <span>AI Reports</span>
               </Link>
+              <Link
+                href="/reports/export"
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm',
+                  pathname === '/reports/export'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                )}
+              >
+                <Download className="h-4 w-4" />
+                <span>Export Data</span>
+              </Link>
             </div>
           )}
         </div>
@@ -387,12 +398,15 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 <p className="text-sm font-medium text-gray-900 truncate">John Doe</p>
                 <p className="text-xs text-gray-500 truncate">Trustee</p>
               </div>
-              <button 
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                aria-label="Sign out"
-              >
-                <LogOut className="h-4 w-4 text-gray-500" />
-              </button>
+              <form action={signOutAction}>
+                <button 
+                  type="submit"
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="h-4 w-4 text-gray-500" />
+                </button>
+              </form>
             </div>
           )}
         </div>

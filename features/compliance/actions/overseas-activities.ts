@@ -1,98 +1,103 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { overseasActivitySchema } from '../types/overseas-activities'
 import { revalidatePath } from 'next/cache'
+import { getCurrentUserOrganization } from '@/lib/supabase/server'
 
 export async function createOverseasActivity(formData: FormData) {
   const supabase = await createClient()
   
-  const rawData = {
-    country: formData.get('country') as string,
-    activity_type: formData.get('activity_type') as string,
-    description: formData.get('description') as string,
-    start_date: formData.get('start_date') as string,
-    end_date: formData.get('end_date') as string || null,
-    status: formData.get('status') as string,
-    annual_spend: formData.get('annual_spend') ? Number(formData.get('annual_spend')) : null,
-    partner_organization: formData.get('partner_organization') as string || null,
-    risk_assessment_date: formData.get('risk_assessment_date') as string || null,
-    risk_level: formData.get('risk_level') as string || null,
-    compliance_notes: formData.get('compliance_notes') as string || null,
+  try {
+    const { organizationId } = await getCurrentUserOrganization()
+    
+    const rawData = {
+      activity_name: formData.get('activity_name') as string,
+      activity_type: formData.get('activity_type') as string,
+      country_code: formData.get('country_code') as string,
+      partner_id: formData.get('partner_id') as string || null,
+      amount: Number(formData.get('amount')),
+      currency: formData.get('currency') as string || 'GBP',
+      amount_gbp: Number(formData.get('amount_gbp')),
+      exchange_rate: formData.get('exchange_rate') ? Number(formData.get('exchange_rate')) : null,
+      transfer_method: formData.get('transfer_method') as string,
+      transfer_date: formData.get('transfer_date') as string,
+      transfer_reference: formData.get('transfer_reference') as string || null,
+      financial_year: Number(formData.get('financial_year')),
+      quarter: formData.get('quarter') ? Number(formData.get('quarter')) : null,
+      beneficiaries_count: formData.get('beneficiaries_count') ? Number(formData.get('beneficiaries_count')) : null,
+      project_code: formData.get('project_code') as string || null,
+      description: formData.get('description') as string || null,
+      sanctions_check_completed: formData.get('sanctions_check_completed') === 'true',
+      requires_reporting: formData.get('requires_reporting') === 'true',
+      reported_to_commission: formData.get('reported_to_commission') === 'true',
+    }
+
+    const { data, error } = await supabase
+      .from('overseas_activities')
+      .insert({
+        ...rawData,
+        organization_id: organizationId
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating overseas activity:', error)
+      return { error: error.message }
+    }
+
+    revalidatePath('/compliance/overseas-activities')
+    return { data }
+  } catch (error) {
+    console.error('Error in createOverseasActivity:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to create activity' }
   }
-
-  const validated = overseasActivitySchema.safeParse(rawData)
-  if (!validated.success) {
-    return { error: validated.error.errors[0].message }
-  }
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return { error: 'Unauthorized' }
-  }
-
-  const { data: membership } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!membership?.organization_id) {
-    return { error: 'No organization found' }
-  }
-
-  const { data, error } = await supabase
-    .from('overseas_activities')
-    .insert({
-      ...validated.data,
-      organization_id: membership.organization_id
-    } as any)
-    .select()
-    .single()
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/compliance/overseas-activities')
-  return { data }
 }
 
 export async function updateOverseasActivity(id: string, formData: FormData) {
   const supabase = await createClient()
   
-  const rawData = {
-    country: formData.get('country') as string,
-    activity_type: formData.get('activity_type') as string,
-    description: formData.get('description') as string,
-    start_date: formData.get('start_date') as string,
-    end_date: formData.get('end_date') as string || null,
-    status: formData.get('status') as string,
-    annual_spend: formData.get('annual_spend') ? Number(formData.get('annual_spend')) : null,
-    partner_organization: formData.get('partner_organization') as string || null,
-    risk_assessment_date: formData.get('risk_assessment_date') as string || null,
-    risk_level: formData.get('risk_level') as string || null,
-    compliance_notes: formData.get('compliance_notes') as string || null,
+  try {
+    const rawData = {
+      activity_name: formData.get('activity_name') as string,
+      activity_type: formData.get('activity_type') as string,
+      country_code: formData.get('country_code') as string,
+      partner_id: formData.get('partner_id') as string || null,
+      amount: Number(formData.get('amount')),
+      currency: formData.get('currency') as string || 'GBP',
+      amount_gbp: Number(formData.get('amount_gbp')),
+      exchange_rate: formData.get('exchange_rate') ? Number(formData.get('exchange_rate')) : null,
+      transfer_method: formData.get('transfer_method') as string,
+      transfer_date: formData.get('transfer_date') as string,
+      transfer_reference: formData.get('transfer_reference') as string || null,
+      financial_year: Number(formData.get('financial_year')),
+      quarter: formData.get('quarter') ? Number(formData.get('quarter')) : null,
+      beneficiaries_count: formData.get('beneficiaries_count') ? Number(formData.get('beneficiaries_count')) : null,
+      project_code: formData.get('project_code') as string || null,
+      description: formData.get('description') as string || null,
+      sanctions_check_completed: formData.get('sanctions_check_completed') === 'true',
+      requires_reporting: formData.get('requires_reporting') === 'true',
+      reported_to_commission: formData.get('reported_to_commission') === 'true',
+    }
+
+    const { data, error } = await supabase
+      .from('overseas_activities')
+      .update(rawData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating overseas activity:', error)
+      return { error: error.message }
+    }
+
+    revalidatePath('/compliance/overseas-activities')
+    return { data }
+  } catch (error) {
+    console.error('Error in updateOverseasActivity:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to update activity' }
   }
-
-  const validated = overseasActivitySchema.safeParse(rawData)
-  if (!validated.success) {
-    return { error: validated.error.errors[0].message }
-  }
-
-  const { data, error } = await supabase
-    .from('overseas_activities')
-    .update(validated.data)
-    .eq('id', id)
-    .select()
-    .single()
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath('/compliance/overseas-activities')
-  return { data }
 }
 
 export async function deleteOverseasActivity(id: string) {

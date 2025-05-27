@@ -406,3 +406,6 @@ function calculateCategoryScore(category: ComplianceCategory): number {
   if (totalPoints === 0) return 0
   return Math.round((completedPoints / totalPoints) * 100)
 }
+
+// Export alias for compatibility
+export { calculateComplianceScore as getComplianceScore }
