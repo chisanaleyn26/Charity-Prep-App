@@ -38,16 +38,19 @@ export function Pricing() {
       try {
         const overview = await getSubscriptionOverview(currentOrganization.id)
         setCurrentSubscription({
-          tier: overview.tier,
-          status: overview.status,
-          billingCycle: overview.billingCycle
+          tier: overview?.tier || null,
+          status: overview?.status || null,
+          billingCycle: overview?.billingCycle || null
         })
       } catch (error) {
         console.error('Error loading subscription:', error)
+        // Gracefully handle error - don't break the component
       }
     }
     
-    loadSubscription()
+    if (typeof window !== 'undefined') {
+      loadSubscription()
+    }
   }, [currentOrganization?.id])
 
   const plans = [

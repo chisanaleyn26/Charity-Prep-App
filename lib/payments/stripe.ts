@@ -13,13 +13,16 @@ export const STRIPE_PRICES = {
   premium: process.env.STRIPE_PRICE_PREMIUM || 'price_premium',
 } as const;
 
-export type SubscriptionTier = keyof typeof STRIPE_PRICES;
+export type SubscriptionTier = 'ESSENTIALS' | 'STANDARD' | 'PREMIUM';
 
 // Product configuration
 export const STRIPE_PRODUCTS = {
-  essentials: {
+  ESSENTIALS: {
     name: 'Essentials',
-    price: 29,
+    price: {
+      monthly: 29,
+      yearly: 290 // 2 months free
+    },
     currency: 'gbp',
     features: [
       'Core compliance tracking',
@@ -27,10 +30,19 @@ export const STRIPE_PRODUCTS = {
       'Email support',
       'Up to 3 users',
     ],
+    limits: {
+      users: 3,
+      storage: 100 * 1024 * 1024, // 100MB
+      aiRequests: 50,
+      exports: 10
+    }
   },
-  standard: {
+  STANDARD: {
     name: 'Standard',
-    price: 79,
+    price: {
+      monthly: 79,
+      yearly: 790 // 2 months free
+    },
     currency: 'gbp',
     features: [
       'Everything in Essentials',
@@ -39,10 +51,19 @@ export const STRIPE_PRODUCTS = {
       'Unlimited users',
       'Priority support',
     ],
+    limits: {
+      users: -1, // unlimited
+      storage: 1 * 1024 * 1024 * 1024, // 1GB
+      aiRequests: 500,
+      exports: 100
+    }
   },
-  premium: {
+  PREMIUM: {
     name: 'Premium',
-    price: 149,
+    price: {
+      monthly: 149,
+      yearly: 1490 // 2 months free
+    },
     currency: 'gbp',
     features: [
       'Everything in Standard',
@@ -51,17 +72,31 @@ export const STRIPE_PRODUCTS = {
       'SLA guarantee',
       'White-label options',
     ],
+    limits: {
+      users: -1, // unlimited
+      storage: 10 * 1024 * 1024 * 1024, // 10GB
+      aiRequests: -1, // unlimited
+      exports: -1 // unlimited
+    }
   },
 } as const;
 
 // Helper functions
-export function getPriceId(tier: SubscriptionTier): string {
-  return STRIPE_PRICES[tier];
+export function getPriceId(tier: SubscriptionTier, cycle: 'monthly' | 'yearly' = 'monthly'): string {
+  // This would normally return the actual Stripe price ID
+  return `price_${tier.toLowerCase()}_${cycle}`;
 }
 
-export function getStripeClient(): Stripe {
-  return stripe;
+export async function getStripeClient() {
+  // Return client-side Stripe instance
+  if (typeof window !== 'undefined') {
+    const { loadStripe } = await import('@stripe/stripe-js');
+    return await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+  }
+  return null;
 }
+
+
 
 export function formatPrice(amount: number, currency = 'gbp'): string {
   return new Intl.NumberFormat('en-GB', {
@@ -82,11 +117,25 @@ export async function updateSubscription(subscriptionId: string, params: Stripe.
   return await stripe.subscriptions.update(subscriptionId, params);
 }
 
-export function getTierFromPriceId(priceId: string): SubscriptionTier | null {
-  for (const [tier, price] of Object.entries(STRIPE_PRICES)) {
-    if (price === priceId) {
-      return tier as SubscriptionTier;
-    }
+export function getTierFromPriceId(priceId: string): { tier: SubscriptionTier; cycle: 'monthly' | 'yearly' } | null {
+  // Mock implementation - would parse actual price IDs
+  if (priceId.includes('essentials')) {
+    return { 
+      tier: 'ESSENTIALS' as SubscriptionTier, 
+      cycle: priceId.includes('yearly') ? 'yearly' : 'monthly' 
+    };
+  }
+  if (priceId.includes('standard')) {
+    return { 
+      tier: 'STANDARD' as SubscriptionTier, 
+      cycle: priceId.includes('yearly') ? 'yearly' : 'monthly' 
+    };
+  }
+  if (priceId.includes('premium')) {
+    return { 
+      tier: 'PREMIUM' as SubscriptionTier, 
+      cycle: priceId.includes('yearly') ? 'yearly' : 'monthly' 
+    };
   }
   return null;
 }

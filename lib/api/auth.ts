@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { signInSchema } from '@/lib/types/api.types'
+import { getAuthCallbackUrl } from '@/lib/utils/auth-helpers'
 
 export async function signIn(data: { email: string }) {
   const validatedFields = signInSchema.safeParse({
@@ -15,10 +16,13 @@ export async function signIn(data: { email: string }) {
 
   const supabase = await createClient()
   
+  // Use dynamic callback URL for Replit environments
+  const callbackUrl = getAuthCallbackUrl()
+  
   const { error } = await supabase.auth.signInWithOtp({
     email: validatedFields.data.email,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
+      emailRedirectTo: callbackUrl,
     },
   })
 
@@ -36,17 +40,6 @@ export async function signOut() {
 }
 
 export async function getUser() {
-  // Check for dev session first
-  if (process.env.NODE_ENV === 'development') {
-    const { getDevSession } = await import('@/lib/dev/dev-auth')
-    const { getMockUser } = await import('@/lib/dev/is-dev-mode')
-    const devSession = await getDevSession()
-    
-    if (devSession) {
-      return getMockUser()
-    }
-  }
-
   const supabase = await createClient()
   
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -65,18 +58,6 @@ export async function getUser() {
 }
 
 export async function getCurrentOrganization() {
-  // Check for dev session first
-  if (process.env.NODE_ENV === 'development') {
-    const { getDevSession } = await import('@/lib/dev/dev-auth')
-    const { getMockOrganization } = await import('@/lib/dev/is-dev-mode')
-    const devSession = await getDevSession()
-    
-    if (devSession) {
-      // Return mock organization for dev mode
-      return getMockOrganization()
-    }
-  }
-
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()

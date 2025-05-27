@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDevSession } from '@/lib/dev/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getOpenRouter } from '@/lib/ai/openrouter'
 import { randomUUID } from 'crypto'
@@ -66,14 +65,11 @@ export async function POST(req: NextRequest) {
     const { question, context, history } = await req.json()
 
     // Check authentication
-    const devSession = await getDevSession()
-    if (!devSession) {
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Build conversation for AI

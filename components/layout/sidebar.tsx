@@ -86,9 +86,11 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       description: 'Overall compliance health'
     },
     {
-      name: 'Compliance Chat',
-      href: '/compliance/chat',
+      name: 'AI Assistant',
+      href: '/ai/compliance-assistant',
       icon: Bot,
+      badge: 'NEW',
+      badgeType: 'default' as const,
       description: 'AI compliance assistant'
     },
     {

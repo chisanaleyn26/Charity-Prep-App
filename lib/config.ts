@@ -7,12 +7,6 @@ export const appConfig = {
   // Feature flags
   features: {
     /**
-     * Mock mode for development
-     * Set to false for production or when Supabase auth is fully configured
-     */
-    mockMode: process.env.NEXT_PUBLIC_MOCK_MODE === 'true',
-    
-    /**
      * AI features enabled
      * Requires OpenRouter API key
      */
@@ -33,40 +27,6 @@ export const appConfig = {
      * Analytics and monitoring
      */
     analyticsEnabled: process.env.NODE_ENV === 'production',
-  },
-  
-  // Mock data for development
-  mockData: {
-    organization: {
-      id: 'mock-org-123',
-      name: 'Example Charity Foundation',
-      charity_number: '1234567',
-      year_end: '03-31',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      address_line1: null,
-      address_line2: null,
-      charity_type: null,
-      city: null,
-      country: 'UK',
-      postcode: null,
-      email: null,
-      phone: null,
-      website: null,
-      income_band: null,
-      financial_year_end: null,
-      registration_date: null,
-      status: 'active' as const,
-      settings: null,
-      subscription_tier: null,
-      subscription_status: null
-    },
-    user: {
-      id: 'mock-user-123',
-      email: 'john.doe@example.com',
-      full_name: 'John Doe',
-      role: 'admin'
-    }
   },
   
   // Environment settings

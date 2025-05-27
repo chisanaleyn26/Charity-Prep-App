@@ -2,27 +2,34 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  // Check for dev session cookie
-  const devSession = request.cookies.get('dev-auth-session')
-  
-  // If dev session exists, allow through
-  if (devSession) {
-    return NextResponse.next()
+  // Set up headers for Replit environments to preserve original host
+  const requestHeaders = new Headers(request.headers)
+  const host = request.headers.get('host') || request.headers.get('x-forwarded-host')
+  if (host) {
+    requestHeaders.set('x-original-host', host)
   }
   
-  // For auth routes and dev routes, always allow through
+  // For auth routes, always allow through
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || 
                      request.nextUrl.pathname.startsWith('/verify') ||
                      request.nextUrl.pathname.startsWith('/callback') ||
-                     request.nextUrl.pathname.startsWith('/api/dev-auto-login') ||
-                     request.nextUrl.pathname.startsWith('/api/dev-logout')
+                     request.nextUrl.pathname.startsWith('/api/auth/callback')
   
   if (isAuthRoute) {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
   }
   
-  // Otherwise use Supabase auth
-  return await updateSession(request)
+  // Use Supabase auth with updated headers
+  const response = await updateSession(request)
+  
+  // Ensure headers are preserved in the response
+  response.headers.set('x-original-host', host || '')
+  
+  return response
 }
 
 export const config = {

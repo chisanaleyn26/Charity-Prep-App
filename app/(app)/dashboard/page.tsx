@@ -72,10 +72,6 @@ export default async function DashboardPage() {
   ])
   
   if (!organization) {
-    // In dev mode, this shouldn't happen as getCurrentOrganization returns mock data
-    if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_AUTO_LOGIN === 'true') {
-      console.warn('[DASHBOARD] No organization in dev mode - this should not happen')
-    }
     redirect('/onboarding')
   }
   

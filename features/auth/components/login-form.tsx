@@ -8,14 +8,8 @@ import { EtherealInput } from '@/components/custom-ui/ethereal-input'
 import { Label } from '@/components/ui/label'
 import { Mail, Sparkles } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
-import DevBypass from '@/components/dev/dev-bypass'
-// import { FormErrorBoundary } from '@/components/common/error-boundary'
 
-interface LoginFormProps {
-  showDevBypass?: boolean
-}
-
-export function LoginForm({ showDevBypass = false }: LoginFormProps) {
+export function LoginForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -46,9 +40,6 @@ export function LoginForm({ showDevBypass = false }: LoginFormProps) {
 
   return (
     <div className="space-y-6">
-      {/* Developer Bypass - Only shown when explicitly enabled */}
-      {showDevBypass && <DevBypass />}
-      
       <EtherealCard variant="elevated">
         <EtherealCardHeader className="text-center">
           <div className="inline-flex p-3 rounded-full bg-[#B1FA63]/20 mb-4 mx-auto">
