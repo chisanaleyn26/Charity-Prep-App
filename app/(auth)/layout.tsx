@@ -1,6 +1,6 @@
 import React from 'react'
+import Link from 'next/link'
 import { Logo } from '@/components/common/logo'
-import { Link } from '@/components/ui/link'
 
 export default function AuthLayout({
   children,

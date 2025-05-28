@@ -57,7 +57,10 @@
       "Bash(NODE_ENV=production npm run build 2 >& 1)",
       "Bash(npm ls:*)",
       "WebFetch(domain:nextjs.org)",
-      "Bash(timeout 30 npm run dev:*)"
+      "Bash(timeout 30 npm run dev:*)",
+      "Bash(cat:*)",
+      "mcp__supabase__get_project_url",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

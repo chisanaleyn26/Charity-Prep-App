@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
-export default function Hero() {
+export default function HeroFixed() {
   return (
     <section id="hero" className="relative bg-gradient-to-br from-white via-gray-50 to-gray-100 py-32 px-4 overflow-hidden">
       {/* CSS-only geometric background - Asymmetrical & Organic */}
@@ -68,7 +68,8 @@ export default function Hero() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-              className="text-6xl lg:text-7xl font-light text-gray-900 leading-tight tracking-tight"
+              className="text-6xl lg:text-7xl font-light text-black leading-tight tracking-tight"
+              style={{ color: 'black' }}
             >
               Annual Return
               <br />
@@ -81,7 +82,8 @@ export default function Hero() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-              className="text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto font-light"
+              className="text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto font-light"
+              style={{ color: '#4B5563' }}
             >
               AI-powered compliance for UK charities.
               <br />
@@ -102,7 +104,8 @@ export default function Hero() {
             >
               <Link 
                 href="/login" 
-                className="inline-block bg-green-400 text-gray-900 px-12 py-4 rounded-full font-medium hover:bg-green-500 transition-colors duration-200 shadow-lg"
+                className="inline-block bg-green-400 text-black px-12 py-4 rounded-full font-medium hover:bg-green-500 transition-colors duration-200 shadow-lg"
+                style={{ backgroundColor: '#B1FA63', color: 'black' }}
               >
                 Try CharityPrep
               </Link>
@@ -112,12 +115,13 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.8 }}
-              className="flex items-center justify-center gap-8 text-sm text-gray-500 font-light"
+              className="flex items-center justify-center gap-8 text-sm text-gray-600 font-light"
+              style={{ color: '#6B7280' }}
             >
               <span>5-minute setup</span>
-              <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
               <span>30-day trial</span>
-              <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
               <span>No credit card</span>
             </motion.div>
           </motion.div>

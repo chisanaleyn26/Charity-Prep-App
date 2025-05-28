@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Link } from '@/components/ui/link'
+import Link from 'next/link'
 import { Logo } from '@/components/common/logo'
 import { EtherealButton } from '@/components/custom-ui/ethereal-button'
 import { cn } from '@/lib/utils'
