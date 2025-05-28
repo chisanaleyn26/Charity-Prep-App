@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient, getCurrentUserOrganization } from '@/lib/supabase/server';
 import type { AnnualReturnData, MissingField, CountrySpend, TransferMethodBreakdown, IncomeSource } from '../types/annual-return';
 
 /**
@@ -221,21 +221,16 @@ export async function fetchAnnualReturnData(organizationId: string): Promise<Ann
 }
 
 export async function getUserOrganization(userId: string): Promise<{ organizationId: string; role: string }> {
-  const supabase = await createServerClient();
+  // Use the existing helper that properly handles RLS and authentication
+  const userOrg = await getCurrentUserOrganization()
   
-  const { data: membership, error } = await supabase
-    .from('organization_members')
-    .select('organization_id, role')
-    .eq('user_id', userId)
-    .single();
-
-  if (error || !membership) {
-    throw new Error('User is not a member of any organization');
+  if (!userOrg) {
+    throw new Error('User has no organization memberships. Please create or join an organization first.')
   }
 
   return {
-    organizationId: membership.organization_id,
-    role: membership.role
+    organizationId: userOrg.organizationId,
+    role: userOrg.role
   };
 }
 

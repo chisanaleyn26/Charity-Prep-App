@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getCurrentUserOrganization } from '@/lib/supabase/server'
 import type { 
   FundraisingActivity,
   CreateFundraisingActivityInput,
@@ -111,17 +111,12 @@ export async function deleteFundraisingActivityFromDb(
 }
 
 export async function getUserOrganization(userId: string): Promise<{ organizationId: string }> {
-  const supabase = await createServerClient()
+  // Use the existing helper that properly handles RLS and authentication
+  const userOrg = await getCurrentUserOrganization()
   
-  const { data: membership, error } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', userId)
-    .single()
-
-  if (error || !membership?.organization_id) {
-    throw new Error('User organization not found')
+  if (!userOrg) {
+    throw new Error('User has no organization memberships. Please create or join an organization first.')
   }
 
-  return { organizationId: membership.organization_id }
+  return { organizationId: userOrg.organizationId }
 }

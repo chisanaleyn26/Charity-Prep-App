@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUserOrganization } from '@/lib/supabase/server'
 import { requireAuth } from './utils'
 
 export interface OrganizationMember {
@@ -78,7 +78,14 @@ export async function switchOrganization(
     const supabase = await createClient()
     const user = await requireAuth()
     
-    // Verify user has access
+    // Use the getCurrentUserOrganization helper to verify access through RLS
+    const currentOrg = await getCurrentUserOrganization()
+    
+    if (!currentOrg) {
+      return { error: 'You do not have access to any organization' }
+    }
+    
+    // Verify the requested organization ID is one the user has access to
     const { data: membership } = await supabase
       .from('organization_members')
       .select('*')
@@ -90,10 +97,10 @@ export async function switchOrganization(
       return { error: 'You do not have access to this organization' }
     }
     
-    // Update user's active organization
+    // Update user's current organization
     const { error } = await supabase
       .from('users')
-      .update({ active_organization_id: organizationId })
+      .update({ current_organization_id: organizationId })
       .eq('id', user.id)
     
     if (error) throw error
@@ -444,11 +451,11 @@ export async function leaveOrganization(
     // Update active organization if needed
     const { data: userData } = await supabase
       .from('users')
-      .select('active_organization_id')
+      .select('current_organization_id')
       .eq('id', user.id)
       .single()
     
-    if (userData?.active_organization_id === organizationId) {
+    if (userData?.current_organization_id === organizationId) {
       // Switch to another organization
       const { data: otherOrgs } = await supabase
         .from('organization_members')
@@ -460,7 +467,7 @@ export async function leaveOrganization(
       if (otherOrgs) {
         await supabase
           .from('users')
-          .update({ active_organization_id: otherOrgs.organization_id })
+          .update({ current_organization_id: otherOrgs.organization_id })
           .eq('id', user.id)
       }
     }

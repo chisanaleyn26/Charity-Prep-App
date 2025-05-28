@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, getCurrentUserOrganization } from '@/lib/supabase/server'
 import type { 
   SafeguardingRecord, 
   CreateSafeguardingRecordInput, 
@@ -163,84 +163,14 @@ export async function deleteSafeguardingRecordFromDb(
   }
 }
 
-export async function debugGetUserOrganization(userId: string): Promise<any> {
-  const supabase = await createServerClient()
-  
-  try {
-    // Check what's in the users table
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    // Check organization memberships
-    const { data: memberships, error: membershipError } = await supabase
-      .from('organization_members')
-      .select('*')
-      .eq('user_id', userId)
-
-    // Check organizations
-    const { data: organizations, error: orgsError } = await supabase
-      .from('organizations')
-      .select('*')
-
-    return {
-      debug: true,
-      userId,
-      user: { data: user, error: userError },
-      memberships: { data: memberships, error: membershipError },
-      organizations: { data: organizations, error: orgsError },
-      timestamp: new Date().toISOString()
-    }
-  } catch (error) {
-    return {
-      debug: true,
-      userId,
-      error: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    }
-  }
-}
 
 export async function getUserOrganization(userId: string): Promise<{ organizationId: string }> {
-  const supabase = await createServerClient()
+  // Use the existing helper that properly handles RLS and authentication
+  const userOrg = await getCurrentUserOrganization()
   
-  // First, try to get the user's current organization from the users table
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('current_organization_id')
-    .eq('id', userId)
-    .single()
-
-  if (!userError && user?.current_organization_id) {
-    return { organizationId: user.current_organization_id }
-  }
-
-  // If no current org set, get the first organization membership
-  const { data: memberships, error: membershipError } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', userId)
-    .limit(1)
-
-  if (membershipError) {
-    console.error('Error fetching user organization memberships:', membershipError)
-    throw new Error('Failed to fetch user organization')
-  }
-
-  if (!memberships || memberships.length === 0) {
+  if (!userOrg) {
     throw new Error('User has no organization memberships. Please create or join an organization first.')
   }
 
-  const organizationId = memberships[0].organization_id
-
-  // Optionally set this as the user's current organization for next time
-  await supabase
-    .from('users')
-    .update({ current_organization_id: organizationId })
-    .eq('id', userId)
-
-  return { organizationId }
+  return { organizationId: userOrg.organizationId }
 }

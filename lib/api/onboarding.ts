@@ -99,7 +99,7 @@ export async function getOnboardingProgress(
     const supabase = await createClient()
     const user = await requireAuth()
     
-    const orgId = organizationId || user.active_organization_id
+    const orgId = organizationId || user.current_organization_id
     if (!orgId) {
       return { error: 'No organization selected' }
     }
@@ -162,7 +162,7 @@ export async function completeOnboardingStep(
     const supabase = await createClient()
     const user = await requireAuth()
     
-    const orgId = organizationId || user.active_organization_id
+    const orgId = organizationId || user.current_organization_id
     if (!orgId) {
       return { error: 'No organization selected' }
     }
@@ -239,7 +239,7 @@ export async function skipOnboarding(
     const supabase = await createClient()
     const user = await requireAuth()
     
-    const orgId = organizationId || user.active_organization_id
+    const orgId = organizationId || user.current_organization_id
     if (!orgId) {
       return { error: 'No organization selected' }
     }

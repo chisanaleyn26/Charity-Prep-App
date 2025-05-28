@@ -87,14 +87,6 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       description: 'Overall compliance health'
     },
     {
-      name: 'Compliance Chat',
-      href: '/compliance/chat',
-      icon: Bot,
-      badge: 'NEW',
-      badgeType: 'default' as const,
-      description: 'AI compliance assistant'
-    },
-    {
       name: 'Smart Import',
       href: '/import',
       icon: Sparkles,
@@ -114,10 +106,12 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
 
   const aiFeatures = [
     {
-      name: 'AI Assistant',
-      href: '/ai-assistant',
-      icon: Sparkles,
-      description: 'Smart compliance help'
+      name: 'Compliance Chat',
+      href: '/compliance/chat',
+      icon: Bot,
+      badge: 'NEW',
+      badgeType: 'default' as const,
+      description: 'AI compliance assistant'
     },
     {
       name: 'Calendar',
@@ -329,16 +323,32 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
               AI Features
             </p>
             <div className="space-y-1">
-              {aiFeatures.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
-              ))}
+              {aiFeatures.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                      isActive
+                        ? 'bg-gray-100 text-gray-900 font-medium'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    )}
+                  >
+                    <item.icon className={cn(
+                      'h-5 w-5',
+                      isActive ? 'text-primary' : ''
+                    )} />
+                    <span className="flex-1">{item.name}</span>
+                    {item.badge && (
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         )}

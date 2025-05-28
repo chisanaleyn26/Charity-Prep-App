@@ -2,6 +2,26 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { KPICards } from '@/features/dashboard/components/kpi-cards'
+import { ActivityFeed } from '@/features/dashboard/components/activity-feed'
+import { ComplianceTrendChart } from '@/features/dashboard/components/compliance-trend-chart'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { 
+  TrendingUp, 
+  Shield, 
+  FileText, 
+  MessageSquare, 
+  Users, 
+  Globe, 
+  AlertTriangle,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2
+} from 'lucide-react'
+import Link from 'next/link'
 
 interface DashboardStats {
   totalRecords: number
@@ -20,7 +40,6 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    console.log('Dashboard page loaded!')
     loadDashboardData()
   }, [])
 
@@ -34,7 +53,7 @@ export default function DashboardPage() {
       
       setUser(user)
       
-      // Get organization (we know it exists since layout passed)
+      // Get organization
       const { data: memberships } = await supabase
         .from('organization_members')
         .select(`
@@ -95,127 +114,318 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#B1FA63] mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-2">Failed to load dashboard</p>
-          <p className="text-sm text-gray-500">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-[#B1FA63] text-[#243837] rounded hover:bg-[#9FE851]"
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-900">Failed to load dashboard</h3>
+            <p className="text-gray-600">{error}</p>
+          </div>
+          <Button 
+            onClick={() => window.location.reload()}
+            className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium"
           >
-            Retry
-          </button>
+            Try Again
+          </Button>
         </div>
       </div>
     )
   }
 
   const complianceScore = stats ? Math.min(100, Math.round((stats.totalRecords / 30) * 100)) : 0
+  const isNewOrganization = stats?.totalRecords === 0
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">
-            Welcome back{user?.email ? `, ${user.email}` : ''}
-          </p>
-          {organization && (
-            <p className="text-sm text-gray-500">
-              Organization: {organization.name}
-              {organization.charity_number && ` (${organization.charity_number})`}
-            </p>
-          )}
-        </div>
-        <div className="text-right">
-          <div className="text-4xl font-bold text-[#B1FA63]">{complianceScore}%</div>
-          <p className="text-sm text-gray-500">Compliance Score</p>
+    <div className="space-y-8 pb-8">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-3xl p-8 border border-[#B1FA63]/10">
+        <div className="flex items-start justify-between gap-8">
+          <div className="flex-1 space-y-4">
+            <div className="space-y-3">
+              <h1 className="text-4xl font-light text-gray-900 tracking-tight leading-tight">
+                Welcome back
+              </h1>
+              <p className="text-lg text-gray-600 font-normal leading-relaxed">
+                {organization?.name || 'Your Organization'}
+              </p>
+              {organization?.charity_number && (
+                <div className="pt-1">
+                  <Badge variant="secondary" className="text-xs font-medium px-3 py-1">
+                    Charity #{organization.charity_number}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex-shrink-0">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/40 shadow-lg min-w-[200px] text-center">
+              <div className="text-5xl font-light text-[#243837] mb-3 tracking-tight leading-none">
+                {complianceScore}%
+              </div>
+              <div className="flex items-center gap-2 justify-center mb-3">
+                <div className="h-2 w-2 bg-[#B1FA63] rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-gray-600">Compliance Score</span>
+              </div>
+              {complianceScore >= 80 && (
+                <div className="flex items-center gap-2 justify-center text-emerald-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-xs font-medium">Excellent</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-      
+
       {/* KPI Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-700 mb-2">Total Records</h3>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalRecords}</p>
-            <p className="text-sm text-gray-500 mt-1">All compliance records</p>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-700 mb-2">Safeguarding</h3>
-            <p className="text-3xl font-bold text-gray-900">{stats.safeguardingRecords}</p>
-            <p className="text-sm text-gray-500 mt-1">DBS & training records</p>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-700 mb-2">Overseas Activities</h3>
-            <p className="text-3xl font-bold text-gray-900">{stats.overseasActivities}</p>
-            <p className="text-sm text-gray-500 mt-1">International programs</p>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-700 mb-2">Documents</h3>
-            <p className="text-3xl font-bold text-gray-900">{stats.documents}</p>
-            <p className="text-sm text-gray-500 mt-1">Uploaded files</p>
-          </div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-light text-gray-900 tracking-tight">Key Metrics</h2>
+          <Badge variant="outline" className="text-xs">
+            Last updated {new Date().toLocaleDateString()}
+          </Badge>
         </div>
-      )}
-      
-      {/* Activity section */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold mb-4">Recent Activity</h3>
-        <p className="text-gray-600">
-          {stats && stats.totalRecords > 0 
-            ? `You have ${stats.totalRecords} compliance records across your organization.`
-            : 'No activity yet - start by adding your first compliance record!'}
-        </p>
+        <KPICards stats={stats} />
       </div>
-      
-      {/* Quick Actions */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
-            <h4 className="font-medium text-gray-900">Add Safeguarding Record</h4>
-            <p className="text-sm text-gray-500 mt-1">Track DBS checks and training</p>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
-            <h4 className="font-medium text-gray-900">Record Overseas Activity</h4>
-            <p className="text-sm text-gray-500 mt-1">Log international programs</p>
-          </button>
-          <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
-            <h4 className="font-medium text-gray-900">Upload Documents</h4>
-            <p className="text-sm text-gray-500 mt-1">Store compliance documents</p>
-          </button>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Compliance Trend */}
+        <div className="lg:col-span-2">
+          <ComplianceTrendChart />
+        </div>
+        
+        {/* Activity Feed */}
+        <div className="lg:col-span-1">
+          <ActivityFeed />
         </div>
       </div>
-      
-      {/* Welcome message for new users */}
-      {stats && stats.totalRecords === 0 && (
-        <div className="bg-[#B1FA63]/10 border border-[#B1FA63]/20 rounded-lg p-6">
-          <h3 className="font-semibold text-[#243837] mb-2">Welcome to Charity Prep! 🎉</h3>
-          <p className="text-[#243837] mb-4">
-            Your organization has been set up successfully. Here's what you can do next:
-          </p>
-          <ul className="text-sm text-[#243837] space-y-1">
-            <li>• Add your first safeguarding records (DBS checks, training certificates)</li>
-            <li>• Record any overseas activities your charity conducts</li>
-            <li>• Upload important compliance documents</li>
-            <li>• Explore the compliance modules to build your annual return data</li>
-          </ul>
-        </div>
+
+      {/* Welcome Banner for New Organizations - Show first */}
+      {isNewOrganization && (
+        <Card className="bg-gradient-to-r from-[#B1FA63]/10 via-[#B1FA63]/5 to-transparent border-[#B1FA63]/20 relative z-10">
+          <CardHeader className="pb-6">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 bg-[#B1FA63]/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-7 w-7 text-[#243837]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl font-semibold text-[#243837] leading-tight">
+                  Welcome to Charity Prep! 🎉
+                </CardTitle>
+                <CardDescription className="text-[#243837]/80 mt-2 text-base leading-relaxed">
+                  Your organization is ready. Let's build your compliance foundation.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[#243837]/90 leading-relaxed">Add safeguarding records (DBS checks, training)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[#243837]/90 leading-relaxed">Record overseas activities and programs</span>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[#243837]/90 leading-relaxed">Upload important compliance documents</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[#243837]/90 leading-relaxed">Explore AI-powered compliance guidance</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Action Zone */}
+      <div className="space-y-6 relative z-0">
+        <h2 className="text-2xl font-light text-gray-900 tracking-tight">Quick Actions</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-25 hover:shadow-emerald-100/50 flex flex-col h-full">
+            <CardHeader className="pb-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
+                  <Shield className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg font-medium text-gray-900 leading-tight">Safeguarding</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 pb-6 flex flex-col flex-1">
+              <CardDescription className="text-gray-600 leading-relaxed mb-6 flex-1">
+                Manage DBS checks, training records, and safeguarding policies for your organization
+              </CardDescription>
+              <div className="mt-auto">
+                <Link href="/compliance/safeguarding">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-between h-12 group-hover:bg-emerald-100/80 transition-colors font-medium"
+                  >
+                    <span>Manage Records</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-25 hover:shadow-blue-100/50 flex flex-col h-full">
+            <CardHeader className="pb-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
+                  <Globe className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg font-medium text-gray-900 leading-tight">Overseas Activities</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 pb-6 flex flex-col flex-1">
+              <CardDescription className="text-gray-600 leading-relaxed mb-6 flex-1">
+                Track international programs and overseas expenditure for compliance reporting
+              </CardDescription>
+              <div className="mt-auto">
+                <Link href="/compliance/overseas-activities">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-between h-12 group-hover:bg-blue-100/80 transition-colors font-medium"
+                  >
+                    <span>View Activities</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-25 hover:shadow-purple-100/50 flex flex-col h-full">
+            <CardHeader className="pb-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
+                  <Sparkles className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg font-medium text-gray-900 leading-tight">AI Assistant</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0 pb-6 flex flex-col flex-1">
+              <CardDescription className="text-gray-600 leading-relaxed mb-6 flex-1">
+                Get instant answers to compliance questions and regulatory guidance
+              </CardDescription>
+              <div className="mt-auto">
+                <Link href="/compliance/chat">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-between h-12 group-hover:bg-purple-100/80 transition-colors font-medium"
+                  >
+                    <span>Start Chat</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8 pb-8">
+      {/* Hero Skeleton */}
+      <div className="bg-gray-50 rounded-3xl p-8 border">
+        <div className="flex items-start justify-between gap-8">
+          <div className="flex-1 space-y-4">
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <div className="bg-white rounded-2xl p-8 border min-w-[200px]">
+              <Skeleton className="h-12 w-20 mx-auto mb-3" />
+              <Skeleton className="h-4 w-24 mx-auto mb-3" />
+              <Skeleton className="h-4 w-16 mx-auto" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Cards Skeleton */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-16 rounded-lg" />
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-2 w-full rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Content Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Skeleton className="h-96 rounded-3xl" />
+        </div>
+        <div className="lg:col-span-1">
+          <Skeleton className="h-96 rounded-3xl" />
+        </div>
+      </div>
+
+      {/* Quick Actions Skeleton */}
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-32" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border shadow-sm p-6 h-48">
+              <div className="flex items-start gap-4 mb-4">
+                <Skeleton className="h-12 w-12 rounded-xl" />
+                <div className="flex-1">
+                  <Skeleton className="h-5 w-32 mb-2" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-3/4 mb-6" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

@@ -301,32 +301,108 @@ What compliance topic would you like to explore today?`,
   const formatMessageContent = (content: string) => {
     if (!content) return null
     
+    // Convert markdown formatting to HTML
+    const convertMarkdown = (text: string) => {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+        .replace(/`(.*?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>') // Inline code
+    }
+    
     const lines = content.split('\n')
-    return lines.map((line, idx) => {
+    let inList = false
+    let listItems: JSX.Element[] = []
+    const elements: JSX.Element[] = []
+    let consecutiveEmptyLines = 0
+    
+    const flushList = () => {
+      if (listItems.length > 0) {
+        elements.push(
+          <ul key={`list-${elements.length}`} className="ml-6 mb-4 space-y-2 list-disc list-outside">
+            {listItems}
+          </ul>
+        )
+        listItems = []
+        inList = false
+      }
+    }
+    
+    const addSpacing = () => {
+      if (elements.length > 0) {
+        elements.push(<div key={`spacer-${elements.length}`} className="mb-4" />)
+      }
+    }
+    
+    lines.forEach((line, idx) => {
       const trimmedLine = line.trim()
       
-      if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
-        return (
-          <li key={idx} className="ml-4 mb-1">
-            {trimmedLine.substring(1).trim()}
-          </li>
-        )
+      // Handle empty lines - create proper spacing
+      if (!trimmedLine) {
+        consecutiveEmptyLines++
+        if (consecutiveEmptyLines === 1) {
+          flushList()
+          if (elements.length > 0 && idx < lines.length - 1) {
+            // Only add spacing if there's content before and after
+            const nextLineIndex = lines.findIndex((l, i) => i > idx && l.trim())
+            if (nextLineIndex !== -1) {
+              addSpacing()
+            }
+          }
+        }
+        return
       }
       
-      if (trimmedLine.match(/^\d+\./)) {
-        return (
-          <li key={idx} className="ml-4 mb-1">
-            {trimmedLine}
+      consecutiveEmptyLines = 0
+      
+      // Handle bullet points (• - *)
+      if (trimmedLine.match(/^[•\-\*]\s/)) {
+        if (!inList) inList = true
+        const bulletContent = trimmedLine.substring(1).trim()
+        listItems.push(
+          <li key={`li-${idx}`} className="mb-1.5 pl-1 leading-relaxed">
+            <span dangerouslySetInnerHTML={{ __html: convertMarkdown(bulletContent) }} />
           </li>
         )
+        return
       }
       
-      return trimmedLine ? (
-        <p key={idx} className="mb-2">
-          {line}
+      // Handle numbered lists
+      if (trimmedLine.match(/^\d+\.\s/)) {
+        flushList()
+        const numberContent = trimmedLine.replace(/^\d+\.\s/, '')
+        elements.push(
+          <div key={`num-${idx}`} className="ml-6 mb-3 leading-relaxed">
+            <span className="font-semibold text-primary">{trimmedLine.match(/^\d+\./)?.[0]} </span>
+            <span dangerouslySetInnerHTML={{ __html: convertMarkdown(numberContent) }} />
+          </div>
+        )
+        return
+      }
+      
+      // Handle headings (lines that end with colon or are all caps)
+      if (trimmedLine.endsWith(':') || (trimmedLine.length > 3 && trimmedLine === trimmedLine.toUpperCase())) {
+        flushList()
+        elements.push(
+          <h4 key={`heading-${idx}`} className="font-semibold text-foreground mb-3 mt-4 first:mt-0">
+            <span dangerouslySetInnerHTML={{ __html: convertMarkdown(line) }} />
+          </h4>
+        )
+        return
+      }
+      
+      // Handle regular paragraphs with better spacing
+      flushList()
+      elements.push(
+        <p key={`p-${idx}`} className="mb-3 leading-relaxed text-foreground/90">
+          <span dangerouslySetInnerHTML={{ __html: convertMarkdown(line) }} />
         </p>
-      ) : null
+      )
     })
+    
+    // Flush any remaining list items
+    flushList()
+    
+    return <div className="space-y-1">{elements}</div>
   }
 
   const getAlertIcon = (type: string) => {
