@@ -26,7 +26,18 @@ async function _fetchFundraisingActivities(organizationId: string): Promise<Fund
     throw new Error(`Failed to fetch income records: ${error.message}`)
   }
 
-  return data || []
+  // Convert numeric fields from strings to numbers
+  const processedData = (data || []).map(record => ({
+    ...record,
+    amount: typeof record.amount === 'string' ? parseFloat(record.amount) : record.amount,
+    is_anonymous: record.is_anonymous ?? false,
+    restricted_funds: record.restricted_funds ?? false,
+    is_related_party: record.is_related_party ?? false,
+    gift_aid_eligible: record.gift_aid_eligible ?? false,
+    gift_aid_claimed: record.gift_aid_claimed ?? false
+  }))
+
+  return processedData
 }
 
 export async function fetchFundraisingActivities(organizationId: string): Promise<FundraisingActivity[]> {

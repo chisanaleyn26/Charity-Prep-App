@@ -19,12 +19,6 @@ export default function FundraisingClient({
   initialActivities, 
   organizationId 
 }: FundraisingClientProps) {
-  console.log('🎨 FundraisingClient render:', { 
-    initialActivitiesLength: initialActivities.length,
-    organizationId,
-    sampleActivity: initialActivities[0]
-  })
-  
   const [activities, setActivities] = useState<FundraisingActivity[]>(initialActivities)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)

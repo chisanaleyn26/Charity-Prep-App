@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Trash2, Target, TrendingUp, Calendar, AlertCircle, MoreHorizontal, CheckCircle } from 'lucide-react'
+import { Edit, Trash2, Target, TrendingUp, Calendar, AlertCircle, MoreHorizontal, CheckCircle, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,16 +30,19 @@ export function FundraisingTable({ initialActivities }: FundraisingTableProps) {
   const [showEditDialog, setShowEditDialog] = useState(false)
 
   const filteredActivities = activities.filter(activity => {
-    const matchesSearch = 
+    // If no search term, show all records
+    const matchesSearch = !searchTerm.trim() || 
       (activity.campaign_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
       (activity.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      (activity.donor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+      (activity.donor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (activity.reference_number?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
     
     const matchesType = filterType === 'all' || activity.source === filterType
     const matchesStatus = filterStatus === 'all' || filterStatus === 'completed'
 
     return matchesSearch && matchesType && matchesStatus
   })
+
 
   // Show empty state when no activities
   if (activities.length === 0) {

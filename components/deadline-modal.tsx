@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Deadline {
@@ -54,6 +54,8 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
   const [relatedUrl, setRelatedUrl] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -100,11 +102,19 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
   }
 
   const handleSave = async () => {
+    console.log('🔄 Save button clicked - starting validation...')
+    
     if (!validateForm()) {
+      console.log('❌ Validation failed')
+      setSubmitStatus('error')
+      setErrorMessage('Please fill in all required fields correctly.')
       return
     }
 
+    console.log('✅ Validation passed - submitting...')
     setIsLoading(true)
+    setSubmitStatus('loading')
+    setErrorMessage('')
 
     try {
       const deadlineData = {
@@ -116,11 +126,21 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
         relatedUrl: relatedUrl.trim() || undefined
       }
 
+      console.log('📤 Calling onSave with data:', deadlineData)
       await onSave(deadlineData)
-      handleClose()
+      
+      console.log('🎉 Save successful!')
+      setSubmitStatus('success')
+      
+      // Close modal after a brief success message
+      setTimeout(() => {
+        handleClose()
+      }, 1000)
+      
     } catch (error) {
-      console.error('Error saving deadline:', error)
-      // Don't close modal on error so user can try again
+      console.error('💥 Error saving deadline:', error)
+      setSubmitStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to save deadline. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -135,6 +155,8 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
     setRelatedUrl('')
     setErrors({})
     setIsLoading(false)
+    setSubmitStatus('idle')
+    setErrorMessage('')
     onOpenChange(false)
   }
 
@@ -149,6 +171,25 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
             Create a new compliance deadline with details and due date.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Status Message */}
+        {submitStatus !== 'idle' && (
+          <div className={cn(
+            "flex items-center gap-2 p-3 rounded-lg",
+            submitStatus === 'loading' && "bg-blue-50 text-blue-700",
+            submitStatus === 'success' && "bg-green-50 text-green-700",
+            submitStatus === 'error' && "bg-red-50 text-red-700"
+          )}>
+            {submitStatus === 'loading' && <Loader2 className="h-4 w-4 animate-spin" />}
+            {submitStatus === 'success' && <CheckCircle className="h-4 w-4" />}
+            {submitStatus === 'error' && <AlertCircle className="h-4 w-4" />}
+            <span className="text-sm font-medium">
+              {submitStatus === 'loading' && 'Saving deadline...'}
+              {submitStatus === 'success' && 'Deadline created successfully!'}
+              {submitStatus === 'error' && (errorMessage || 'Something went wrong')}
+            </span>
+          </div>
+        )}
 
         <div className="grid gap-6 py-4">
           {/* Title */}
@@ -303,10 +344,19 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
           <Button 
             type="button"
             onClick={handleSave}
-            disabled={isLoading}
-            className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium"
+            disabled={isLoading || submitStatus === 'success'}
+            className={cn(
+              "font-medium transition-all duration-200",
+              submitStatus === 'success' 
+                ? "bg-green-600 hover:bg-green-700 text-white" 
+                : "bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837]"
+            )}
           >
-            {isLoading ? 'Saving...' : 'Save Deadline'}
+            {submitStatus === 'loading' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {submitStatus === 'success' && <CheckCircle className="h-4 w-4 mr-2" />}
+            {submitStatus === 'loading' && 'Saving...'}
+            {submitStatus === 'success' && 'Saved!'}
+            {(submitStatus === 'idle' || submitStatus === 'error') && 'Save Deadline'}
           </Button>
         </DialogFooter>
       </DialogContent>

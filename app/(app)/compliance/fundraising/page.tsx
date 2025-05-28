@@ -26,9 +26,13 @@ async function FundraisingContent() {
       />
     )
   } catch (error) {
+    console.error('Error in FundraisingContent:', error)
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-red-600">Failed to load fundraising data: {error instanceof Error ? error.message : 'Unknown error'}</p>
+        <div className="text-center">
+          <p className="text-red-600 font-medium mb-2">Failed to load fundraising data</p>
+          <p className="text-sm text-gray-600">{error instanceof Error ? error.message : 'Unknown error'}</p>
+        </div>
       </div>
     )
   }

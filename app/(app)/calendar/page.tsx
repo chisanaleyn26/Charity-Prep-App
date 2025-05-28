@@ -210,32 +210,47 @@ export default function CalendarPage() {
   }
 
   const handleSaveDeadline = async (deadlineData: Omit<Deadline, 'id' | 'status'>) => {
+    console.log('🔄 Calendar handleSaveDeadline called:', deadlineData)
+    console.log('🏢 Current organization:', currentOrganization?.name, currentOrganization?.id)
+    
     if (!currentOrganization) {
+      console.log('❌ No organization available')
       toast({
         title: 'Error',
         description: 'No organization selected',
         variant: 'destructive'
       })
-      return
+      throw new Error('No organization selected')
     }
 
     try {
+      console.log('📤 Calling API to create deadline...')
+      
       // Create via API
       const newDeadline = await DeadlineService.createDeadline({
         ...deadlineData,
         organizationId: currentOrganization.id
       })
       
+      console.log('✅ API call successful, new deadline:', newDeadline)
+      
       // Add to local state
-      setDeadlines(prev => [...prev, newDeadline])
+      setDeadlines(prev => {
+        const updated = [...prev, newDeadline]
+        console.log('📋 Updated deadlines state (total:', updated.length, ')')
+        return updated
+      })
       
       // Show success toast
       toast({
-        title: 'Deadline created',
+        title: '🎉 Deadline created',
         description: `${deadlineData.title} has been added to your calendar.`
       })
+      
+      console.log('🎯 handleSaveDeadline completed successfully!')
+      
     } catch (error) {
-      console.error('Failed to create deadline:', error)
+      console.error('💥 Failed to create deadline:', error)
       toast({
         title: 'Error creating deadline',
         description: `Failed to save deadline: ${error instanceof Error ? error.message : 'Unknown error'}`,

@@ -98,14 +98,26 @@ export const getCurrentUser = async () => {
 
 // Helper to get current organization
 export const getCurrentUserOrganization = async () => {
-  const user = await getCurrentUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
     return null
   }
 
-  const supabase = await createClient()
-  const { data: membership } = await supabase
+  // First, get the user's current_organization_id from the users table
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('current_organization_id')
+    .eq('id', user.id)
+    .single()
+
+  if (userError || !userData?.current_organization_id) {
+    return null
+  }
+
+  // Get the organization details and user's role
+  const { data: membership, error: membershipError } = await supabase
     .from('organization_members')
     .select(`
       organization_id,
@@ -113,12 +125,11 @@ export const getCurrentUserOrganization = async () => {
       organization:organizations(*)
     `)
     .eq('user_id', user.id)
+    .eq('organization_id', userData.current_organization_id)
     .not('accepted_at', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(1)
     .single()
 
-  if (!membership) {
+  if (membershipError || !membership) {
     return null
   }
 
