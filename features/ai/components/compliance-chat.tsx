@@ -21,26 +21,14 @@ import {
   RefreshCw,
   ChevronRight
 } from 'lucide-react'
-// Define types locally since we can't import from server module
-export interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp: Date
-  sources?: {
-    type: 'regulation' | 'guidance' | 'internal_data'
-    title: string
-    reference?: string
-  }[]
-}
-
-export interface ChatContext {
-  organizationType?: string
-  income?: number
-  hasOverseasActivities?: boolean
-  workWithChildren?: boolean
-  workWithVulnerableAdults?: boolean
-}
+import { 
+  processComplianceQuestion, 
+  getSuggestedQuestions,
+  getComplianceAlerts,
+  searchComplianceGuidance,
+  type ChatMessage,
+  type ChatContext
+} from '../services/compliance-chat'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 
@@ -54,14 +42,6 @@ export function ComplianceChat() {
   const [relatedGuidance, setRelatedGuidance] = useState<any[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const idCounter = useRef(0)
-
-  const generateId = () => {
-    if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
-      return window.crypto.randomUUID()
-    }
-    return `msg-${Date.now()}-${++idCounter.current}`
-  }
 
   // Load initial data
   useEffect(() => {
@@ -76,7 +56,6 @@ export function ComplianceChat() {
   }, [messages])
 
   const loadInitialData = async () => {
-    console.log('[ComplianceChat] Loading initial data...')
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -113,44 +92,23 @@ export function ComplianceChat() {
             organizationType: 'Registered Charity',
             workWithChildren: safeguarding?.[0]?.works_with_children ?? false,
             workWithVulnerableAdults: safeguarding?.[0]?.works_with_vulnerable_adults ?? false,
-            hasOverseasActivities: overseas && Array.isArray(overseas) && overseas.length > 0
+            hasOverseasActivities: overseas && overseas.length > 0
           })
           
           // Get compliance alerts
-          setComplianceAlerts([
-            {
-              type: 'info' as const,
-              title: 'Regular Review Reminder',
-              message: 'Review your safeguarding policy and procedures annually'
-            }
-          ])
+          const alerts = await getComplianceAlerts(membership.organization_id)
+          setComplianceAlerts(alerts)
         }
       }
       
       // Get suggested questions
-      const suggestions = [
-        'What are the DBS check requirements for our charity?',
-        'When is our annual return due?',
-        'Do we need to register with the Fundraising Regulator?',
-        'What records do we need to keep for Gift Aid claims?',
-        'What are the reporting requirements for overseas activities?'
-      ]
-      
-      // Add context-specific suggestions
-      if (context?.workWithChildren || context?.workWithVulnerableAdults) {
-        suggestions.unshift('What safeguarding policies do we need?')
-      }
-      
-      if (context?.hasOverseasActivities) {
-        suggestions.unshift('How do we conduct due diligence on overseas partners?')
-      }
-      
-      setSuggestedQuestions(suggestions.slice(0, 5))
+      const questions = await getSuggestedQuestions(context)
+      setSuggestedQuestions(questions)
       
       // Add welcome message
-      const welcomeMessage = {
-        id: generateId(),
-        role: 'assistant' as const,
+      setMessages([{
+        id: crypto.randomUUID(),
+        role: 'assistant',
         content: `Hello! I'm your charity compliance assistant. I can help you understand:
 
 • DBS check requirements
@@ -162,9 +120,7 @@ export function ComplianceChat() {
 
 What compliance topic would you like to explore today?`,
         timestamp: new Date()
-      }
-      console.log('[ComplianceChat] Setting welcome message:', welcomeMessage)
-      setMessages([welcomeMessage])
+      }])
     } catch (error) {
       console.error('Failed to load initial data:', error)
     }
@@ -174,7 +130,7 @@ What compliance topic would you like to explore today?`,
     if (!input.trim() || isLoading) return
 
     const userMessage: ChatMessage = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       role: 'user',
       content: input.trim(),
       timestamp: new Date()
@@ -186,73 +142,25 @@ What compliance topic would you like to explore today?`,
     setRelatedGuidance([])
 
     try {
-      // Call the API route
-      const apiResponse = await fetch('/api/ai/compliance-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: userMessage.content,
-          context,
-          history: messages
-        })
-      })
-
-      if (!apiResponse.ok) {
-        throw new Error(`API Error: ${apiResponse.status}`)
-      }
-
-      const response = await apiResponse.json()
+      // Process the question
+      const response = await processComplianceQuestion(
+        userMessage.content,
+        context,
+        messages
+      )
       
-      if (response.error) {
-        throw new Error(response.error)
-      }
-
       setMessages(prev => [...prev, response])
       
-      // Search for related guidance based on the query
-      const lowerQuery = userMessage.content.toLowerCase()
-      const guidance = []
-      
-      if (lowerQuery.includes('dbs') || lowerQuery.includes('safeguarding')) {
-        guidance.push({
-          title: 'DBS Checks and Safeguarding',
-          summary: 'DBS checks are required for anyone working with children or vulnerable adults',
-          link: 'https://www.gov.uk/guidance/safeguarding-duties-for-charity-trustees'
-        })
-      }
-      
-      if (lowerQuery.includes('overseas') || lowerQuery.includes('international')) {
-        guidance.push({
-          title: 'Overseas Activities Reporting',
-          summary: 'Report overseas expenditure if income exceeds £1m or overseas spend exceeds £100k',
-          link: 'https://www.gov.uk/guidance/reporting-overseas-expenditure'
-        })
-      }
-      
-      if (lowerQuery.includes('fundrais')) {
-        guidance.push({
-          title: 'Fundraising Requirements',
-          summary: 'Be honest, respect donor wishes, handle donations safely',
-          link: 'https://www.fundraisingregulator.org.uk/code'
-        })
-      }
-      
+      // Search for related guidance
+      const guidance = await searchComplianceGuidance(userMessage.content)
       setRelatedGuidance(guidance)
       
       // Update suggested questions based on conversation
-      const updatedSuggestions = [
-        'What are the DBS check requirements for our charity?',
-        'When is our annual return due?',
-        'Do we need to register with the Fundraising Regulator?',
-        'What records do we need to keep for Gift Aid claims?',
-        'What are the reporting requirements for overseas activities?'
-      ]
-      setSuggestedQuestions(updatedSuggestions.slice(0, 5))
+      const newQuestions = await getSuggestedQuestions(context)
+      setSuggestedQuestions(newQuestions)
     } catch (error) {
       console.error('Chat error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to get response. Please try again.')
+      toast.error('Failed to get response. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -265,9 +173,7 @@ What compliance topic would you like to explore today?`,
 
   const formatMessageContent = (content: string) => {
     // Convert bullet points to proper list items
-    if (!content) return null
     const lines = content.split('\n')
-    if (!Array.isArray(lines)) return null
     return lines.map((line, idx) => {
       if (line.trim().startsWith('•')) {
         return (
@@ -306,9 +212,6 @@ What compliance topic would you like to explore today?`,
     }
   }
 
-
-  console.log('[ComplianceChat] Rendering with messages:', messages.length, 'suggestedQuestions:', suggestedQuestions.length)
-  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
       {/* Main Chat */}
@@ -327,7 +230,7 @@ What compliance topic would you like to explore today?`,
             {/* Messages */}
             <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
               <div className="space-y-4">
-                {Array.isArray(messages) && messages.map((message) => (
+                {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-3 ${
@@ -384,7 +287,7 @@ What compliance topic would you like to explore today?`,
             </ScrollArea>
 
             {/* Suggested Questions */}
-            {Array.isArray(messages) && messages.length === 1 && Array.isArray(suggestedQuestions) && suggestedQuestions.length > 0 && (
+            {messages.length === 1 && suggestedQuestions.length > 0 && (
               <div className="px-6 pb-4">
                 <p className="text-sm font-medium mb-2">Suggested questions:</p>
                 <div className="space-y-2">
@@ -435,13 +338,13 @@ What compliance topic would you like to explore today?`,
       {/* Sidebar */}
       <div className="space-y-4">
         {/* Compliance Alerts */}
-        {Array.isArray(complianceAlerts) && complianceAlerts.length > 0 && (
+        {complianceAlerts.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Compliance Alerts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {Array.isArray(complianceAlerts) && complianceAlerts.map((alert, idx) => (
+              {complianceAlerts.map((alert, idx) => (
                 <Alert key={idx} className={
                   alert.type === 'warning' ? 'border-amber-200 bg-amber-50' :
                   alert.type === 'deadline' ? 'border-red-200 bg-red-50' :
@@ -468,13 +371,13 @@ What compliance topic would you like to explore today?`,
         )}
 
         {/* Related Guidance */}
-        {Array.isArray(relatedGuidance) && relatedGuidance.length > 0 && (
+        {relatedGuidance.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Related Guidance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {Array.isArray(relatedGuidance) && relatedGuidance.map((guidance, idx) => (
+              {relatedGuidance.map((guidance, idx) => (
                 <div key={idx} className="space-y-2">
                   <h4 className="text-sm font-medium">{guidance.title}</h4>
                   <p className="text-xs text-muted-foreground">
@@ -526,7 +429,7 @@ What compliance topic would you like to explore today?`,
               size="sm"
               className="w-full justify-start"
               onClick={() => {
-                setMessages(Array.isArray(messages) && messages.length > 0 ? [messages[0]] : [])
+                setMessages([messages[0]])
                 setSuggestedQuestions([])
                 loadInitialData()
               }}

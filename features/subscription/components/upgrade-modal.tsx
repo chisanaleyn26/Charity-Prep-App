@@ -33,7 +33,6 @@ import {
   type SubscriptionTier 
 } from '@/lib/payments/stripe'
 import { useAuthStore } from '@/stores/auth-store'
-import { createCheckoutSession } from '@/features/subscription/actions/billing'
 import { toast } from 'sonner'
 
 interface UpgradeModalProps {
@@ -108,6 +107,8 @@ export function UpgradeModal({ isOpen, onClose, currentTier, onUpgrade }: Upgrad
 
     setIsLoading(true)
     try {
+      const priceId = getPriceId(selectedTier, billingCycle)
+      
       if (currentTier) {
         // Existing subscription - upgrade/downgrade
         const response = await fetch('/api/billing/change-subscription', {
@@ -128,16 +129,39 @@ export function UpgradeModal({ isOpen, onClose, currentTier, onUpgrade }: Upgrad
         onUpgrade?.()
         onClose()
       } else {
-        // New subscription - server action will handle redirect
-        await createCheckoutSession({
-          tier: selectedTier,
-          billingCycle,
-          organizationId: currentOrganization.id
+        // New subscription - redirect to checkout
+        const response = await fetch('/api/billing/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            priceId,
+            organizationId: currentOrganization.id,
+            successUrl: `${window.location.origin}/settings/billing?upgrade=success`,
+            cancelUrl: `${window.location.origin}/settings/billing?upgrade=canceled`,
+          })
         })
+
+        if (!response.ok) {
+          throw new Error('Failed to create checkout session')
+        }
+
+        const { sessionId } = await response.json()
+        const stripe = await getStripeClient()
+        
+        if (!stripe) {
+          throw new Error('Stripe not loaded')
+        }
+
+        const { error } = await stripe.redirectToCheckout({ sessionId })
+        
+        if (error) {
+          throw error
+        }
       }
     } catch (error) {
       console.error('Upgrade error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to process upgrade')
+      toast.error('Failed to process upgrade')
+    } finally {
       setIsLoading(false)
     }
   }

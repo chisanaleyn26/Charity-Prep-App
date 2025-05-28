@@ -13,7 +13,9 @@ import { DocumentTable } from '@/features/documents/components/document-table'
 import { getDocuments, getDocumentStats } from '@/features/documents/services/documents'
 import type { Document, DocumentStats } from '@/features/documents/types/documents'
 import { mockDocuments } from '@/lib/mock-data'
-import { appConfig } from '@/lib/config'
+
+// MOCK MODE
+const MOCK_MODE = true
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([])
@@ -26,7 +28,7 @@ export default function DocumentsPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true)
-      if (appConfig.features.mockMode) {
+      if (MOCK_MODE) {
         // Use mock data
         setDocuments(mockDocuments)
         const mockStats: DocumentStats = {

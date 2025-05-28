@@ -13,7 +13,19 @@ export const metadata: Metadata = {
   description: 'AI-powered compliance management for UK charities. Track DBS records, manage overseas activities, and generate annual returns effortlessly.',
   keywords: 'charity compliance, annual return, DBS records, UK charity, compliance management',
   authors: [{ name: 'Charity Prep' }],
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://charityprep.co.uk'),
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  themeColor: [{
+    media: '(prefers-color-scheme: light)',
+    color: '#ffffff'
+  }, {
+    media: '(prefers-color-scheme: dark)', 
+    color: '#000000'
+  }],
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -49,17 +61,6 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
-}
-
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' }
-  ],
 }
 
 export default function RootLayout({

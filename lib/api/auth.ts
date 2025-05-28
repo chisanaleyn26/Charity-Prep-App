@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { signInSchema } from '@/lib/types/api.types'
-import { getAuthCallbackUrl } from '@/lib/utils/auth-helpers'
 
 export async function signIn(data: { email: string }) {
   const validatedFields = signInSchema.safeParse({
@@ -16,13 +15,10 @@ export async function signIn(data: { email: string }) {
 
   const supabase = await createClient()
   
-  // Use dynamic callback URL for Replit environments
-  const callbackUrl = getAuthCallbackUrl()
-  
   const { error } = await supabase.auth.signInWithOtp({
     email: validatedFields.data.email,
     options: {
-      emailRedirectTo: callbackUrl,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`,
     },
   })
 

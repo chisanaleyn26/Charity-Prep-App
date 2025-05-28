@@ -86,11 +86,9 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       description: 'Overall compliance health'
     },
     {
-      name: 'AI Assistant',
-      href: '/ai/compliance-assistant',
+      name: 'Compliance Chat',
+      href: '/compliance/chat',
       icon: Bot,
-      badge: 'NEW',
-      badgeType: 'default' as const,
       description: 'AI compliance assistant'
     },
     {
@@ -292,7 +290,7 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
                 )}
               >
                 <FileText className="h-4 w-4" />
-                <span>All Reports</span>
+                <span>Annual Returns</span>
               </Link>
               <Link
                 href="/reports/ai"

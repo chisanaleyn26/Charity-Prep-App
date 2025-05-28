@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { deleteDocument, getDocumentDownloadUrl } from '../services/documents'
-import { DocumentViewer } from './document-viewer'
 import type { Document } from '../types/documents'
 
 interface DocumentTableProps {
@@ -24,8 +23,6 @@ interface DocumentTableProps {
 
 export function DocumentTable({ documents, onDocumentUpdate, getTypeColor }: DocumentTableProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [viewerDocument, setViewerDocument] = useState<Document | null>(null)
-  const [viewerOpen, setViewerOpen] = useState(false)
 
   const handleDownload = async (document: Document) => {
     try {
@@ -35,11 +32,6 @@ export function DocumentTable({ documents, onDocumentUpdate, getTypeColor }: Doc
       console.error('Download error:', error)
       alert('Failed to download document. Please try again.')
     }
-  }
-
-  const handleView = (document: Document) => {
-    setViewerDocument(document)
-    setViewerOpen(true)
   }
 
   const handleDelete = async (id: string) => {
@@ -205,13 +197,13 @@ export function DocumentTable({ documents, onDocumentUpdate, getTypeColor }: Doc
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleView(document)}>
-                <Eye className="h-4 w-4 mr-2" />
-                View
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleDownload(document)}>
                 <Download className="h-4 w-4 mr-2" />
                 Download
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownload(document)}>
+                <Eye className="h-4 w-4 mr-2" />
+                View
               </DropdownMenuItem>
               {document.is_public && (
                 <DropdownMenuItem onClick={() => handleDownload(document)}>
@@ -248,24 +240,13 @@ export function DocumentTable({ documents, onDocumentUpdate, getTypeColor }: Doc
   }
 
   return (
-    <>
-      <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden hover:border-gray-300 transition-all duration-300">
-        <ResponsiveTable
-          data={documents}
-          columns={columns}
-          emptyMessage="No documents found"
-          className="rounded-none border-0"
-        />
-      </div>
-      
-      <DocumentViewer
-        document={viewerDocument}
-        open={viewerOpen}
-        onClose={() => {
-          setViewerOpen(false)
-          setViewerDocument(null)
-        }}
+    <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden hover:border-gray-300 transition-all duration-300">
+      <ResponsiveTable
+        data={documents}
+        columns={columns}
+        emptyMessage="No documents found"
+        className="rounded-none border-0"
       />
-    </>
+    </div>
   )
 }

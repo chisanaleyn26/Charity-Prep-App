@@ -23,60 +23,12 @@ interface KPICard {
   bgColor: string
 }
 
-interface DashboardStats {
-  totalRecords: number
-  safeguardingRecords: number
-  overseasActivities: number
-  fundraisingRecords: number
-  documents: number
-  lastUpdated: string
-}
-
 interface KPICardsProps {
-  stats?: DashboardStats
-  dashboardData?: DashboardData
+  dashboardData: DashboardData
 }
 
-export function KPICards({ stats, dashboardData }: KPICardsProps) {
-  // Support both new stats prop and legacy dashboardData prop
-  const kpiData: KPICard[] = stats ? [
-    {
-      title: 'Total Records',
-      value: stats.totalRecords,
-      change: 5.2,
-      changeType: 'increase',
-      icon: FileText,
-      iconColor: 'text-primary',
-      bgColor: 'bg-primary/10'
-    },
-    {
-      title: 'Safeguarding Records',
-      value: stats.safeguardingRecords,
-      change: 3,
-      changeType: 'increase', 
-      icon: Shield,
-      iconColor: 'text-sage',
-      bgColor: 'bg-sage/10'
-    },
-    {
-      title: 'Overseas Activities',
-      value: stats.overseasActivities,
-      change: 2.1,
-      changeType: 'increase',
-      icon: Globe,
-      iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Documents',
-      value: stats.documents,
-      change: 8.3,
-      changeType: 'increase',
-      icon: FileText,
-      iconColor: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    }
-  ] : dashboardData ? [
+export function KPICards({ dashboardData }: KPICardsProps) {
+  const kpiData: KPICard[] = [
     {
       title: 'Compliance Score',
       value: `${dashboardData.compliance.score}%`,
@@ -113,8 +65,7 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
       iconColor: 'text-warning',
       bgColor: 'bg-warning/10'
     }
-  ] : []
-
+  ]
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {kpiData.map((kpi, index) => (

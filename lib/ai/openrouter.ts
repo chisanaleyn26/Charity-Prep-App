@@ -1,31 +1,14 @@
-// Lazy-load OpenRouter client to avoid build issues
-let _openrouter: any | null = null
+import OpenAI from 'openai'
 
-export function getOpenRouter(): any {
-  if (!_openrouter) {
-    // Dynamic import to avoid build-time initialization
-    const OpenAI = require('openai')
-    _openrouter = new OpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: process.env.OPENROUTER_API_KEY || '',
-      defaultHeaders: {
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://charityprep.com",
-        "X-Title": "Charity Prep - AI-Powered Compliance",
-      },
-    })
-  }
-  return _openrouter
-}
-
-// Export a getter for backward compatibility
-export const openrouter = {
-  get chat() {
-    return getOpenRouter().chat
+// OpenRouter client configuration
+export const openrouter = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY || '',
+  defaultHeaders: {
+    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://charityprep.com",
+    "X-Title": "Charity Prep - AI-Powered Compliance",
   },
-  get completions() {
-    return getOpenRouter().completions
-  }
-}
+})
 
 // Default model configuration
 export const AI_MODELS = {

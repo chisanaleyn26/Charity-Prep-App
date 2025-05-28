@@ -2,8 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { Database } from '@/lib/types/database.types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-// Internal non-memoized version for special cases
-async function _createClient(req?: NextApiRequest, res?: NextApiResponse) {
+export async function createClient(req?: NextApiRequest, res?: NextApiResponse) {
   // For App Router (default) - only use when not in Pages Router context
   if (!req && !res) {
     try {
@@ -79,32 +78,15 @@ async function _createClient(req?: NextApiRequest, res?: NextApiResponse) {
   )
 }
 
-// App Router version - no memoization for now
-export const createClient = async () => {
-  return _createClient()
-}
-
-// Helper to get current user
-export const getCurrentUser = async () => {
+export async function getCurrentUserOrganization() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
   
-  if (error || !user) {
-    return null
-  }
-  
-  return user
-}
-
-// Helper to get current organization
-export const getCurrentUserOrganization = async () => {
-  const user = await getCurrentUser()
+  const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
     throw new Error('User not authenticated')
   }
 
-  const supabase = await createClient()
   const { data: membership } = await supabase
     .from('organization_members')
     .select(`
@@ -131,6 +113,3 @@ export const getCurrentUserOrganization = async () => {
 
 // Export alias for compatibility
 export { createClient as createServerClient }
-
-// Export non-memoized version for Pages Router
-export { _createClient as createServerClientForPages }

@@ -71,7 +71,6 @@ async function authenticateApiKey(apiKey: string): Promise<ApiContext | null> {
     const supabase = createServerClient()
     
     // Get API key from database
-    const keyHash = await hashApiKey(apiKey)
     const { data: keyData, error } = await supabase
       .from('api_keys')
       .select(`
@@ -85,7 +84,7 @@ async function authenticateApiKey(apiKey: string): Promise<ApiContext | null> {
           )
         )
       `)
-      .eq('key_hash', keyHash)
+      .eq('key_hash', hashApiKey(apiKey))
       .eq('is_active', true)
       .single()
 
@@ -280,14 +279,11 @@ export function validateRequest<T>(
 }
 
 // Utility functions
-async function hashApiKey(apiKey: string): string {
-  // Use Web Crypto API for edge runtime compatibility
-  const encoder = new TextEncoder()
-  const data = encoder.encode(apiKey)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  return hashHex
+function hashApiKey(apiKey: string): string {
+  // In production, use a proper hashing algorithm
+  // For now, using a simple hash for demonstration
+  const crypto = require('crypto')
+  return crypto.createHash('sha256').update(apiKey).digest('hex')
 }
 
 function getClientIP(request: NextRequest): string {

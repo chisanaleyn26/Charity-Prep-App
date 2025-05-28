@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
 import { createDocument } from '../services/documents'
 import type { CreateDocumentInput } from '../types/documents'
-import { FormErrorBoundary } from '@/components/common/error-boundary'
 
 interface DocumentUploadFormProps {
   onSuccess: () => void
@@ -183,8 +182,7 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
   ]
 
   return (
-    <FormErrorBoundary onError={(error) => console.error('Document upload form error:', error)}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* File Upload */}
       <div className="space-y-2">
         <Label htmlFor="file" className="text-sm font-semibold text-gray-900 tracking-wide">
@@ -382,6 +380,5 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
         </Button>
       </div>
     </form>
-    </FormErrorBoundary>
   )
 }

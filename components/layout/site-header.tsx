@@ -19,7 +19,7 @@ export function SiteHeader({ className, variant = 'marketing' }: SiteHeaderProps
 
   return (
     <header className={cn(
-      'sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60',
+      'sticky top-0 z-50 w-full border-b border-[#E0E0E0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60',
       className
     )}>
       <div className="container mx-auto px-4">
@@ -35,7 +35,7 @@ export function SiteHeader({ className, variant = 'marketing' }: SiteHeaderProps
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="text-sm font-medium text-gunmetal hover:text-ethereal transition-colors"
+                    className="text-sm font-medium text-[#243837] hover:text-[#B1FA63] transition-colors"
                   >
                     {link.label}
                   </Link>

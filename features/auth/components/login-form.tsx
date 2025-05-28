@@ -39,70 +39,68 @@ export function LoginForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <EtherealCard variant="elevated">
-        <EtherealCardHeader className="text-center">
-          <div className="inline-flex p-3 rounded-full bg-[#B1FA63]/20 mb-4 mx-auto">
-            <Mail className="h-6 w-6 text-[#B1FA63]" />
-          </div>
-          <EtherealCardTitle className="text-3xl">Welcome back</EtherealCardTitle>
-          <EtherealCardDescription className="text-base">
-            Enter your email to receive a magic link. No password needed!
-          </EtherealCardDescription>
-        </EtherealCardHeader>
-        <EtherealCardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email" className="text-[#243837]">
-                Email address
-              </Label>
-              <EtherealInput
-                id="email"
-                type="email"
-                placeholder="your@charity.org"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-                className="mt-1"
-                variant={error ? 'error' : 'default'}
-              />
-              {error && (
-                <p className="mt-1 text-sm text-[#EF4444]">{error}</p>
-              )}
-            </div>
-
-            <EtherealButton
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
+    <EtherealCard variant="elevated">
+      <EtherealCardHeader className="text-center">
+        <div className="inline-flex p-3 rounded-full bg-[#B1FA63]/20 mb-4 mx-auto">
+          <Mail className="h-6 w-6 text-[#B1FA63]" />
+        </div>
+        <EtherealCardTitle className="text-3xl">Welcome back</EtherealCardTitle>
+        <EtherealCardDescription className="text-base">
+          Enter your email to receive a magic link. No password needed!
+        </EtherealCardDescription>
+      </EtherealCardHeader>
+      <EtherealCardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email" className="text-[#243837]">
+              Email address
+            </Label>
+            <EtherealInput
+              id="email"
+              type="email"
+              placeholder="your@charity.org"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" variant="dark" />
-                  Sending magic link...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Send Magic Link
-                </>
-              )}
-            </EtherealButton>
+              className="mt-1"
+              variant={error ? 'error' : 'default'}
+            />
+            {error && (
+              <p className="mt-1 text-sm text-[#EF4444]">{error}</p>
+            )}
+          </div>
 
-            <div className="text-center text-sm text-[#616161]">
-              <p>
-                Don&apos;t have an account?{' '}
-                <a href="/login" className="text-[#B1FA63] hover:underline">
-                  Start your free trial
-                </a>
-              </p>
-            </div>
-          </form>
-        </EtherealCardContent>
-      </EtherealCard>
-    </div>
+          <EtherealButton
+            type="submit"
+            variant="primary"
+            size="lg"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" variant="dark" />
+                Sending magic link...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Send Magic Link
+              </>
+            )}
+          </EtherealButton>
+
+          <div className="text-center text-sm text-[#616161]">
+            <p>
+              Don&apos;t have an account?{' '}
+              <a href="/login" className="text-[#B1FA63] hover:underline">
+                Start your free trial
+              </a>
+            </p>
+          </div>
+        </form>
+      </EtherealCardContent>
+    </EtherealCard>
   )
 }

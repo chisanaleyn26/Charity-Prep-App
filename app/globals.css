@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
 @layer base {
   :root {
     /* Ethereal Design System Colors */
@@ -85,7 +82,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   
   html {
@@ -94,11 +91,9 @@
   
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     letter-spacing: -0.015em;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
   
   /* Typography */
@@ -157,10 +152,6 @@
   .ethereal-button {
     @apply inline-flex items-center justify-center rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
-}
-
-@layer utilities {
-  /* Removed manual utilities - Tailwind will generate these from theme config */
 }
 
 /* Custom animation durations */

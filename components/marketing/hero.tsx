@@ -14,7 +14,7 @@ export default function Hero() {
           <div className="absolute top-16 right-20 w-32 h-32 border-2 border-gray-300 rotate-45 opacity-60"></div>
           <div className="absolute top-8 right-8 w-48 h-3 bg-gray-300 rotate-45 opacity-70"></div>
           <div className="absolute top-32 right-12 w-24 h-24 bg-gray-200 rotate-12 opacity-50"></div>
-          <div className="absolute top-12 right-40 w-12 h-12 bg-green-400 opacity-50 rotate-45"></div>
+          <div className="absolute top-12 right-40 w-12 h-12 bg-[#B1FA63] opacity-50 rotate-45"></div>
           <div className="absolute top-48 right-32 w-28 h-2 bg-gray-300 rotate-[30deg] opacity-60"></div>
           <div className="absolute top-6 right-60 w-16 h-16 border border-gray-200 rotate-[60deg] opacity-40"></div>
         </div>
@@ -23,7 +23,7 @@ export default function Hero() {
         <div className="absolute bottom-0 left-0 w-56 h-40">
           <div className="absolute bottom-12 left-16 w-20 h-20 border-2 border-gray-300 rotate-12 opacity-40"></div>
           <div className="absolute bottom-24 left-8 w-16 h-3 bg-gray-200 opacity-50"></div>
-          <div className="absolute bottom-6 left-6 w-10 h-10 bg-green-400 opacity-30"></div>
+          <div className="absolute bottom-6 left-6 w-10 h-10 bg-[#B1FA63] opacity-30"></div>
           <div className="absolute bottom-16 left-32 w-12 h-12 border border-gray-200 rotate-45 opacity-35"></div>
         </div>
         
@@ -37,7 +37,7 @@ export default function Hero() {
         {/* Flowing element - Mid-right edge */}
         <div className="absolute top-1/2 right-0 w-24 h-48 -translate-y-1/2">
           <div className="absolute top-12 right-6 w-18 h-2 bg-gray-200 rotate-90 opacity-40"></div>
-          <div className="absolute top-24 right-3 w-6 h-6 bg-green-400 opacity-25 rotate-45"></div>
+          <div className="absolute top-24 right-3 w-6 h-6 bg-[#B1FA63] opacity-25 rotate-45"></div>
           <div className="absolute top-36 right-8 w-4 h-16 bg-gray-200 opacity-30"></div>
         </div>
         
@@ -50,7 +50,7 @@ export default function Hero() {
         {/* Additional large accent - Mid-left area */}
         <div className="absolute top-1/3 left-0 w-32 h-32">
           <div className="absolute top-8 left-4 w-20 h-20 border border-gray-200 rotate-[25deg] opacity-25"></div>
-          <div className="absolute top-16 left-16 w-8 h-8 bg-green-400 opacity-20 rotate-45"></div>
+          <div className="absolute top-16 left-16 w-8 h-8 bg-[#B1FA63] opacity-20 rotate-45"></div>
         </div>
       </div>
       
@@ -68,20 +68,20 @@ export default function Hero() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-              className="text-6xl lg:text-7xl font-light text-gray-900 leading-tight tracking-tight"
+              className="text-6xl lg:text-7xl font-light text-[#1a1a1a] leading-tight tracking-tight"
             >
               Annual Return
               <br />
               <span className="font-medium">Stress?</span>
               <br />
-              <span className="text-green-500 font-medium">Sorted.</span>
+              <span className="text-[#B1FA63] font-medium">Sorted.</span>
             </motion.h1>
             
             <motion.p 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-              className="text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto font-light"
+              className="text-xl text-[#666] leading-relaxed max-w-2xl mx-auto font-light"
             >
               AI-powered compliance for UK charities.
               <br />
@@ -102,7 +102,7 @@ export default function Hero() {
             >
               <Link 
                 href="/login" 
-                className="inline-block bg-green-400 text-gray-900 px-12 py-4 rounded-full font-medium hover:bg-green-500 transition-colors duration-200 shadow-lg"
+                className="inline-block bg-[#B1FA63] text-[#1a1a1a] px-12 py-4 rounded-full font-medium hover:bg-[#9FE050] transition-colors duration-200 shadow-lg"
               >
                 Try CharityPrep
               </Link>
@@ -112,12 +112,12 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.8 }}
-              className="flex items-center justify-center gap-8 text-sm text-gray-500 font-light"
+              className="flex items-center justify-center gap-8 text-sm text-[#999] font-light"
             >
               <span>5-minute setup</span>
-              <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+              <span className="w-1 h-1 bg-[#ddd] rounded-full"></span>
               <span>30-day trial</span>
-              <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+              <span className="w-1 h-1 bg-[#ddd] rounded-full"></span>
               <span>No credit card</span>
             </motion.div>
           </motion.div>

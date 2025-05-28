@@ -130,28 +130,3 @@ export const getStatusColor = (status: string) => {
   // Income records don't have status, return neutral color
   return 'bg-success/10 text-success border-success/20'
 }
-
-// Input types for creating and updating
-export interface CreateFundraisingActivityInput {
-  source: IncomeRecord['source']
-  amount: number
-  date_received: string
-  financial_year: number
-  donor_type?: IncomeRecord['donor_type']
-  donor_name?: string | null
-  is_anonymous?: boolean | null
-  fundraising_method?: IncomeRecord['fundraising_method']
-  campaign_name?: string | null
-  restricted_funds?: boolean | null
-  restriction_details?: string | null
-  is_related_party?: boolean | null
-  related_party_relationship?: string | null
-  gift_aid_eligible?: boolean | null
-  gift_aid_claimed?: boolean | null
-  reference_number?: string | null
-  notes?: string | null
-}
-
-export interface UpdateFundraisingActivityInput extends Partial<CreateFundraisingActivityInput> {
-  id: string
-}

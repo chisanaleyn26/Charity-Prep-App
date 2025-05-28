@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
+import { createApiResponse } from '@/lib/api-auth/middleware'
 
 // GET /api/v1/docs - API documentation
 export async function GET(request: NextRequest) {
@@ -254,11 +255,7 @@ org = api.organizations.get()`
     })
   }
 
-  return NextResponse.json({
-    success: true,
-    data: documentation,
-    timestamp: new Date().toISOString()
-  })
+  return createApiResponse(documentation)
 }
 
 function generateHtmlDocs(docs: any): string {

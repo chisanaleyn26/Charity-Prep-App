@@ -21,14 +21,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
-import { 
-  getSubscriptionOverview, 
-  createPortalSession,
-  cancelSubscription,
-  reactivateSubscription,
-  getInvoices,
-  getPaymentMethod
-} from '@/features/subscription/actions/billing'
+import { getSubscriptionOverview } from '@/features/subscription/services/subscription-service'
 import { STRIPE_PRODUCTS, formatPrice } from '@/lib/payments/stripe'
 import { UpgradeModal } from './upgrade-modal'
 import { toast } from 'sonner'
@@ -89,10 +82,13 @@ export function BillingDashboard() {
       const overview = await getSubscriptionOverview(currentOrganization.id)
       
       // Load invoices and payment method
-      const [invoicesData, paymentMethodData] = await Promise.all([
-        getInvoices(currentOrganization.id),
-        getPaymentMethod(currentOrganization.id)
+      const [invoicesRes, paymentMethodRes] = await Promise.all([
+        fetch(`/api/billing/invoices?organizationId=${currentOrganization.id}`),
+        fetch(`/api/billing/payment-method?organizationId=${currentOrganization.id}`)
       ])
+      
+      const invoicesData = invoicesRes.ok ? await invoicesRes.json() : { invoices: [] }
+      const paymentMethodData = paymentMethodRes.ok ? await paymentMethodRes.json() : { paymentMethod: null }
       
       setBillingData({
         subscription: overview.hasSubscription ? {
@@ -119,12 +115,19 @@ export function BillingDashboard() {
     
     setActionLoading('cancel')
     try {
-      const result = await cancelSubscription({ organizationId: currentOrganization.id })
+      const response = await fetch('/api/billing/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: currentOrganization.id })
+      })
+      
+      if (!response.ok) throw new Error('Failed to cancel subscription')
+      
       await loadBillingData()
-      toast.success(result.message)
+      toast.success('Subscription will be canceled at the end of the current period')
     } catch (error) {
       console.error('Error canceling subscription:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to cancel subscription')
+      toast.error('Failed to cancel subscription')
     } finally {
       setActionLoading(null)
     }
@@ -135,12 +138,19 @@ export function BillingDashboard() {
     
     setActionLoading('reactivate')
     try {
-      const result = await reactivateSubscription({ organizationId: currentOrganization.id })
+      const response = await fetch('/api/billing/reactivate-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: currentOrganization.id })
+      })
+      
+      if (!response.ok) throw new Error('Failed to reactivate subscription')
+      
       await loadBillingData()
-      toast.success(result.message)
+      toast.success('Subscription reactivated successfully')
     } catch (error) {
       console.error('Error reactivating subscription:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to reactivate subscription')
+      toast.error('Failed to reactivate subscription')
     } finally {
       setActionLoading(null)
     }
@@ -151,11 +161,23 @@ export function BillingDashboard() {
     
     setActionLoading('payment')
     try {
-      // Server action will handle the redirect
-      await createPortalSession({ organizationId: currentOrganization.id })
+      const response = await fetch('/api/billing/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          organizationId: currentOrganization.id,
+          returnUrl: window.location.href
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to create portal session')
+      
+      const { url } = await response.json()
+      window.location.href = url
     } catch (error) {
       console.error('Error creating portal session:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to open billing portal')
+      toast.error('Failed to open billing portal')
+    } finally {
       setActionLoading(null)
     }
   }

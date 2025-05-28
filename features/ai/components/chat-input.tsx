@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Send, Mic, Paperclip, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { FormErrorBoundary } from '@/components/common/error-boundary'
 
 interface ChatInputProps {
   value: string
@@ -80,16 +79,15 @@ export function ChatInput({
 
   return (
     <div className="p-6 border-t bg-background">
-      <FormErrorBoundary onError={(error) => console.error('Chat input error:', error)}>
-        <form 
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (value.trim() && !isLoading) {
-              onSubmit()
-            }
-          }}
-          className="space-y-4"
-        >
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (value.trim() && !isLoading) {
+            onSubmit()
+          }
+        }}
+        className="space-y-4"
+      >
         <div className="relative">
           <Textarea
             ref={textareaRef}
@@ -152,7 +150,6 @@ export function ChatInput({
           <span>{value.length} / 500</span>
         </div>
       </form>
-      </FormErrorBoundary>
     </div>
   )
 }

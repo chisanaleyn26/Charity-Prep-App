@@ -17,13 +17,13 @@ export async function generateExportData(
       return await exportFundraisingEvents(supabase, orgId, filters, limit)
     
     case 'safeguarding-incidents':
-      return await exportSafeguardingRecords(supabase, orgId, filters, limit)
+      return await exportSafeguardingIncidents(supabase, orgId, filters, limit)
     
     case 'overseas-activities':
       return await exportOverseasActivities(supabase, orgId, filters, limit)
     
     case 'income-sources':
-      return await exportIncomeRecords(supabase, orgId, filters, limit)
+      return await exportIncomeSources(supabase, orgId, filters, limit)
     
     case 'documents':
       return await exportDocuments(supabase, orgId, filters, limit)
@@ -75,77 +75,68 @@ async function exportFundraisingEvents(
   filters?: ExportFilters,
   limit?: number
 ) {
-  // Use income_records as fundraising events source
   let query = supabase
-    .from('income_records')
+    .from('fundraising_events')
     .select('*')
     .eq('organization_id', orgId)
 
   if (filters?.dateRange) {
     query = query
-      .gte('date_received', filters.dateRange.start.toISOString())
-      .lte('date_received', filters.dateRange.end.toISOString())
+      .gte('event_date', filters.dateRange.start.toISOString())
+      .lte('event_date', filters.dateRange.end.toISOString())
   }
 
-  if (filters?.customFilters?.source_type) {
-    query = query.in('source_type', filters.customFilters.source_type)
+  if (filters?.customFilters?.event_type) {
+    query = query.in('event_type', filters.customFilters.event_type)
   }
 
   if (limit) {
     query = query.limit(limit)
   }
 
-  const { data, error } = await query.order('date_received', { ascending: false })
+  const { data, error } = await query.order('event_date', { ascending: false })
 
   if (error) throw error
   return data || []
 }
 
-async function exportSafeguardingRecords(
+async function exportSafeguardingIncidents(
   supabase: any,
   orgId: string,
   filters?: ExportFilters,
   limit?: number
 ) {
   let query = supabase
-    .from('safeguarding_records')
+    .from('safeguarding_incidents')
     .select('*')
     .eq('organization_id', orgId)
 
   if (filters?.dateRange) {
     query = query
-      .gte('created_at', filters.dateRange.start.toISOString())
-      .lte('created_at', filters.dateRange.end.toISOString())
+      .gte('incident_date', filters.dateRange.start.toISOString())
+      .lte('incident_date', filters.dateRange.end.toISOString())
   }
 
   if (filters?.status && filters.status.length > 0) {
-    query = query.in('check_status', filters.status)
+    query = query.in('status', filters.status)
   }
 
   if (limit) {
     query = query.limit(limit)
   }
 
-  const { data, error } = await query.order('created_at', { ascending: false })
+  const { data, error } = await query.order('incident_date', { ascending: false })
 
   if (error) throw error
   
-  // Remove sensitive fields but keep relevant compliance data
-  return (data || []).map(record => ({
-    person_name: record.person_name,
-    role_title: record.role_title,
-    role_type: record.role_type,
-    department: record.department,
-    dbs_check_type: record.dbs_check_type,
-    issue_date: record.issue_date,
-    expiry_date: record.expiry_date,
-    check_status: record.check_status,
-    works_with_children: record.works_with_children,
-    works_with_vulnerable_adults: record.works_with_vulnerable_adults,
-    training_completed: record.training_completed,
-    reference_checks_completed: record.reference_checks_completed,
-    is_active: record.is_active,
-    created_at: record.created_at
+  // Remove sensitive fields
+  return (data || []).map(incident => ({
+    incident_date: incident.incident_date,
+    incident_type: incident.incident_type,
+    severity: incident.severity,
+    status: incident.status,
+    reported_to_authorities: incident.reported_to_authorities,
+    outcome: incident.outcome
   }))
 }
 
@@ -178,32 +169,32 @@ async function exportOverseasActivities(
   return data || []
 }
 
-async function exportIncomeRecords(
+async function exportIncomeSources(
   supabase: any,
   orgId: string,
   filters?: ExportFilters,
   limit?: number
 ) {
   let query = supabase
-    .from('income_records')
+    .from('income_sources')
     .select('*')
     .eq('organization_id', orgId)
 
   if (filters?.dateRange) {
     query = query
-      .gte('date_received', filters.dateRange.start.toISOString())
-      .lte('date_received', filters.dateRange.end.toISOString())
+      .gte('date', filters.dateRange.start.toISOString())
+      .lte('date', filters.dateRange.end.toISOString())
   }
 
-  if (filters?.customFilters?.source_type) {
-    query = query.in('source_type', filters.customFilters.source_type)
+  if (filters?.customFilters?.source) {
+    query = query.in('source', filters.customFilters.source)
   }
 
   if (limit) {
     query = query.limit(limit)
   }
 
-  const { data, error } = await query.order('date_received', { ascending: false })
+  const { data, error } = await query.order('date', { ascending: false })
 
   if (error) throw error
   return data || []
@@ -222,8 +213,8 @@ async function exportDocuments(
 
   if (filters?.dateRange) {
     query = query
-      .gte('created_at', filters.dateRange.start.toISOString())
-      .lte('created_at', filters.dateRange.end.toISOString())
+      .gte('uploaded_at', filters.dateRange.start.toISOString())
+      .lte('uploaded_at', filters.dateRange.end.toISOString())
   }
 
   if (filters?.customFilters?.type) {
@@ -238,21 +229,19 @@ async function exportDocuments(
     query = query.limit(limit)
   }
 
-  const { data, error } = await query.order('created_at', { ascending: false })
+  const { data, error } = await query.order('uploaded_at', { ascending: false })
 
   if (error) throw error
   
   // Return metadata only, not file content
   return (data || []).map(doc => ({
     id: doc.id,
-    file_name: doc.file_name,
-    document_type: doc.document_type,
+    name: doc.name,
+    type: doc.type,
     category: doc.category,
-    created_at: doc.created_at,
-    file_size: doc.file_size,
-    mime_type: doc.mime_type,
-    expires_at: doc.expires_at,
-    is_public: doc.is_public
+    uploaded_at: doc.uploaded_at,
+    status: doc.status,
+    file_size: doc.file_size
   }))
 }
 
@@ -275,16 +264,16 @@ async function exportAnnualReturnData(
     income
   ] = await Promise.all([
     supabase.from('organizations').select('*').eq('id', orgId).single(),
-    supabase.from('income_records').select('*').eq('organization_id', orgId)
-      .gte('date_received', startDate.toISOString())
-      .lte('date_received', endDate.toISOString()),
-    supabase.from('safeguarding_records').select('*').eq('organization_id', orgId)
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString()),
+    supabase.from('fundraising_events').select('*').eq('organization_id', orgId)
+      .gte('event_date', startDate.toISOString())
+      .lte('event_date', endDate.toISOString()),
+    supabase.from('safeguarding_incidents').select('*').eq('organization_id', orgId)
+      .gte('incident_date', startDate.toISOString())
+      .lte('incident_date', endDate.toISOString()),
     supabase.from('overseas_activities').select('*').eq('organization_id', orgId),
-    supabase.from('income_records').select('*').eq('organization_id', orgId)
-      .gte('date_received', startDate.toISOString())
-      .lte('date_received', endDate.toISOString())
+    supabase.from('income_sources').select('*').eq('organization_id', orgId)
+      .gte('date', startDate.toISOString())
+      .lte('date', endDate.toISOString())
   ])
 
   return [{
@@ -327,11 +316,13 @@ async function exportAllData(
   // Export all data from all tables
   const tables = [
     'organizations',
-    'income_records',
-    'safeguarding_records',
+    'fundraising_events',
+    'safeguarding_incidents',
     'overseas_activities',
+    'income_sources',
     'documents',
-    'compliance_scores'
+    'compliance_scores',
+    'compliance_actions'
   ]
 
   const allData: Record<string, any[]> = {}
@@ -345,8 +336,9 @@ async function exportAllData(
       query = query.eq('id', orgId)
     }
 
-    if (filters?.dateRange && ['income_records', 'safeguarding_records'].includes(table)) {
-      const dateField = table === 'income_records' ? 'date_received' : 'created_at'
+    if (filters?.dateRange && ['fundraising_events', 'safeguarding_incidents', 'income_sources'].includes(table)) {
+      const dateField = table === 'fundraising_events' ? 'event_date' : 
+                       table === 'safeguarding_incidents' ? 'incident_date' : 'date'
       query = query
         .gte(dateField, filters.dateRange.start.toISOString())
         .lte(dateField, filters.dateRange.end.toISOString())

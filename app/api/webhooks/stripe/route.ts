@@ -25,5 +25,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Note: In Next.js 13+ App Router, raw body is handled differently
-// The route automatically provides the raw body via request.text()
+// Stripe webhooks need raw body
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

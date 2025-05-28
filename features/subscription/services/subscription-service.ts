@@ -58,18 +58,13 @@ export interface FeatureAccessResult {
 
 // Subscription service class
 export class SubscriptionService {
+  private supabase = createServerClient()
   private stripe = getStripeServer()
-
-  // Get Supabase client
-  private async getSupabase() {
-    return await createServerClient()
-  }
 
   // Get subscription for organization
   async getSubscription(organizationId: string): Promise<DatabaseSubscription | null> {
     try {
-      const supabase = await this.getSupabase()
-      const { data, error } = await supabase
+      const { data, error } = await this.supabase
         .from('subscriptions')
         .select('*')
         .eq('organization_id', organizationId)
@@ -145,8 +140,7 @@ export class SubscriptionService {
         updated_at: new Date().toISOString(),
       }
 
-      const supabase = await this.getSupabase()
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('subscriptions')
         .upsert(subscriptionData, {
           onConflict: 'stripe_subscription_id'
@@ -174,8 +168,7 @@ export class SubscriptionService {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
     try {
-      const supabase = await this.getSupabase()
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('usage_tracking')
         .upsert({
           organization_id: organizationId,
@@ -204,8 +197,7 @@ export class SubscriptionService {
       const now = new Date()
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-      const supabase = await this.getSupabase()
-      const { data, error } = await supabase
+      const { data, error } = await this.supabase
         .from('usage_tracking')
         .select('*')
         .eq('organization_id', organizationId)
@@ -237,8 +229,7 @@ export class SubscriptionService {
       const now = new Date()
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
-      const supabase = await this.getSupabase()
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('usage_tracking')
         .upsert({
           organization_id: organizationId,
@@ -383,8 +374,7 @@ export class SubscriptionService {
 
       const column = columnMap[type]
 
-      const supabase = await this.getSupabase()
-      const { error } = await supabase.rpc('increment_usage', {
+      const { error } = await this.supabase.rpc('increment_usage', {
         org_id: organizationId,
         usage_type: column,
         period_start: monthStart.toISOString()
@@ -526,8 +516,7 @@ export class SubscriptionService {
   // Clean up expired subscriptions
   async cleanupExpiredSubscriptions(): Promise<void> {
     try {
-      const supabase = await this.getSupabase()
-      const { error } = await supabase
+      const { error } = await this.supabase
         .from('subscriptions')
         .update({ status: 'expired' })
         .lt('current_period_end', new Date().toISOString())

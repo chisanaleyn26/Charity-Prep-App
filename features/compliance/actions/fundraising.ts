@@ -1,110 +1,151 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserOrganization } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { 
-  FundraisingActivity,
-  CreateFundraisingActivityInput,
-  UpdateFundraisingActivityInput
-} from '../types/fundraising'
-import {
-  fetchFundraisingActivities,
-  createFundraisingActivityInDb,
-  updateFundraisingActivityInDb,
-  deleteFundraisingActivityFromDb,
-  getUserOrganization
-} from '../services/fundraising.service'
 
-/**
- * Server actions for fundraising/income records management
- * These handle authentication and call service functions
- */
-
-export async function getFundraisingActivities(): Promise<FundraisingActivity[]> {
+export async function createFundraisingActivity(formData: FormData) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
+  try {
+    const { organizationId } = await getCurrentUserOrganization()
+    
+    const rawData = {
+      source: formData.get('source') as string,
+      amount: Number(formData.get('amount')),
+      date_received: formData.get('date_received') as string,
+      financial_year: Number(formData.get('financial_year')),
+      donor_name: formData.get('donor_name') as string || null,
+      donor_type: formData.get('donor_type') as string || null,
+      campaign_name: formData.get('campaign_name') as string || null,
+      fundraising_method: formData.get('fundraising_method') as string || null,
+      gift_aid_eligible: formData.get('gift_aid_eligible') === 'true',
+      gift_aid_claimed: formData.get('gift_aid_claimed') === 'true',
+      is_anonymous: formData.get('is_anonymous') === 'true',
+      is_related_party: formData.get('is_related_party') === 'true',
+      related_party_relationship: formData.get('related_party_relationship') as string || null,
+      restricted_funds: formData.get('restricted_funds') === 'true',
+      restriction_details: formData.get('restriction_details') as string || null,
+      reference_number: formData.get('reference_number') as string || null,
+      notes: formData.get('notes') as string || null,
+    }
 
-  const { organizationId } = await getUserOrganization(user.id)
-  return fetchFundraisingActivities(organizationId)
+    const { data, error } = await supabase
+      .from('income_records')
+      .insert({
+        ...rawData,
+        organization_id: organizationId,
+        created_by: (await supabase.auth.getUser()).data.user?.id
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating income record:', error)
+      return { error: error.message }
+    }
+
+    revalidatePath('/compliance/fundraising')
+    return { data }
+  } catch (error) {
+    console.error('Error in createFundraisingActivity:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to create record' }
+  }
 }
 
-export async function createFundraisingActivity(input: CreateFundraisingActivityInput): Promise<FundraisingActivity> {
+export async function updateFundraisingActivity(id: string, formData: FormData) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
+  try {
+    const rawData = {
+      source: formData.get('source') as string,
+      amount: Number(formData.get('amount')),
+      date_received: formData.get('date_received') as string,
+      financial_year: Number(formData.get('financial_year')),
+      donor_name: formData.get('donor_name') as string || null,
+      donor_type: formData.get('donor_type') as string || null,
+      campaign_name: formData.get('campaign_name') as string || null,
+      fundraising_method: formData.get('fundraising_method') as string || null,
+      gift_aid_eligible: formData.get('gift_aid_eligible') === 'true',
+      gift_aid_claimed: formData.get('gift_aid_claimed') === 'true',
+      is_anonymous: formData.get('is_anonymous') === 'true',
+      is_related_party: formData.get('is_related_party') === 'true',
+      related_party_relationship: formData.get('related_party_relationship') as string || null,
+      restricted_funds: formData.get('restricted_funds') === 'true',
+      restriction_details: formData.get('restriction_details') as string || null,
+      reference_number: formData.get('reference_number') as string || null,
+      notes: formData.get('notes') as string || null,
+    }
 
-  const { organizationId } = await getUserOrganization(user.id)
-  const activity = await createFundraisingActivityInDb(organizationId, input)
-  
-  revalidatePath('/compliance/fundraising')
-  return activity
+    const { data, error } = await supabase
+      .from('income_records')
+      .update(rawData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating income record:', error)
+      return { error: error.message }
+    }
+
+    revalidatePath('/compliance/fundraising')
+    return { data }
+  } catch (error) {
+    console.error('Error in updateFundraisingActivity:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to update record' }
+  }
 }
 
-export async function updateFundraisingActivity(input: UpdateFundraisingActivityInput): Promise<FundraisingActivity> {
+export async function deleteFundraisingActivity(id: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
-    throw new Error('Unauthorized')
+  const { error } = await supabase
+    .from('income_records')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    return { error: error.message }
   }
 
-  const { organizationId } = await getUserOrganization(user.id)
-  const activity = await updateFundraisingActivityInDb(organizationId, input)
-  
   revalidatePath('/compliance/fundraising')
-  return activity
+  return { success: true }
 }
 
-export async function deleteFundraisingActivity(id: string): Promise<void> {
+export async function updateRaisedAmount(id: string, amount: number) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
-    throw new Error('Unauthorized')
+  const { data, error } = await supabase
+    .from('income_records')
+    .update({ amount: amount })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    return { error: error.message }
   }
 
-  const { organizationId } = await getUserOrganization(user.id)
-  await deleteFundraisingActivityFromDb(organizationId, id)
-  
   revalidatePath('/compliance/fundraising')
+  return { data }
 }
 
-export async function updateRaisedAmount(id: string, amount: number): Promise<FundraisingActivity> {
+export async function markComplianceComplete(id: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   
-  if (!user) {
-    throw new Error('Unauthorized')
+  // Income records don't have compliance_checks_completed field
+  // This is a no-op for compatibility
+  const { data, error } = await supabase
+    .from('income_records')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    return { error: error.message }
   }
 
-  const { organizationId } = await getUserOrganization(user.id)
-  const activity = await updateFundraisingActivityInDb(organizationId, { id, amount })
-  
   revalidatePath('/compliance/fundraising')
-  return activity
-}
-
-export async function markComplianceComplete(id: string): Promise<FundraisingActivity> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
-
-  const { organizationId } = await getUserOrganization(user.id)
-  const activity = await updateFundraisingActivityInDb(organizationId, { 
-    id, 
-    compliance_status: 'compliant' 
-  })
-  
-  revalidatePath('/compliance/fundraising')
-  return activity
+  return { data }
 }

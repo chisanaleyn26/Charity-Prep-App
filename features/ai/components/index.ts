@@ -1,6 +1,3 @@
-export { BasicChat } from './basic-chat'
-export { ComplianceChat } from './compliance-chat'
-export { ComplianceChatFixed } from './compliance-chat-fixed'
 export { ComplianceChatRefactored } from './compliance-chat-refactored'
 export { ChatMessageList } from './chat-message-list'
 export { ChatInput } from './chat-input'

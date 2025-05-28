@@ -7,20 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils'
 import { Copy, Check, AlertCircle, FileText } from 'lucide-react'
-import { toast } from 'sonner'
-import type { AnnualReturnData } from '../types/annual-return'
-
-// Field mapping for Annual Return form
-const ANNUAL_RETURN_FIELD_MAPPING = {
-  'charity-name': 'organizationName',
-  'charity-number': 'charityNumber',
-  'financial-year-end': 'financialYearEnd',
-  'total-income': 'totalIncome',
-  'total-expenditure': 'totalExpenditure',
-  'staff-volunteers': 'totalStaffVolunteers',
-  'overseas-spend': 'totalOverseasSpend',
-  'placeholder': 'placeholder'
-}
+import { toast } from '@/hooks/use-toast'
+import { AnnualReturnData, ANNUAL_RETURN_FIELD_MAPPING } from '../services/annual-return-data'
 
 interface FieldMapperProps {
   data: AnnualReturnData
@@ -47,7 +35,9 @@ export function FieldMapper({ data, financialYear }: FieldMapperProps) {
     try {
       await navigator.clipboard.writeText(String(value))
       setCopiedFields(prev => new Set([...prev, fieldId]))
-      toast.success('Copied to clipboard')
+      toast({
+        description: 'Copied to clipboard',
+      })
       setTimeout(() => {
         setCopiedFields(prev => {
           const next = new Set(prev)
@@ -56,7 +46,11 @@ export function FieldMapper({ data, financialYear }: FieldMapperProps) {
         })
       }, 2000)
     } catch (error) {
-      toast.error('Failed to copy - please try again')
+      toast({
+        title: 'Failed to copy',
+        description: 'Please try again',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -144,7 +138,7 @@ export function FieldMapper({ data, financialYear }: FieldMapperProps) {
       description: 'Working with children and vulnerable adults',
       fields: [
         { id: 'H1_WorkingWithChildren', label: 'Number Working with Children', value: getValue('safeguarding.workingWithChildren'), type: 'number', required: false },
-        { id: 'H2_SafeguardingPolicy', label: 'Has Safeguarding Policy', value: data.safeguarding.policiesReviewedDate !== null, type: 'boolean', required: false },
+        { id: 'H2_SafeguardingPolicy', label: 'Has Safeguarding Policy', value: data.safeguarding.policies.length > 0, type: 'boolean', required: false },
       ]
     },
     {

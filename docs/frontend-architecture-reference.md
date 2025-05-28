@@ -4,8 +4,6 @@
 
 This guide defines the frontend architecture for Charity Prep, leveraging Next.js 15.2's latest features with Zustand for state management. The architecture prioritizes Server Components, Server Actions, and minimal client-side state for optimal performance.
 
-> **Updated**: January 2025 - Added Next.js 15 caching strategies, streaming patterns, and performance optimizations based on latest best practices.
-
 ## Core Principles
 
 1. **Server-First**: Use Server Components by default, Client Components only when needed
@@ -325,56 +323,36 @@ export function DBSForm() {
   )
 }
 
-## 5. Data Fetching with Supabase and Next.js 15 Caching
-
-### Optimized Supabase Client with Request Memoization
+## 5. Data Fetching with Supabase
 
 ```typescript
 // lib/supabase/server.ts
 import { createServerClient as createClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { cache } from 'react'
 
-// Memoize client creation to reuse within same request
-export const createServerClient = cache(async () => {
-  const cookieStore = await cookies()
+export function createServerClient() {
+  const cookieStore = cookies()
   
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+        get(name: string) {
+          return cookieStore.get(name)?.value
         },
       },
     }
   )
-})
+}
 
-### Next.js 15 Caching Strategies
-
-```typescript
 // features/compliance/services/safeguarding.ts
 import { createServerClient } from '@/lib/supabase/server'
 import { unstable_cache } from 'next/cache'
-import { cache } from 'react'
 
-// Request Memoization - Deduplicates within single request
-export const getCurrentUser = cache(async () => {
-  const supabase = await createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-})
-
-// Direct server-side data fetching (no caching)
+// Direct server-side data fetching
 export async function getSafeguardingRecords() {
-  const supabase = await createServerClient()
+  const supabase = createServerClient()
   
   const { data, error } = await supabase
     .from('safeguarding_records')
@@ -385,31 +363,10 @@ export async function getSafeguardingRecords() {
   return data
 }
 
-// Data Cache - Persists across requests
-export const getCachedSafeguardingRecords = unstable_cache(
+// Cached data fetching with tags
+export const getComplianceScore = unstable_cache(
   async (orgId: string) => {
-    const supabase = await createServerClient()
-    
-    const { data, error } = await supabase
-      .from('safeguarding_records')
-      .select('*')
-      .eq('organization_id', orgId)
-      .order('expiry_date', { ascending: true })
-    
-    if (error) throw error
-    return data
-  },
-  ['safeguarding-records'],
-  {
-    revalidate: 300, // 5 minutes
-    tags: ['safeguarding', `org-${orgId}-safeguarding`],
-  }
-)
-
-// Cached compliance score with granular invalidation
-export const getCachedComplianceScore = unstable_cache(
-  async (orgId: string) => {
-    const supabase = await createServerClient()
+    const supabase = createServerClient()
     
     const { data } = await supabase
       .from('compliance_scores')
@@ -421,24 +378,10 @@ export const getCachedComplianceScore = unstable_cache(
   },
   ['compliance-score'],
   {
+    tags: ['compliance-score'],
     revalidate: 300, // 5 minutes
-    tags: ['compliance', `org-${orgId}-compliance`],
   }
 )
-
-// Invalidate caches in Server Actions
-import { revalidateTag } from 'next/cache'
-
-export async function updateSafeguardingRecord(id: string, data: any) {
-  const user = await getCurrentUser() // Uses memoization
-  
-  // Update record...
-  
-  // Invalidate specific caches
-  revalidateTag('safeguarding')
-  revalidateTag(`org-${user.organizationId}-safeguarding`)
-  revalidateTag(`org-${user.organizationId}-compliance`)
-}
 
 ## 6. Models with Zod
 
@@ -590,116 +533,25 @@ export default async function DashboardPage() {
 }
 ```
 
-### Streaming with Suspense (Next.js 15 Pattern)
+### Streaming with Suspense
 
 ```typescript
 // app/(app)/compliance/page.tsx
 import { Suspense } from 'react'
 
-// Route configuration
-export const revalidate = 300 // 5 minutes
-export const dynamic = 'force-dynamic' // Always fresh data
-
-export default async function CompliancePage() {
-  // Critical data - await immediately
-  const user = await getCurrentUser()
-  const org = await getCachedOrganization(user.organizationId)
-  
-  // Non-critical - don't await (stream)
-  const scorePromise = getCachedComplianceScore(org.id)
-  const recordsPromise = getCachedSafeguardingRecords(org.id)
-  const activitiesPromise = getOverseasActivities(org.id)
-  
+export default function CompliancePage() {
   return (
     <div className="space-y-6">
-      {/* Critical content renders immediately */}
-      <ComplianceHeader user={user} organization={org} />
+      {/* Critical content loads immediately */}
+      <ComplianceHeader />
       
-      {/* Stream compliance score */}
+      {/* Non-critical content streams in */}
       <Suspense fallback={<ScoreSkeleton />}>
-        <ComplianceScoreCard scorePromise={scorePromise} />
+        <ComplianceScore />
       </Suspense>
       
-      {/* Stream safeguarding records */}
       <Suspense fallback={<TableSkeleton />}>
-        <SafeguardingTable recordsPromise={recordsPromise} />
-      </Suspense>
-      
-      {/* Stream overseas activities */}
-      <Suspense fallback={<TableSkeleton />}>
-        <OverseasActivitiesTable activitiesPromise={activitiesPromise} />
-      </Suspense>
-    </div>
-  )
-}
-
-// Components that handle promises
-async function ComplianceScoreCard({ scorePromise }: { scorePromise: Promise<Score> }) {
-  const score = await scorePromise
-  return <ComplianceScore data={score} />
-}
-
-async function SafeguardingTable({ recordsPromise }: { recordsPromise: Promise<Record[]> }) {
-  const records = await recordsPromise
-  return <SafeguardingRecords data={records} />
-}
-```
-
-### Route Segment Configuration
-
-```typescript
-// app/(app)/dashboard/page.tsx
-// Configure how this route behaves
-export const revalidate = 60 // Revalidate every minute
-export const dynamic = 'force-dynamic' // Always render fresh
-
-// app/(app)/help/page.tsx
-// Static content
-export const revalidate = 3600 // 1 hour
-export const dynamic = 'force-static' // Build-time generation
-
-// app/(app)/reports/annual-return/page.tsx
-// On-demand generation
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs' // Use Node.js runtime for PDF generation
-```
-
-### Dynamic Imports for Code Splitting
-
-```typescript
-// app/(app)/reports/page.tsx
-import dynamic from 'next/dynamic'
-
-// Lazy load heavy components
-const PDFGenerator = dynamic(
-  () => import('@/features/reports/components/PDFGenerator'),
-  {
-    loading: () => <div>Loading PDF generator...</div>,
-    ssr: false, // Don't render on server
-  }
-)
-
-const DataVisualizations = dynamic(
-  () => import('@/features/analytics/components/Charts'),
-  {
-    loading: () => <ChartSkeleton />,
-  }
-)
-
-export default function ReportsPage() {
-  const [showPDF, setShowPDF] = useState(false)
-  
-  return (
-    <div>
-      <button onClick={() => setShowPDF(true)}>
-        Generate PDF Report
-      </button>
-      
-      {/* Component only loads when needed */}
-      {showPDF && <PDFGenerator />}
-      
-      <Suspense fallback={<ChartSkeleton />}>
-        <DataVisualizations />
+        <SafeguardingTable />
       </Suspense>
     </div>
   )
@@ -861,13 +713,10 @@ npx supabase gen types typescript --project-id [id] > types/database.ts
 1. **Server Components by default** - Only use 'use client' when needed
 2. **Server Actions for mutations** - Progressive enhancement
 3. **Zustand for UI state only** - Not for server data
-4. **Use Next.js caching** - unstable_cache() and cache() for performance
-5. **Parallel data fetching** - Use Promise.all()
-6. **Streaming with Suspense** - Better perceived performance
-7. **Type everything** - TypeScript + Zod validation
-8. **Feature-based organization** - Colocate related code
-9. **Configure route segments** - Set revalidate and dynamic options
-10. **Memoize expensive operations** - Use React cache() for deduplication
+4. **Parallel data fetching** - Use Promise.all()
+5. **Streaming with Suspense** - Better perceived performance
+6. **Type everything** - TypeScript + Zod validation
+7. **Feature-based organization** - Colocate related code
 
 ### Don'ts ❌
 
@@ -876,38 +725,15 @@ npx supabase gen types typescript --project-id [id] > types/database.ts
 3. **Don't block on non-critical data** - Use Suspense boundaries
 4. **Don't use 'use client' in pages/layouts** - Keep them as Server Components
 5. **Don't forget error boundaries** - Handle failures gracefully
-6. **Don't create multiple Supabase clients** - Use memoized singleton
-7. **Don't put redirect() in try-catch** - Next.js 15 requirement
-8. **Don't await non-critical data** - Stream with Suspense instead
 
 ## Summary
 
 This architecture leverages:
 
-- **Next.js 15.2**: Server Components, Server Actions, Streaming, Built-in Caching
-- **Zustand**: Minimal client state management (UI only)
+- **Next.js 15.2**: Server Components, Server Actions, Streaming
+- **Zustand**: Minimal client state management
 - **Supabase**: Real-time database with auth
 - **TypeScript + Zod**: End-to-end type safety
 - **Feature-based structure**: Scalable organization
-- **Performance Optimizations**: Request memoization, data caching, streaming, code splitting
 
 The result is a performant, type-safe, and maintainable codebase that delivers excellent user experience while being developer-friendly.
-
-### Key Performance Features
-
-1. **Next.js Caching Layers**
-   - Request Memoization with `cache()`
-   - Data Cache with `unstable_cache()`
-   - Granular invalidation with tags
-
-2. **Streaming Architecture**
-   - Critical content renders immediately
-   - Non-critical data streams in progressively
-   - Better perceived performance
-
-3. **Optimized Data Fetching**
-   - Parallel loading with Promise.all()
-   - Deduplicated requests within single render
-   - Cached Supabase client creation
-
-For migration guide and detailed recommendations, see [nextjs-15-recommendations.md](./nextjs-15-recommendations.md).

@@ -26,22 +26,21 @@ import type { AnnualReturnData, ARGeneratorState } from '../types/annual-return'
 
 interface ARGeneratorProps {
   initialData?: AnnualReturnData | null;
-  initialError?: string;
 }
 
-export function ARGenerator({ initialData = null, initialError }: ARGeneratorProps = {}) {
+export function ARGenerator({ initialData = null }: ARGeneratorProps) {
   const [state, setState] = useState<ARGeneratorState>({
-    isLoading: !initialData && !initialError,
+    isLoading: !initialData,
     isGenerating: false,
     data: initialData,
-    error: initialError || null,
+    error: null,
     selectedSection: 'all',
     copiedFields: new Set()
   });
 
-  // Generate data on mount if not provided and no error
+  // Generate data on mount if not provided
   useEffect(() => {
-    if (!initialData && !initialError) {
+    if (!initialData) {
       handleGenerate();
     }
   }, []);
@@ -55,7 +54,7 @@ export function ARGenerator({ initialData = null, initialError }: ARGeneratorPro
       setState(prev => ({ 
         ...prev, 
         isLoading: false, 
-        data: result.data || null,
+        data: result.data,
         copiedFields: new Set() 
       }));
       toast.success('Annual Return data generated successfully');
@@ -80,7 +79,7 @@ export function ARGenerator({ initialData = null, initialError }: ARGeneratorPro
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = result.filename || `annual-return-${format}.${format}`;
+      a.download = result.filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

@@ -138,30 +138,3 @@ export const needsRiskAssessment = (activity: OverseasActivity): boolean => {
   return !activity.sanctions_check_completed || 
     (activity.requires_reporting && !activity.reported_to_commission)
 }
-
-// Input types for creating and updating
-export interface CreateOverseasActivityInput {
-  activity_name: string
-  activity_type: OverseasActivity['activity_type']
-  country_code: string
-  partner_id?: string | null
-  amount: number
-  currency?: string | null
-  amount_gbp: number
-  exchange_rate?: number | null
-  transfer_method: OverseasActivity['transfer_method']
-  transfer_date: string
-  transfer_reference?: string | null
-  financial_year: number
-  quarter?: number | null
-  beneficiaries_count?: number | null
-  project_code?: string | null
-  description?: string | null
-  sanctions_check_completed?: boolean | null
-  requires_reporting?: boolean | null
-  reported_to_commission?: boolean | null
-}
-
-export interface UpdateOverseasActivityInput extends Partial<CreateOverseasActivityInput> {
-  id: string
-}
