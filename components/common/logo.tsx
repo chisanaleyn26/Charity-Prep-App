@@ -14,7 +14,8 @@ export function Logo({ className, variant = 'default', size = 'md' }: LogoProps)
     lg: 'h-12'
   }
 
-  const textColor = variant === 'white' ? 'text-white' : 'text-gunmetal'
+  // Use explicit color to avoid hydration issues
+  const textColor = variant === 'white' ? 'text-white' : 'text-[#243837]'
 
   return (
     <div className={cn('flex items-center gap-2', className)}>

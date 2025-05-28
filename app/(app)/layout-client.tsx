@@ -7,6 +7,7 @@ import {
   MobileHeader,
 } from "@/components/layout/mobile-sidebar";
 import { OrganizationProvider } from "@/features/organizations/components/organization-provider";
+import { ProfileCompletionProvider } from "@/features/user/components/profile-completion-provider";
 import { Tables } from "@/lib/types/database.types";
 
 type Organization = Tables<"organizations">;
@@ -35,7 +36,8 @@ export function AppLayoutClient({
 
   return (
     <OrganizationProvider>
-      <div className="flex h-screen bg-background touch-manipulation">
+      <ProfileCompletionProvider>
+        <div className="flex h-screen bg-white touch-manipulation">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
           <Sidebar
@@ -67,8 +69,8 @@ export function AppLayoutClient({
             </div>
           </main>
         </div>
-      </div>
-
+        </div>
+      </ProfileCompletionProvider>
     </OrganizationProvider>
   );
 }

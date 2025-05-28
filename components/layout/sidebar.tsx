@@ -28,9 +28,10 @@ import {
   Download
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { signOutAction } from '@/lib/actions/auth'
+// Remove server action import - will handle signout client-side
 import { Tables } from '@/lib/types/database.types'
 import { OrgSwitcher } from '@/features/organizations/components/org-switcher'
+import { UserSection } from './user-section'
 
 type Organization = Tables<'organizations'>
 
@@ -86,8 +87,8 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       description: 'Overall compliance health'
     },
     {
-      name: 'AI Assistant',
-      href: '/ai/compliance-assistant',
+      name: 'Compliance Chat',
+      href: '/compliance/chat',
       icon: Bot,
       badge: 'NEW',
       badgeType: 'default' as const,
@@ -217,14 +218,13 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
                 )}>
                   {item.name}
                 </span>
-                {item.badge && !collapsed && (
-                  <span className={cn(
-                    'px-2 py-0.5 text-xs font-medium rounded-full',
-                    'bg-red-100 text-red-600'
-                  )}>
-                    {item.badge}
-                  </span>
-                )}
+                <span className={cn(
+                  'px-2 py-0.5 text-xs font-medium rounded-full',
+                  'bg-red-100 text-red-600',
+                  !item.badge || collapsed ? 'hidden' : 'inline-flex'
+                )}>
+                  {item.badge || ''}
+                </span>
                 
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
@@ -363,11 +363,12 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
               )}>
                 {item.name}
               </span>
-              {item.badge && !collapsed && (
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
-                  {item.badge}
-                </span>
-              )}
+              <span className={cn(
+                "px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-600",
+                !item.badge || collapsed ? 'hidden' : 'inline-flex'
+              )}>
+                {item.badge || ''}
+              </span>
               
               {/* Tooltip for collapsed state */}
               {collapsed && (
@@ -379,39 +380,8 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
           ))}
         </div>
 
-        {/* User Menu */}
-        <div className={cn(
-          'border-t border-gray-100 pt-4',
-          collapsed && 'flex justify-center'
-        )}>
-          {collapsed ? (
-            <button className="p-2 hover:bg-gray-100 rounded-md transition-colors group relative">
-              <Users className="h-5 w-5 text-gray-600" />
-              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                Profile Menu
-              </div>
-            </button>
-          ) : (
-            <div className="flex items-center gap-3 px-3 py-2">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
-                JD
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">John Doe</p>
-                <p className="text-xs text-gray-500 truncate">Trustee</p>
-              </div>
-              <form action={signOutAction}>
-                <button 
-                  type="submit"
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  aria-label="Sign out"
-                >
-                  <LogOut className="h-4 w-4 text-gray-500" />
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
+        {/* Dynamic User Section */}
+        <UserSection collapsed={collapsed} />
       </div>
     </aside>
   )

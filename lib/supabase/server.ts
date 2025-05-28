@@ -101,7 +101,7 @@ export const getCurrentUserOrganization = async () => {
   const user = await getCurrentUser()
   
   if (!user) {
-    throw new Error('User not authenticated')
+    return null
   }
 
   const supabase = await createClient()
@@ -119,7 +119,7 @@ export const getCurrentUserOrganization = async () => {
     .single()
 
   if (!membership) {
-    throw new Error('User is not a member of any organization')
+    return null
   }
 
   return {

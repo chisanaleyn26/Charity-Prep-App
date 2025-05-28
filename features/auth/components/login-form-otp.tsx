@@ -9,7 +9,7 @@ import { EtherealButton } from '@/components/custom-ui/ethereal-button'
 import { EmailStep } from './email-step'
 import { OTPInputField } from './otp-input'
 import { useOTPTimer, useOTPAttempts } from '../hooks/use-otp-timer'
-import { sendOTP, verifyOTP, resendOTP } from '../actions/auth'
+import { sendOTPClient, verifyOTPClient } from '../actions/client-auth'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 
 type LoginStep = 'email' | 'otp'
@@ -57,14 +57,10 @@ export function LoginFormOTP() {
     setError(null)
     
     try {
-      const result = await sendOTP({ email: submittedEmail })
+      const result = await sendOTPClient(submittedEmail)
       
       if (!result.success) {
         setError(result.error || 'Failed to send verification code')
-        if (result.cooldownSeconds) {
-          // Start timer with remaining cooldown
-          startTimer()
-        }
         return
       }
       
@@ -91,7 +87,7 @@ export function LoginFormOTP() {
     setError(null)
     
     try {
-      const result = await verifyOTP({ email, otp: code })
+      const result = await verifyOTPClient(email, code)
       
       if (!result.success) {
         setError(result.error || 'Invalid verification code')
@@ -125,13 +121,10 @@ export function LoginFormOTP() {
     setError(null)
     
     try {
-      const result = await resendOTP({ email })
+      const result = await sendOTPClient(email)
       
       if (!result.success) {
         setError(result.error || 'Failed to resend code')
-        if (result.cooldownSeconds) {
-          toast.error(`Too many attempts. Please wait ${Math.ceil(result.cooldownSeconds / 60)} minutes.`)
-        }
         return
       }
       

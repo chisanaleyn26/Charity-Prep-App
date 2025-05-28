@@ -39,6 +39,18 @@ interface KPICardsProps {
 
 export function KPICards({ stats, dashboardData }: KPICardsProps) {
   // Support both new stats prop and legacy dashboardData prop
+  console.log('KPICards received:', { 
+    hasStats: !!stats, 
+    hasDashboardData: !!dashboardData,
+    stats: stats,
+    dashboardData: dashboardData 
+  })
+  
+  // Early return if no data
+  if (!stats && !dashboardData) {
+    return <KPICardsSkeleton />
+  }
+
   const kpiData: KPICard[] = stats ? [
     {
       title: 'Total Records',
@@ -76,10 +88,10 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
       iconColor: 'text-purple-600',
       bgColor: 'bg-purple-50'
     }
-  ] : dashboardData ? [
+  ] : dashboardData?.compliance && dashboardData?.quickStats ? [
     {
       title: 'Compliance Score',
-      value: `${dashboardData.compliance.score}%`,
+      value: `${dashboardData.compliance?.score || 0}%`,
       change: 4.5,
       changeType: 'increase',
       icon: Shield,
@@ -88,7 +100,7 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
     },
     {
       title: 'Active DBS Checks',
-      value: dashboardData.quickStats.safeguarding.total,
+      value: dashboardData.quickStats?.safeguarding?.total || 0,
       change: 3,
       changeType: 'increase', 
       icon: Users,
@@ -97,23 +109,61 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
     },
     {
       title: 'Overseas Countries',
-      value: dashboardData.quickStats.overseas.countries,
-      change: dashboardData.quickStats.overseas.highRisk > 0 ? -2 : 2,
-      changeType: dashboardData.quickStats.overseas.highRisk > 0 ? 'decrease' : 'increase',
+      value: dashboardData.quickStats?.overseas?.countries || 0,
+      change: (dashboardData.quickStats?.overseas?.highRisk || 0) > 0 ? -2 : 2,
+      changeType: (dashboardData.quickStats?.overseas?.highRisk || 0) > 0 ? 'decrease' : 'increase',
       icon: Globe,
       iconColor: 'text-mist',
       bgColor: 'bg-mist/10'
     },
     {
       title: 'Expiring Soon',
-      value: dashboardData.quickStats.safeguarding.expiring,
-      change: dashboardData.quickStats.safeguarding.expiring > 0 ? 2 : 0,
-      changeType: dashboardData.quickStats.safeguarding.expiring > 0 ? 'increase' : 'decrease',
+      value: dashboardData.quickStats?.safeguarding?.expiring || 0,
+      change: (dashboardData.quickStats?.safeguarding?.expiring || 0) > 0 ? 2 : 0,
+      changeType: (dashboardData.quickStats?.safeguarding?.expiring || 0) > 0 ? 'increase' : 'decrease',
       icon: AlertCircle,
       iconColor: 'text-warning',
       bgColor: 'bg-warning/10'
     }
-  ] : []
+  ] : [
+    // Default fallback cards for new organizations
+    {
+      title: 'Total Records',
+      value: 0,
+      change: 0,
+      changeType: 'increase',
+      icon: FileText,
+      iconColor: 'text-primary',
+      bgColor: 'bg-primary/10'
+    },
+    {
+      title: 'Safeguarding Records',
+      value: 0,
+      change: 0,
+      changeType: 'increase', 
+      icon: Shield,
+      iconColor: 'text-sage',
+      bgColor: 'bg-sage/10'
+    },
+    {
+      title: 'Overseas Activities',
+      value: 0,
+      change: 0,
+      changeType: 'increase',
+      icon: Globe,
+      iconColor: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      title: 'Documents',
+      value: 0,
+      change: 0,
+      changeType: 'increase',
+      icon: FileText,
+      iconColor: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    }
+  ]
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -168,22 +218,22 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
 
 export function KPICardsSkeleton() {
   return (
-    <>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
-          className="bg-white rounded-xl border border-mist-200 p-6"
+          className="bg-white rounded-xl border border-gray-200 p-6"
         >
           <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 bg-mist-100 rounded-lg animate-pulse" />
-            <div className="w-16 h-6 bg-mist-100 rounded animate-pulse" />
+            <div className="w-12 h-12 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="w-16 h-6 bg-gray-100 rounded animate-pulse" />
           </div>
           <div className="space-y-2">
-            <div className="w-24 h-4 bg-mist-100 rounded animate-pulse" />
-            <div className="w-16 h-8 bg-mist-100 rounded animate-pulse" />
+            <div className="w-24 h-4 bg-gray-100 rounded animate-pulse" />
+            <div className="w-16 h-8 bg-gray-100 rounded animate-pulse" />
           </div>
         </div>
       ))}
-    </>
+    </div>
   )
 }

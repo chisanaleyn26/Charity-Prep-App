@@ -46,9 +46,6 @@ export function SiteHeader({ className, variant = 'marketing' }: SiteHeaderProps
                 <EtherealButton variant="ghost" size="sm" asChild>
                   <Link href="/login">Login</Link>
                 </EtherealButton>
-                <EtherealButton size="sm" asChild>
-                  <Link href="/login">Start Free Trial</Link>
-                </EtherealButton>
               </div>
             </>
           )}

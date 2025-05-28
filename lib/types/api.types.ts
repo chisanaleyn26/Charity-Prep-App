@@ -18,10 +18,17 @@ export const fundraisingMethodSchema = z.enum(Constants.public.Enums.fundraising
 export const createOrganizationSchema = z.object({
   name: z.string().min(1).max(255),
   primary_email: z.string().email(),
-  charity_number: z.string().optional(),
+  charity_number: z.preprocess(
+    (val) => val === "" ? undefined : val,
+    z.string().regex(/^\d{6,8}(-\d{1,2})?$/, "Must be 6-8 digits, optionally followed by hyphen and 1-2 digits").optional()
+  ),
   charity_type: z.string().optional(),
   income_band: organizationSizeSchema,
-  financial_year_end: z.string().regex(/^\d{2}-\d{2}$/),
+  financial_year_end: z.enum([
+    "01-01", "31-01", "01-02", "31-03", "01-04", "31-05",
+    "01-06", "01-07", "31-07", "01-08", "31-08", "01-09",
+    "01-10", "31-10", "01-11", "01-12", "31-12"
+  ]),
   address_line1: z.string().optional(),
   address_line2: z.string().optional(),
   city: z.string().optional(),

@@ -24,6 +24,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { appConfig } from '@/lib/config'
+import { useUserProfile } from '@/features/user/hooks/use-user-profile'
+import { useOrganization } from '@/features/organizations/components/organization-provider'
 
 // Validation schema
 const profileSchema = z.object({
@@ -62,12 +64,36 @@ const mockUserData = {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
+  
+  // Use real user data
+  const { profile, updateProfile, isLoading: profileLoading, completionStatus } = useUserProfile()
+  const { currentOrganization } = useOrganization()
 
-  // Use mock data in development
-  const userData = appConfig.features.mockMode ? mockUserData : mockUserData
+  // Fallback to mock data if profile is not loaded
+  const userData = profile ? {
+    id: profile.id,
+    full_name: profile.full_name || '',
+    email: profile.email,
+    phone: profile.phone || '',
+    job_title: profile.job_title || '',
+    bio: profile.bio || '',
+    avatar_url: profile.avatar_url || null,
+    created_at: profile.created_at,
+    organization: {
+      id: currentOrganization?.id || '',
+      name: currentOrganization?.name || 'Unknown Organization',
+      role: 'member' // This would come from membership data
+    },
+    preferences: {
+      email_notifications: true,
+      sms_notifications: false,
+      marketing_emails: false,
+      theme: 'light',
+      language: 'en'
+    }
+  } : (appConfig.features.mockMode ? mockUserData : mockUserData)
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -81,15 +107,19 @@ export default function ProfilePage() {
   })
 
   const handleProfileSubmit = async (data: ProfileFormData) => {
-    setIsLoading(true)
+    if (!updateProfile) return
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      console.log('Profile updated successfully')
+      const success = await updateProfile(data)
+      if (success) {
+        console.log('Profile updated successfully')
+        // Could show success toast here
+      } else {
+        console.error('Failed to update profile')
+        // Could show error toast here
+      }
     } catch (error) {
-      console.error('Failed to update profile')
-    } finally {
-      setIsLoading(false)
+      console.error('Failed to update profile:', error)
     }
   }
 
@@ -298,8 +328,8 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={isLoading}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" disabled={profileLoading}>
+                      {profileLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
                     </Button>
                   </div>

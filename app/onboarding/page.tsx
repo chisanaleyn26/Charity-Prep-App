@@ -7,7 +7,7 @@ import { EtherealButton } from '@/components/custom-ui/ethereal-button'
 import { EtherealInput } from '@/components/custom-ui/ethereal-input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Building2, Mail, Phone, Globe, Calendar, ArrowRight } from 'lucide-react'
+import { Building2, Mail, Phone, Globe, Calendar, ArrowRight, Info } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { FormErrorBoundary } from '@/components/common/error-boundary'
 
@@ -46,14 +46,18 @@ export default function OnboardingPage() {
 
     try {
       const { createOrganization } = await import('@/lib/api/organizations')
+      console.log('Submitting form data:', formData)
       const result = await createOrganization(formData)
 
       if ('error' in result) {
+        console.error('Organization creation failed:', result.error)
         setError(result.error)
       } else {
+        console.log('Organization created successfully:', result.data)
         router.push('/dashboard')
       }
     } catch (err) {
+      console.error('Unexpected error:', err)
       setError('Failed to create organization. Please try again.')
     } finally {
       setIsLoading(false)
@@ -99,13 +103,19 @@ export default function OnboardingPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="charity_number">Charity Number</Label>
+                    <Label htmlFor="charity_number">
+                      Charity Number 
+                      <span className="text-gray-500 font-normal ml-1 text-xs">(Optional)</span>
+                    </Label>
                     <EtherealInput
                       id="charity_number"
                       value={formData.charity_number}
                       onChange={(e) => setFormData({ ...formData, charity_number: e.target.value })}
-                      placeholder="1234567"
+                      placeholder="e.g. 1234567"
                     />
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      Format: 6-8 digits (e.g. 1234567 or 1234567-1)
+                    </p>
                   </div>
                 </div>
 
@@ -132,17 +142,36 @@ export default function OnboardingPage() {
                     <Label htmlFor="financial_year_end">Financial Year End *</Label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
-                      <EtherealInput
-                        id="financial_year_end"
-                        value={formData.financial_year_end}
-                        onChange={(e) => setFormData({ ...formData, financial_year_end: e.target.value })}
-                        placeholder="31-03"
-                        pattern="^\d{2}-\d{2}$"
-                        className="pl-10"
+                      <Select 
+                        value={formData.financial_year_end} 
+                        onValueChange={(value) => setFormData({ ...formData, financial_year_end: value })}
                         required
-                      />
+                      >
+                        <SelectTrigger id="financial_year_end" className="pl-10">
+                          <SelectValue placeholder="Select financial year end" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="31-03">31st March (Most Common)</SelectItem>
+                          <SelectItem value="31-12">31st December</SelectItem>
+                          <SelectItem value="01-01">1st January</SelectItem>
+                          <SelectItem value="31-01">31st January</SelectItem>
+                          <SelectItem value="01-02">1st February</SelectItem>
+                          <SelectItem value="01-04">1st April</SelectItem>
+                          <SelectItem value="31-05">31st May</SelectItem>
+                          <SelectItem value="01-06">1st June</SelectItem>
+                          <SelectItem value="01-07">1st July</SelectItem>
+                          <SelectItem value="31-07">31st July</SelectItem>
+                          <SelectItem value="01-08">1st August</SelectItem>
+                          <SelectItem value="31-08">31st August</SelectItem>
+                          <SelectItem value="01-09">1st September</SelectItem>
+                          <SelectItem value="01-10">1st October</SelectItem>
+                          <SelectItem value="31-10">31st October</SelectItem>
+                          <SelectItem value="01-11">1st November</SelectItem>
+                          <SelectItem value="01-12">1st December</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <p className="text-xs text-gray-700 mt-1">Format: DD-MM (e.g., 31-03 for March 31st)</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Must be 1st or 31st of any month</p>
                   </div>
                 </div>
               </div>
