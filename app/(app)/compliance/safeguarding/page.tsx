@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { Shield } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSafeguardingRecords } from '@/features/compliance/actions/safeguarding'
-import { getUserOrganization } from '@/features/compliance/services/safeguarding.service'
+import { getUserOrganization, debugGetUserOrganization } from '@/features/compliance/services/safeguarding.service'
 import SafeguardingClient from './safeguarding-client'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -16,6 +16,25 @@ async function SafeguardingContent() {
   
   if (!user) {
     return <div>Please login to view safeguarding records</div>
+  }
+
+  // Debug: Get raw response to investigate the issue
+  const debugResponse = await debugGetUserOrganization(user.id)
+  
+  // If this is a debug response, show it
+  if (debugResponse.debug) {
+    return (
+      <div className="p-6 bg-gray-50 rounded-lg">
+        <h2 className="text-xl font-bold mb-4">Debug Information</h2>
+        <pre className="bg-white p-4 rounded border overflow-auto text-sm">
+          {JSON.stringify(debugResponse, null, 2)}
+        </pre>
+        <p className="mt-4 text-sm text-gray-600">
+          This debug information shows the current user and organization state. 
+          Please share this with technical support.
+        </p>
+      </div>
+    )
   }
 
   const { organizationId } = await getUserOrganization(user.id)
