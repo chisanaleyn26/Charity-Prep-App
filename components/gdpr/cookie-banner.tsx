@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Cookie, Settings, Shield, BarChart3, ChevronDown, ExternalLink } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
 
 interface CookiePreferences {
   necessary: boolean

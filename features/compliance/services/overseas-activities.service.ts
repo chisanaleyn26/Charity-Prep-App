@@ -11,7 +11,7 @@ import type {
  */
 
 export async function fetchOverseasActivities(organizationId: string): Promise<OverseasActivity[]> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase
     .from('overseas_activities')
@@ -37,7 +37,7 @@ export async function createOverseasActivityInDb(
   organizationId: string,
   input: CreateOverseasActivityInput
 ): Promise<OverseasActivity> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const insertData = {
     organization_id: organizationId,
@@ -80,7 +80,7 @@ export async function updateOverseasActivityInDb(
   organizationId: string,
   input: UpdateOverseasActivityInput
 ): Promise<OverseasActivity> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { id, ...updates } = input
   
@@ -104,7 +104,7 @@ export async function deleteOverseasActivityFromDb(
   organizationId: string,
   id: string
 ): Promise<void> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { error } = await supabase
     .from('overseas_activities')
@@ -119,7 +119,7 @@ export async function deleteOverseasActivityFromDb(
 }
 
 export async function getUserOrganization(userId: string): Promise<{ organizationId: string }> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data: membership, error } = await supabase
     .from('organization_members')

@@ -1,162 +1,139 @@
-import { Suspense } from 'react'
-import dynamic from 'next/dynamic'
-import { 
-  KPICards,
-  ActivityFeed,
-  KPICardsSkeleton,
-  ChartSkeleton,
-  ActivityFeedSkeleton,
-  RealtimeActivityFeed
-} from '@/features/dashboard/components'
-
-// Dynamic imports for heavy chart components
-const ComplianceTrendChart = dynamic(
-  () => import('@/features/dashboard/components/compliance-trend-chart'),
-  {
-    loading: () => <ChartSkeleton />
-  }
-)
-
-const CategoryBreakdownChart = dynamic(
-  () => import('@/features/dashboard/components/category-breakdown-chart'),
-  {
-    loading: () => <ChartSkeleton />
-  }
-)
-import { Award, TrendingUp, Bell, Calendar, Settings } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { getDashboardData } from '@/lib/api/dashboard'
-import { getCurrentOrganization, getUser } from '@/lib/api/auth'
 import { redirect } from 'next/navigation'
-import { mockKPIs, mockActivityFeed, mockComplianceScore } from '@/lib/mock-data'
+import { getCurrentUser, getCurrentUserOrganization, createServerClient } from '@/lib/supabase/server'
+import { KPICards } from '@/features/dashboard/components'
 import { appConfig } from '@/lib/config'
+
+// Route segment configuration
+export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   // Use mock data in mock mode
   if (appConfig.features.mockMode) {
-    const dashboardData = {
-      compliance: {
-        score: mockComplianceScore.overall_score,
-        level: mockComplianceScore.overall_score >= 80 ? 'Excellent' : 
-               mockComplianceScore.overall_score >= 60 ? 'Good' : 
-               mockComplianceScore.overall_score >= 40 ? 'Fair' : 'Poor',
-        breakdown: mockComplianceScore.category_scores
-      },
-      quickStats: {
-        safeguarding: {
-          total: 15,
-          expiring: 3,
-          expired: 1
-        },
-        overseas: {
-          countries: 2,
-          highRisk: 0
-        },
-        fundraising: {
-          active: 2,
-          total: 75000
-        }
-      },
-      recentActivity: mockActivityFeed
-    }
-    
-    const user = { full_name: 'John Doe' }
-    
-    return renderDashboard(dashboardData, user)
-  }
-
-  // Real data flow
-  const [organization, user] = await Promise.all([
-    getCurrentOrganization(),
-    getUser()
-  ])
-  
-  if (!organization) {
-    redirect('/onboarding')
-  }
-  
-  const dashboardData = await getDashboardData(organization.id)
-  
-  if ('error' in dashboardData) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-red-600">Failed to load dashboard data</p>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard (Mock Mode)</h1>
+          <p className="text-muted-foreground">Welcome to CharityPrep</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold">Total Records</h3>
+            <p className="text-2xl">45</p>
+          </div>
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold">Safeguarding</h3>
+            <p className="text-2xl">15</p>
+          </div>
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold">Overseas</h3>
+            <p className="text-2xl">10</p>
+          </div>
+          <div className="border rounded-lg p-4">
+            <h3 className="font-semibold">Documents</h3>
+            <p className="text-2xl">20</p>
+          </div>
+        </div>
       </div>
     )
   }
-  
-  return renderDashboard(dashboardData, user)
-}
 
-function renderDashboard(dashboardData: any, user: any) {
-  return (
-    <div className="space-y-8">
-      {/* Enhanced Typography Header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-3">
-          <h1 className="text-5xl font-extralight text-foreground tracking-tight leading-none">
-            Dashboard
-          </h1>
-          <p className="text-lg text-muted-foreground font-normal leading-relaxed tracking-wide">
-            Welcome back{user?.full_name ? `, ${user.full_name}` : ''}. Here&apos;s your compliance overview.
+  try {
+    // Get user data
+    const user = await getCurrentUser()
+    
+    if (!user) {
+      redirect('/login')
+    }
+    
+    const orgData = await getCurrentUserOrganization()
+    
+    if (!orgData) {
+      redirect('/onboarding')
+    }
+    
+    const { organization, organizationId } = orgData
+    
+    // Get basic stats
+    const supabase = await createServerClient()
+    
+    const [
+      { count: safeguardingCount },
+      { count: overseasCount },
+      { count: incomeCount },
+      { count: documentsCount }
+    ] = await Promise.all([
+      supabase
+        .from('safeguarding_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organizationId),
+      supabase
+        .from('overseas_activities')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organizationId),
+      supabase
+        .from('income_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organizationId),
+      supabase
+        .from('documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organizationId)
+    ])
+    
+    const stats = {
+      totalRecords: (safeguardingCount || 0) + (overseasCount || 0) + (incomeCount || 0),
+      safeguardingRecords: safeguardingCount || 0,
+      overseasActivities: overseasCount || 0,
+      fundraisingRecords: incomeCount || 0,
+      documents: documentsCount || 0,
+      lastUpdated: new Date().toISOString()
+    }
+    
+    const complianceScore = Math.min(100, Math.round((stats.totalRecords / 30) * 100))
+    
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back{user?.email ? `, ${user.email}` : ''}
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-4xl font-bold">{complianceScore}%</div>
+            <p className="text-sm text-muted-foreground">Compliance Score</p>
+          </div>
+        </div>
+        
+        {/* KPI Cards */}
+        <KPICards stats={stats} />
+        
+        {/* Simple activity section */}
+        <div className="border rounded-lg p-6">
+          <h3 className="font-semibold mb-4">Recent Activity</h3>
+          <p className="text-muted-foreground">
+            {stats.totalRecords > 0 
+              ? `You have ${stats.totalRecords} compliance records`
+              : 'No activity yet - start by adding your first compliance record'}
           </p>
         </div>
-        <div className="text-right space-y-2">
-          <div className="flex items-baseline gap-1">
-            <div className="text-6xl font-extralight text-foreground tracking-tighter leading-none">{dashboardData.compliance.score}</div>
-            <div className="text-2xl font-light text-muted-foreground leading-none">%</div>
-          </div>
-          <div className="flex items-center gap-2 justify-end">
-            <div className={`h-2 w-2 rounded-full ${
-              dashboardData.compliance.level === 'Excellent' ? 'bg-success' :
-              dashboardData.compliance.level === 'Good' ? 'bg-primary' :
-              dashboardData.compliance.level === 'Fair' ? 'bg-warning' :
-              'bg-error'
-            }`}></div>
-            <p className={`text-sm font-medium tracking-wide uppercase ${
-              dashboardData.compliance.level === 'Excellent' ? 'text-success-dark' :
-              dashboardData.compliance.level === 'Good' ? 'text-primary' :
-              dashboardData.compliance.level === 'Fair' ? 'text-warning-dark' :
-              'text-error-dark'
-            }`}>{dashboardData.compliance.level}</p>
-          </div>
+      </div>
+    )
+  } catch (error) {
+    console.error('Dashboard error:', error)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Failed to load dashboard</p>
+          <p className="text-sm text-muted-foreground">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </p>
         </div>
       </div>
-
-      {/* 6-Column Responsive Grid System */}
-      <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-        {/* KPI Cards - 4 columns across top */}
-        <div className="lg:col-span-6">
-            <Suspense fallback={<KPICardsSkeleton />}>
-              <KPICards dashboardData={dashboardData} />
-            </Suspense>
-        </div>
-        
-        {/* Compliance Trend Chart - 4 columns */}
-        <div className="lg:col-span-4">
-            <Suspense fallback={<ChartSkeleton />}>
-              <ComplianceTrendChart organizationId="mock-org-123" />
-            </Suspense>
-        </div>
-        
-        {/* Activity Feed - 2 columns (compressed) */}
-        <div className="lg:col-span-2">
-            <Suspense fallback={<ActivityFeedSkeleton />}>
-              {appConfig.features.realtime ? (
-                <RealtimeActivityFeed organizationId={dashboardData.organizationId || "mock-org-123"} />
-              ) : (
-                <ActivityFeed activities={dashboardData.recentActivity} />
-              )}
-            </Suspense>
-        </div>
-
-        {/* Category Breakdown - Split into two 3-column sections */}
-        <div className="lg:col-span-6">
-            <Suspense fallback={<ChartSkeleton />}>
-              <CategoryBreakdownChart breakdown={dashboardData.compliance.breakdown} />
-            </Suspense>
-        </div>
-      </div>
-    </div>
-  )
+    )
+  }
 }

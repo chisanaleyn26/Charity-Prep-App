@@ -11,7 +11,7 @@ import type {
  */
 
 export async function fetchSafeguardingRecords(organizationId: string): Promise<SafeguardingRecord[]> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase
     .from('safeguarding_records')
@@ -46,7 +46,7 @@ export async function createSafeguardingRecordInDb(
   organizationId: string,
   input: CreateSafeguardingRecordInput
 ): Promise<SafeguardingRecord> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   // Validate DBS certificate number if provided
   if (input.dbs_certificate_number && !/^\d{12}$/.test(input.dbs_certificate_number)) {
@@ -105,7 +105,7 @@ export async function updateSafeguardingRecordInDb(
   organizationId: string,
   input: UpdateSafeguardingRecordInput
 ): Promise<SafeguardingRecord> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { id, ...updates } = input
   
@@ -149,7 +149,7 @@ export async function deleteSafeguardingRecordFromDb(
   organizationId: string,
   id: string
 ): Promise<void> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { error } = await supabase
     .from('safeguarding_records')
@@ -164,7 +164,7 @@ export async function deleteSafeguardingRecordFromDb(
 }
 
 export async function getUserOrganization(userId: string): Promise<{ organizationId: string }> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data: membership, error } = await supabase
     .from('organization_members')

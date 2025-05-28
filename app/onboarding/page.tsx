@@ -61,17 +61,17 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F5F5] to-[#FAFAFA] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#243837] mb-2">Welcome to Charity Prep!</h1>
-          <p className="text-lg text-[#616161]">Let&apos;s set up your charity&apos;s account</p>
+          <h1 className="text-4xl font-bold text-gunmetal mb-2">Welcome to Charity Prep!</h1>
+          <p className="text-lg text-gray-700">Let&apos;s set up your charity&apos;s account</p>
         </div>
 
         <EtherealCard variant="elevated">
           <EtherealCardHeader>
             <EtherealCardTitle className="flex items-center gap-2">
-              <Building2 className="h-6 w-6 text-[#B1FA63]" />
+              <Building2 className="h-6 w-6 text-ethereal" />
               Organization Details
             </EtherealCardTitle>
             <EtherealCardDescription>
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-[#243837]">Basic Information</h3>
+                <h3 className="text-lg font-semibold text-gunmetal">Basic Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
                   <div>
                     <Label htmlFor="financial_year_end">Financial Year End *</Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#616161]" />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                       <EtherealInput
                         id="financial_year_end"
                         value={formData.financial_year_end}
@@ -142,20 +142,20 @@ export default function OnboardingPage() {
                         required
                       />
                     </div>
-                    <p className="text-xs text-[#616161] mt-1">Format: DD-MM (e.g., 31-03 for March 31st)</p>
+                    <p className="text-xs text-gray-700 mt-1">Format: DD-MM (e.g., 31-03 for March 31st)</p>
                   </div>
                 </div>
               </div>
 
               {/* Contact Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-[#243837]">Contact Information</h3>
+                <h3 className="text-lg font-semibold text-gunmetal">Contact Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="primary_email">Primary Email *</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#616161]" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                       <EtherealInput
                         id="primary_email"
                         type="email"
@@ -171,7 +171,7 @@ export default function OnboardingPage() {
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#616161]" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-700" />
                       <EtherealInput
                         id="phone"
                         type="tel"

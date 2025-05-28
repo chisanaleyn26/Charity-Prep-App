@@ -3,6 +3,11 @@
 ## Overview
 All references to Paddle payment processing have been updated to use Stripe instead. This migration affects documentation, code, database schema, and configuration files.
 
+## Implementation Status
+- **Migration Start**: December 2024
+- **Server Actions Implementation**: January 2025
+- **Status**: Complete (using Next.js 15 server actions architecture)
+
 ## Files Updated
 
 ### 1. Documentation Files
@@ -50,17 +55,53 @@ All references to Paddle payment processing have been updated to use Stripe inst
   - Changed integration file references
   - Updated notes about webhook setup
 
-### 4. Code Files
-- `/lib/api/billing.ts`
-  - Renamed all Paddle-related variables and functions to Stripe
-  - Updated configuration constants
-  - Changed webhook handler from handlePaddleWebhook to handleStripeWebhook
-  - Updated webhook event names to match Stripe's format
-  - Modified checkout URL generation for Stripe
-  
-- `/lib/types/database.types.ts`
-  - Renamed paddle_customer_id to stripe_customer_id
-  - Renamed paddle_subscription_id to stripe_subscription_id
+### 4. Core Implementation Files (January 2025)
+
+#### Server Actions Architecture
+- `/features/subscription/actions/billing.ts` (NEW)
+  - `createCheckoutSession` - Create Stripe checkout for new subscriptions
+  - `createPortalSession` - Open Stripe customer portal
+  - `cancelSubscription` - Cancel subscription at period end
+  - `reactivateSubscription` - Resume canceled subscription
+  - `getSubscriptionOverview` - Fetch subscription and usage data
+  - `getInvoices` - Get invoice history
+  - `getPaymentMethod` - Retrieve payment method details
+
+#### Service Layer
+- `/features/subscription/services/subscription-service.ts`
+  - Refactored to handle async Supabase client properly
+  - Comprehensive subscription management logic
+  - Usage tracking and limits enforcement
+  - Feature access control
+
+#### UI Components
+- `/features/subscription/components/billing-dashboard.tsx`
+  - Updated to use server actions instead of API routes
+  - Real-time subscription status display
+  - Usage metrics visualization
+  - Invoice history and payment method management
+
+- `/features/subscription/components/upgrade-modal.tsx`
+  - Plan selection with monthly/yearly toggle
+  - Proration preview for plan changes
+  - Integration with server actions
+
+- `/features/subscription/components/checkout-success-handler.tsx` (NEW)
+  - Handles Stripe checkout redirects
+  - Shows success/cancel messages
+
+#### Payment Integration
+- `/lib/payments/stripe.ts`
+  - Core Stripe SDK integration
+  - Helper functions for price IDs
+  - Webhook event handlers
+  - Customer and subscription management
+
+#### API Routes (Legacy)
+- `/app/api/webhooks/stripe/route.ts`
+  - Webhook handler for Stripe events
+  - `/app/api/billing/create-checkout-session/route.ts`
+  - Legacy API route (kept for compatibility)
 
 ### 5. Database Files
 - `/supabase/migrations/001_initial_schema.sql`
@@ -70,65 +111,100 @@ All references to Paddle payment processing have been updated to use Stripe inst
 - `/docs/schema.md`
   - Updated schema documentation to reflect Stripe columns
   
-- `/supabase/migrations/007_update_paddle_to_stripe.sql` (NEW)
+- `/supabase/migrations/007_update_paddle_to_stripe.sql`
   - Created migration to rename existing columns
   - Updates indexes and comments
 
 ### 6. Configuration Files
-- `/PRODUCTION_CHECKLIST.md`
-  - Already had Stripe integration mentioned (no changes needed)
+- `.env.local`
+  - `STRIPE_SECRET_KEY`: Test secret key
+  - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Test publishable key
+
+## Pricing Structure
+
+### Subscription Tiers
+- **Essentials**: £29/month or £290/year (2 months free)
+  - 3 users, 100MB storage, 50 AI requests, 10 exports
   
-- `/.env.production.example`
-  - Already had Stripe configuration (no changes needed)
+- **Standard**: £79/month or £790/year (2 months free)
+  - Unlimited users, 1GB storage, 500 AI requests, 100 exports
+  
+- **Premium**: £149/month or £1490/year (2 months free)
+  - Unlimited everything, white-label options, dedicated support
 
-## Key Changes
+### Price IDs (to be created in Stripe Dashboard)
+- `price_essentials_monthly`
+- `price_essentials_yearly`
+- `price_standard_monthly`
+- `price_standard_yearly`
+- `price_premium_monthly`
+- `price_premium_yearly`
 
-### API Integration
-The billing service now integrates with Stripe's API instead of Paddle:
-- Checkout sessions use Stripe Checkout
-- Subscriptions managed via Stripe Subscriptions API
-- Webhooks handle Stripe events (customer.subscription.*, invoice.*)
-- Customer portal for payment method updates
+## Key Architecture Decisions
 
-### Database Schema
-- `paddle_subscription_id` → `stripe_subscription_id`
-- `paddle_customer_id` → `stripe_customer_id`
-- `paddle_invoice_id` → `stripe_invoice_id` (in invoices table if exists)
+### Server Actions (Next.js 15)
+All billing operations use server actions with:
+- Proper async/await handling for createServerClient()
+- redirect() calls outside try-catch blocks
+- Type-safe with Zod validation
+- Organization-based access control
+- Comprehensive error handling
 
-### Environment Variables
-- `PADDLE_VENDOR_ID` → (removed)
-- `PADDLE_API_KEY` → `STRIPE_SECRET_KEY`
-- `PADDLE_PUBLIC_KEY` → `STRIPE_PUBLIC_KEY`
-- `PADDLE_WEBHOOK_SECRET` → `STRIPE_WEBHOOK_SECRET`
+### Multi-tenancy
+- Organization-based billing
+- Role-based permissions (admin/owner only)
+- Stripe customer per organization
+- Usage tracking per organization
 
-### Webhook Events
-Paddle events mapped to Stripe events:
-- `subscription_created` → `customer.subscription.created`
-- `subscription_updated` → `customer.subscription.updated`
-- `subscription_cancelled` → `customer.subscription.deleted`
-- `subscription_payment_succeeded` → `invoice.payment_succeeded`
-- `subscription_payment_failed` → `invoice.payment_failed`
+### Security
+- All actions verify user authentication
+- Organization membership validation
+- Role-based access control
+- Secure webhook signature validation
 
-## Migration Steps for Existing Data
+## Webhook Events Handled
+- `checkout.session.completed` - New subscription created
+- `customer.subscription.updated` - Subscription changes
+- `customer.subscription.deleted` - Subscription canceled
+- `invoice.payment_succeeded` - Successful payment
+- `invoice.payment_failed` - Failed payment
 
-If there's existing data in production:
-1. Run the migration script `/supabase/migrations/007_update_paddle_to_stripe.sql`
-2. Update environment variables in production
-3. Update webhook endpoint URL in Stripe dashboard
-4. Migrate existing customer IDs from Paddle to Stripe (requires custom script)
+## Migration Steps for Production
+
+1. **Stripe Setup**
+   - Create Stripe account
+   - Set up products and prices
+   - Configure webhook endpoint
+   - Add webhook secret to environment
+
+2. **Database Migration**
+   - Run migration script to update column names
+   - Verify data integrity
+
+3. **Environment Variables**
+   - Update production environment with Stripe keys
+   - Remove old Paddle configuration
+
+4. **Testing**
+   - Test full subscription flow
+   - Verify webhook processing
+   - Test customer portal access
+   - Validate usage tracking
 
 ## Benefits of Stripe over Paddle
 
 1. **Better UK/EU support**: Native support for UK VAT and EU tax handling
-2. **More payment methods**: Supports BACS Direct Debit, which is popular with UK charities
-3. **Better developer experience**: More comprehensive SDKs and documentation
-4. **Stronger ecosystem**: Better integrations with other tools charities might use
-5. **Customer portal**: Built-in customer portal for subscription management
+2. **More payment methods**: Supports BACS Direct Debit, popular with UK charities
+3. **Better developer experience**: Comprehensive SDKs and documentation
+4. **Stronger ecosystem**: Better integrations with other tools
+5. **Customer portal**: Built-in subscription management portal
+6. **Server-first architecture**: Perfect fit for Next.js 15 server actions
 
 ## Next Steps
 
-1. Set up Stripe account and configure products/prices
-2. Update webhook endpoints in Stripe dashboard
+1. Create products and prices in Stripe dashboard
+2. Configure webhook endpoint in production
 3. Test payment flows end-to-end
-4. Implement proper Stripe SDK integration (currently using mock URLs)
-5. Add proper error handling for Stripe-specific errors
+4. Implement subscription analytics
+5. Add usage-based billing features
+6. Set up production monitoring

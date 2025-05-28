@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
 import { usePathname } from 'next/navigation'
 import { Logo } from '@/components/common/logo'
 import { MobileDrawer } from '@/components/ui/mobile-drawer'

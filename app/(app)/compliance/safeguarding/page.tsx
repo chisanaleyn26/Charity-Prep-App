@@ -6,6 +6,10 @@ import { getUserOrganization } from '@/features/compliance/services/safeguarding
 import SafeguardingClient from './safeguarding-client'
 import { Card, CardContent } from '@/components/ui/card'
 
+// Route segment configuration - dynamic content with short cache
+export const revalidate = 300 // 5 minutes
+export const dynamic = 'force-dynamic' // Always fetch fresh data
+
 async function SafeguardingContent() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

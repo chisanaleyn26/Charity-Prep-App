@@ -23,7 +23,11 @@ import {
   Upload,
   Calendar
 } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
+
+// Route segment configuration - static content with 1 hour cache
+export const revalidate = 3600 // 1 hour
+export const dynamic = 'force-static' // Build at compile time
 
 const faqs = [
   {

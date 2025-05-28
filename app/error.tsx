@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
 
 export default function Error({
   error,

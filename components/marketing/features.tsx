@@ -69,7 +69,7 @@ export function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            className="text-5xl lg:text-6xl font-light text-[#1a1a1a] leading-tight tracking-tight mb-8"
+            className="text-5xl lg:text-6xl font-light text-foreground leading-tight tracking-tight mb-8"
           >
             Software that actually
             <br />
@@ -80,7 +80,7 @@ export function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-xl text-[#666] font-light max-w-2xl mx-auto"
+            className="text-xl text-muted-foreground font-light max-w-2xl mx-auto"
           >
             Stop fighting spreadsheets.
             <br />
@@ -99,12 +99,12 @@ export function Features() {
             <motion.div 
               key={index} 
               variants={itemVariants}
-              className="border-l-2 border-[#B1FA63] pl-8"
+              className="border-l-2 border-ethereal pl-8"
             >
-              <h3 className="text-2xl font-medium text-[#1a1a1a] mb-4">
+              <h3 className="text-2xl font-medium text-foreground mb-4">
                 {feature.title}
               </h3>
-              <p className="text-lg text-[#666] font-light leading-relaxed max-w-2xl">
+              <p className="text-lg text-muted-foreground font-light leading-relaxed max-w-2xl">
                 {feature.description}
               </p>
             </motion.div>
@@ -117,20 +117,20 @@ export function Features() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="mt-20 pt-20 border-t border-[#B1FA63] border-opacity-30"
+          className="mt-20 pt-20 border-t border-ethereal border-opacity-30"
         >
           <div className="grid grid-cols-3 gap-8 text-center">
             <motion.div variants={itemVariants}>
-              <div className="text-3xl font-light text-[#1a1a1a] mb-2">10+</div>
-              <div className="text-sm text-[#999] font-light">Hours saved monthly</div>
+              <div className="text-3xl font-light text-foreground mb-2">10+</div>
+              <div className="text-sm text-muted-foreground/70 font-light">Hours saved monthly</div>
             </motion.div>
             <motion.div variants={itemVariants}>
-              <div className="text-3xl font-light text-[#1a1a1a] mb-2">247</div>
-              <div className="text-sm text-[#999] font-light">Charities ready</div>
+              <div className="text-3xl font-light text-foreground mb-2">247</div>
+              <div className="text-sm text-muted-foreground/70 font-light">Charities ready</div>
             </motion.div>
             <motion.div variants={itemVariants}>
-              <div className="text-3xl font-light text-[#1a1a1a] mb-2">5min</div>
-              <div className="text-sm text-[#999] font-light">Setup time</div>
+              <div className="text-3xl font-light text-foreground mb-2">5min</div>
+              <div className="text-sm text-muted-foreground/70 font-light">Setup time</div>
             </motion.div>
           </div>
         </motion.div>

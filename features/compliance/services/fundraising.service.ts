@@ -11,7 +11,7 @@ import type {
  */
 
 export async function fetchFundraisingActivities(organizationId: string): Promise<FundraisingActivity[]> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase
     .from('income_records')
@@ -31,7 +31,7 @@ export async function createFundraisingActivityInDb(
   organizationId: string,
   input: CreateFundraisingActivityInput
 ): Promise<FundraisingActivity> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const insertData = {
     organization_id: organizationId,
@@ -72,7 +72,7 @@ export async function updateFundraisingActivityInDb(
   organizationId: string,
   input: UpdateFundraisingActivityInput
 ): Promise<FundraisingActivity> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { id, ...updates } = input
   
@@ -96,7 +96,7 @@ export async function deleteFundraisingActivityFromDb(
   organizationId: string,
   id: string
 ): Promise<void> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { error } = await supabase
     .from('income_records')
@@ -111,7 +111,7 @@ export async function deleteFundraisingActivityFromDb(
 }
 
 export async function getUserOrganization(userId: string): Promise<{ organizationId: string }> {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data: membership, error } = await supabase
     .from('organization_members')

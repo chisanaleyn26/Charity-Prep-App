@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
 import { Logo } from '@/components/common/logo'
 import { EtherealButton } from '@/components/custom-ui/ethereal-button'
 import { Menu, X } from 'lucide-react'
@@ -17,7 +17,7 @@ export function NavBar() {
   ]
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-[#E0E0E0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -32,7 +32,7 @@ export function NavBar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-[#243837] hover:text-[#B1FA63] transition-colors"
+                  className="text-sm font-medium text-gunmetal hover:text-ethereal transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -52,7 +52,7 @@ export function NavBar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-[#243837] hover:bg-[#F5F5F5] rounded-md transition-colors"
+            className="md:hidden p-2 text-gunmetal hover:bg-gray-100 rounded-md transition-colors"
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6" />
@@ -66,7 +66,7 @@ export function NavBar() {
       {/* Mobile Navigation */}
       <div
         className={cn(
-          'md:hidden border-t border-[#E0E0E0] bg-white transition-all duration-300',
+          'md:hidden border-t border-gray-200 bg-white transition-all duration-300',
           isMobileMenuOpen ? 'max-h-96' : 'max-h-0 overflow-hidden'
         )}
       >
@@ -77,12 +77,12 @@ export function NavBar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm font-medium text-[#243837] hover:text-[#B1FA63] transition-colors py-2"
+                className="text-sm font-medium text-gunmetal hover:text-ethereal transition-colors py-2"
               >
                 {link.label}
               </Link>
             ))}
-            <div className="border-t border-[#E0E0E0] pt-4 flex flex-col gap-2">
+            <div className="border-t border-gray-200 pt-4 flex flex-col gap-2">
               <EtherealButton variant="ghost" className="w-full" asChild>
                 <Link href="/login">Login</Link>
               </EtherealButton>

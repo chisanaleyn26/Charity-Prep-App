@@ -59,12 +59,13 @@
 
 ### Frontend
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15.2 (App Router)
 - **Language**: TypeScript 5.x (strict mode)
 - **UI Library**: Shadcn UI (Radix + Tailwind)
-- **State Management**: Zustand 4.x
+- **State Management**: Zustand 4.x (UI state only)
 - **Forms**: React Hook Form + Zod
-- **Data Fetching**: TanStack Query v5
+- **Data Fetching**: Server Components + Server Actions
+- **Caching**: Next.js Data Cache + Request Memoization
 - **Real-time**: Supabase Realtime
 - **Charts**: Recharts / Tremor
 - **PDF Generation**: React PDF
@@ -1016,6 +1017,78 @@ describe('Compliance Score', () => {
 - **Architecture Decision Records**: In `/docs/adr`
 - **Runbooks**: For common operations
 
+## Performance & Scalability (Updated for Next.js 15)
+
+### Next.js 15 Optimizations
+
+1. **Built-in Caching Layers**
+    - Request Memoization with `cache()` for deduplication
+    - Data Cache with `unstable_cache()` for persistent caching
+    - Full Route Cache for static optimization
+    - Automatic fetch() caching with configurable strategies
+
+2. **Streaming & Suspense**
+    ```tsx
+    // Parallel streaming of non-critical data
+    export default async function Page() {
+      const criticalData = await getCriticalData()
+      const streamedDataPromise = getNonCriticalData()
+      
+      return (
+        <>
+          <Header data={criticalData} />
+          <Suspense fallback={<Skeleton />}>
+            <StreamedContent dataPromise={streamedDataPromise} />
+          </Suspense>
+        </>
+      )
+    }
+    ```
+
+3. **Partial Prerendering (PPR)**
+    ```tsx
+    // Enable in next.config.ts
+    experimental: { ppr: true }
+    
+    // Use in routes
+    export const experimental_ppr = true
+    ```
+
+4. **Route Segment Configuration**
+    ```tsx
+    // Configure caching per route
+    export const revalidate = 3600 // 1 hour
+    export const dynamic = 'force-static'
+    export const fetchCache = 'default-cache'
+    ```
+
+### Performance Best Practices
+
+1. **Server Components First**
+    - Default to Server Components
+    - Client Components only for interactivity
+    - Proper component boundaries
+
+2. **Optimized Data Fetching**
+    - Parallel data loading with Promise.all()
+    - Request deduplication with cache()
+    - Streaming for better perceived performance
+
+3. **Advanced Routing Patterns**
+    - Parallel Routes for complex layouts
+    - Intercepting Routes for modals
+    - Route Groups for organization
+
 ## Summary
 
-This architecture provides a solid foundation for rapid development while maintaining quality and scalability. The use of modern tooling (Next.js 14, Supabase, Vercel) combined with AI-first design enables us to build sophisticated features quickly. The focus on type safety, real-time updates, and mobile-first design ensures a great user experience, while the security and compliance measures protect sensitive charity data.
+This architecture provides a solid foundation for rapid development while maintaining quality and scalability. The use of modern tooling (Next.js 15.2, Supabase, Vercel) combined with AI-first design enables us to build sophisticated features quickly. The focus on type safety, real-time updates, and mobile-first design ensures a great user experience, while the security and compliance measures protect sensitive charity data.
+
+### Key Architectural Decisions
+
+1. **Server-First Approach**: Leveraging Next.js 15's Server Components and Server Actions
+2. **Smart Caching**: Using Next.js built-in caching instead of custom solutions
+3. **Progressive Enhancement**: Forms work without JavaScript
+4. **Type Safety**: End-to-end TypeScript with Zod validation
+5. **Feature-Based Organization**: Scalable file structure
+
+For detailed Next.js 15 recommendations, see [nextjs-15-recommendations.md](./nextjs-15-recommendations.md).

@@ -1,5 +1,6 @@
+import React from 'react'
 import { Logo } from '@/components/common/logo'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
 
 export default function AuthLayout({
   children,
@@ -7,7 +8,7 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex flex-col">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Simple header with logo */}
       <header className="p-6">
         <Link href="/" className="inline-block">
@@ -24,7 +25,7 @@ export default function AuthLayout({
 
       {/* Simple footer */}
       <footer className="p-6 text-center">
-        <p className="text-sm text-[#616161]">
+        <p className="text-sm text-gray-700">
           © {new Date().getFullYear()} Charity Prep. All rights reserved.
         </p>
       </footer>

@@ -86,35 +86,28 @@ const nextConfig: NextConfig = {
     ],
   },
   
-  // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
-    // Production optimizations only
-    if (!dev && !isServer) {
-      config.optimization = {
-        ...config.optimization,
-        minimize: true,
-      }
+  // Simplified webpack configuration
+  webpack: (config, { isServer }) => {
+    // Basic fallbacks for client-side
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
     }
     
-    return config
+    return config;
   },
   
   // Experimental features for performance
   experimental: {
-    optimizeCss: false, // Disabled due to critters issue
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
       'recharts'
     ],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
   
   // Static generation optimization

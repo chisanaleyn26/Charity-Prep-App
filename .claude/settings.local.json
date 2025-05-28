@@ -54,7 +54,10 @@
       "Bash(timeout 10s npm run dev)",
       "Bash(next build)",
       "Bash(timeout 5 npm run dev:*)",
-      "Bash(NODE_ENV=production npm run build 2 >& 1)"
+      "Bash(NODE_ENV=production npm run build 2 >& 1)",
+      "Bash(npm ls:*)",
+      "WebFetch(domain:nextjs.org)",
+      "Bash(timeout 30 npm run dev:*)"
     ],
     "deny": []
   }

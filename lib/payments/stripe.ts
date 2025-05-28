@@ -1,10 +1,20 @@
 import Stripe from 'stripe';
 import { createServerClient } from '@/lib/supabase/server';
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
+// Lazy initialize Stripe to avoid build-time errors
+let stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not defined');
+    }
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-12-18.acacia',
+    });
+  }
+  return stripe;
+}
 
 // Pricing configuration
 export const STRIPE_PRICES = {
@@ -83,8 +93,15 @@ export const STRIPE_PRODUCTS = {
 
 // Helper functions
 export function getPriceId(tier: SubscriptionTier, cycle: 'monthly' | 'yearly' = 'monthly'): string {
-  // This would normally return the actual Stripe price ID
-  return `price_${tier.toLowerCase()}_${cycle}`;
+  const tierKey = tier.toLowerCase() as keyof typeof STRIPE_PRICES;
+  const basePriceId = STRIPE_PRICES[tierKey];
+  
+  // Add suffix for yearly pricing (assuming price IDs follow pattern: price_xxx for monthly, price_xxx_yearly for yearly)
+  if (cycle === 'yearly') {
+    return `${basePriceId}_yearly`;
+  }
+  
+  return basePriceId;
 }
 
 export async function getStripeClient() {
@@ -106,15 +123,15 @@ export function formatPrice(amount: number, currency = 'gbp'): string {
 }
 
 export function getStripeServer(): Stripe {
-  return stripe;
+  return getStripe();
 }
 
 export async function getSubscription(subscriptionId: string) {
-  return await stripe.subscriptions.retrieve(subscriptionId);
+  return await getStripe().subscriptions.retrieve(subscriptionId);
 }
 
 export async function updateSubscription(subscriptionId: string, params: Stripe.SubscriptionUpdateParams) {
-  return await stripe.subscriptions.update(subscriptionId, params);
+  return await getStripe().subscriptions.update(subscriptionId, params);
 }
 
 export function getTierFromPriceId(priceId: string): { tier: SubscriptionTier; cycle: 'monthly' | 'yearly' } | null {
@@ -171,21 +188,25 @@ export type SubscriptionData = {
  * Create a Stripe checkout session for subscription
  */
 export async function createCheckoutSession({
+  priceId,
   organizationId,
-  tier,
-  customerEmail,
   successUrl,
   cancelUrl,
+  customerEmail,
+  metadata,
+  allowPromotionCodes = true,
+  automaticTax = false,
 }: {
+  priceId: string;
   organizationId: string;
-  tier: SubscriptionTier;
-  customerEmail: string;
   successUrl: string;
   cancelUrl: string;
+  customerEmail?: string;
+  metadata?: Record<string, string>;
+  allowPromotionCodes?: boolean;
+  automaticTax?: boolean;
 }) {
-  const priceId = STRIPE_PRICES[tier];
-
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [
@@ -199,22 +220,26 @@ export async function createCheckoutSession({
     cancel_url: cancelUrl,
     metadata: {
       organizationId,
-      tier,
+      ...metadata,
     },
     subscription_data: {
       metadata: {
         organizationId,
-        tier,
+        ...metadata,
       },
     },
-    allow_promotion_codes: true,
+    allow_promotion_codes: allowPromotionCodes,
     billing_address_collection: 'required',
     tax_id_collection: {
       enabled: true,
     },
+    automatic_tax: automaticTax ? { enabled: true } : undefined,
   });
 
-  return session;
+  return {
+    sessionId: session.id,
+    url: session.url,
+  };
 }
 
 /**
@@ -227,7 +252,7 @@ export async function createPortalSession({
   customerId: string;
   returnUrl: string;
 }) {
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
   });
@@ -247,7 +272,7 @@ export async function handleStripeWebhook(
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     throw new Error('Invalid webhook signature');
@@ -355,7 +380,7 @@ export async function getSubscriptionStatus(organizationId: string) {
   }
 
   try {
-    const stripeSubscription = await stripe.subscriptions.retrieve(
+    const stripeSubscription = await getStripe().subscriptions.retrieve(
       subscription.stripe_subscription_id
     );
 
@@ -374,7 +399,7 @@ export async function getSubscriptionStatus(organizationId: string) {
  * Cancel subscription
  */
 export async function cancelSubscription(subscriptionId: string) {
-  const subscription = await stripe.subscriptions.update(subscriptionId, {
+  const subscription = await getStripe().subscriptions.update(subscriptionId, {
     cancel_at_period_end: true,
   });
 
@@ -385,7 +410,7 @@ export async function cancelSubscription(subscriptionId: string) {
  * Resume subscription (undo cancellation)
  */
 export async function resumeSubscription(subscriptionId: string) {
-  const subscription = await stripe.subscriptions.update(subscriptionId, {
+  const subscription = await getStripe().subscriptions.update(subscriptionId, {
     cancel_at_period_end: false,
   });
 

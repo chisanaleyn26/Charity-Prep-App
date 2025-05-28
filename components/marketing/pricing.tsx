@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { Link } from '@/components/ui/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -199,7 +199,7 @@ export function Pricing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            className="text-5xl lg:text-6xl font-light text-[#1a1a1a] leading-tight tracking-tight mb-8"
+            className="text-5xl lg:text-6xl font-light text-foreground leading-tight tracking-tight mb-8"
           >
             Simple
             <br />
@@ -210,7 +210,7 @@ export function Pricing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-xl text-[#666] font-light mb-8"
+            className="text-xl text-muted-foreground font-light mb-8"
           >
             Choose what works for your charity.
           </motion.p>
@@ -260,10 +260,10 @@ export function Pricing() {
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
                 className={`bg-white border rounded-2xl p-8 transition-all duration-200 hover:shadow-lg flex flex-col h-full relative ${
                   plan.popular 
-                    ? 'border-[#B1FA63] shadow-md ring-2 ring-[#B1FA63]/20' 
+                    ? 'border-ethereal shadow-md ring-2 ring-ethereal/20' 
                     : isCurrentPlan 
                       ? 'border-blue-200 ring-2 ring-blue-200/20'
-                      : 'border-[#eee] hover:border-[#B1FA63]'
+                      : 'border-gray-200 hover:border-ethereal'
                 }`}
               >
                 {/* Current plan indicator */}
@@ -283,7 +283,7 @@ export function Pricing() {
                       whileInView={{ scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                      className="inline-block bg-[#B1FA63] text-[#1a1a1a] text-xs font-medium px-3 py-1 rounded-full"
+                      className="inline-block bg-ethereal text-foreground text-xs font-medium px-3 py-1 rounded-full"
                     >
                       Most Popular
                     </motion.div>
@@ -294,23 +294,23 @@ export function Pricing() {
                 <div className="mb-8 min-h-[140px]">
                   <div className="flex items-center gap-3 mb-3">
                     {plan.icon}
-                    <h3 className="text-2xl font-medium text-[#1a1a1a]">
+                    <h3 className="text-2xl font-medium text-foreground">
                       {plan.name}
                     </h3>
                   </div>
                   <div className="mb-3">
-                    <span className="text-4xl font-light text-[#1a1a1a]">
+                    <span className="text-4xl font-light text-foreground">
                       {formatPrice(currentPrice)}
                     </span>
-                    <span className="text-[#666] ml-2">/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                    <span className="text-muted-foreground ml-2">/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
                     {billingCycle === 'yearly' && (
                       <div className="text-sm text-green-600 font-medium mt-1">
                         Save {formatPrice(plan.price.monthly * 12 - plan.price.yearly)} per year
                       </div>
                     )}
                   </div>
-                  <p className="text-[#666] font-light mb-1">{plan.description}</p>
-                  <p className="text-sm text-[#999] font-light">{plan.note}</p>
+                  <p className="text-muted-foreground font-light mb-1">{plan.description}</p>
+                  <p className="text-sm text-muted-foreground/70 font-light">{plan.note}</p>
                 </div>
                 
                 {/* Features list with consistent spacing */}
@@ -325,7 +325,7 @@ export function Pricing() {
                       className="flex items-start gap-3"
                     >
                       <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-[#1a1a1a] font-light text-sm">{feature}</span>
+                      <span className="text-foreground font-light text-sm">{feature}</span>
                     </motion.li>
                   ))}
                 </ul>
@@ -351,7 +351,7 @@ export function Pricing() {
                     variant={getButtonVariant(plan.tier, plan.popular)}
                     className={`w-full ${
                       plan.popular && !isCurrentPlan
-                        ? 'bg-[#B1FA63] text-[#1a1a1a] hover:bg-[#9FE050] border-[#B1FA63]'
+                        ? 'bg-ethereal text-foreground hover:bg-ethereal/90 border-ethereal'
                         : ''
                     }`}
                     asChild={!user}
@@ -379,13 +379,13 @@ export function Pricing() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-16"
         >
-          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-[#999] font-light">
+          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground/70 font-light">
             <span>30-day free trial</span>
-            <span className="w-1 h-1 bg-[#ddd] rounded-full hidden sm:block"></span>
+            <span className="w-1 h-1 bg-border rounded-full hidden sm:block"></span>
             <span>No credit card required for trial</span>
-            <span className="w-1 h-1 bg-[#ddd] rounded-full hidden sm:block"></span>
+            <span className="w-1 h-1 bg-border rounded-full hidden sm:block"></span>
             <span>Cancel anytime</span>
-            <span className="w-1 h-1 bg-[#ddd] rounded-full hidden sm:block"></span>
+            <span className="w-1 h-1 bg-border rounded-full hidden sm:block"></span>
             <span>Secure payments by Stripe</span>
           </div>
         </motion.div>
