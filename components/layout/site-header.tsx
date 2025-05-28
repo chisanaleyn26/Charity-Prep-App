@@ -12,10 +12,7 @@ interface SiteHeaderProps {
 }
 
 export function SiteHeader({ className, variant = 'marketing' }: SiteHeaderProps) {
-  const navLinks = [
-    { href: '#features', label: 'Features' },
-    { href: '#pricing', label: 'Pricing' },
-  ]
+  const navLinks: { href: string; label: string }[] = []
 
   return (
     <header className={cn(

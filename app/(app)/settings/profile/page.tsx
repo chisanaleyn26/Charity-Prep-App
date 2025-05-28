@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,112 +14,229 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-// import { toast } from 'sonner'
 import { 
   User, Mail, Phone, Building, MapPin, Globe, 
   Camera, Shield, Bell, Palette, Download, Trash2,
-  CheckCircle2, AlertCircle, Loader2
+  CheckCircle2, AlertCircle, Loader2, Save, ChevronLeft,
+  Settings, Clock, MessageSquare, Smartphone, Slack
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { appConfig } from '@/lib/config'
-import { useUserProfile } from '@/features/user/hooks/use-user-profile'
+import { useUserSettings } from '@/features/settings/hooks/use-user-settings'
 import { useOrganization } from '@/features/organizations/components/organization-provider'
+import { 
+  updateUserProfile,
+  updateUserPreferences,
+  updateNotificationChannels,
+  updateComplianceNotifications
+} from '@/features/settings/actions/user-settings'
 
-// Validation schema
+// Validation schemas
 const profileSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   job_title: z.string().optional(),
+  department: z.string().optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
+  expertise_areas: z.array(z.string()).optional(),
+  certifications: z.array(z.string()).optional(),
+  linkedin_url: z.string().url('Invalid LinkedIn URL').optional().or(z.literal('')),
+  years_in_charity_sector: z.number().min(0).max(50).optional()
+})
+
+const preferencesSchema = z.object({
+  theme: z.enum(['light', 'dark', 'system']),
+  language: z.string(),
+  timezone: z.string(),
+  date_format: z.string(),
+  currency: z.string(),
+  email_notifications: z.boolean(),
+  sms_notifications: z.boolean(),
+  weekly_digest: z.boolean(),
+  marketing_emails: z.boolean(),
+  product_updates: z.boolean(),
+  ai_suggestions_enabled: z.boolean(),
+  show_compliance_score: z.boolean(),
+  dashboard_layout: z.enum(['standard', 'compact', 'detailed'])
+})
+
+const notificationChannelsSchema = z.object({
+  sms: z.object({
+    number: z.string().optional(),
+    enabled: z.boolean()
+  }),
+  slack: z.object({
+    channel: z.string().optional(),
+    enabled: z.boolean(),
+    webhook_url: z.string().optional()
+  }),
+  email: z.object({
+    enabled: z.boolean()
+  })
 })
 
 type ProfileFormData = z.infer<typeof profileSchema>
-
-// Mock user data
-const mockUserData = {
-  id: 'user-123',
-  full_name: 'Sarah Thompson',
-  email: 'sarah@charityexample.org',
-  phone: '+44 20 1234 5678',
-  job_title: 'Compliance Officer',
-  bio: 'Passionate about helping charities maintain compliance and achieve their missions.',
-  avatar_url: null,
-  created_at: '2024-01-15T10:00:00Z',
-  organization: {
-    id: 'org-123',
-    name: 'Example Charity Foundation',
-    role: 'admin'
-  },
-  preferences: {
-    email_notifications: true,
-    sms_notifications: false,
-    marketing_emails: false,
-    theme: 'light',
-    language: 'en'
-  }
-}
+type PreferencesFormData = z.infer<typeof preferencesSchema>
+type NotificationChannelsFormData = z.infer<typeof notificationChannelsSchema>
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { currentOrganization } = useOrganization()
+  const { userSettings, complianceNotifications, isLoading, refreshData } = useUserSettings()
+  
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
-  
-  // Use real user data
-  const { profile, updateProfile, isLoading: profileLoading, completionStatus } = useUserProfile()
-  const { currentOrganization } = useOrganization()
+  const [isUpdating, setIsUpdating] = useState(false)
 
-  // Fallback to mock data if profile is not loaded
-  const userData = profile ? {
-    id: profile.id,
-    full_name: profile.full_name || '',
-    email: profile.email,
-    phone: profile.phone || '',
-    job_title: profile.job_title || '',
-    bio: profile.bio || '',
-    avatar_url: profile.avatar_url || null,
-    created_at: profile.created_at,
-    organization: {
-      id: currentOrganization?.id || '',
-      name: currentOrganization?.name || 'Unknown Organization',
-      role: 'member' // This would come from membership data
-    },
-    preferences: {
-      email_notifications: true,
-      sms_notifications: false,
-      marketing_emails: false,
-      theme: 'light',
-      language: 'en'
-    }
-  } : (appConfig.features.mockMode ? mockUserData : mockUserData)
-
-  const form = useForm<ProfileFormData>({
+  // Forms
+  const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      full_name: userData.full_name,
-      email: userData.email,
-      phone: userData.phone || '',
-      job_title: userData.job_title || '',
-      bio: userData.bio || ''
-    }
+    defaultValues: userSettings ? {
+      full_name: userSettings.full_name || '',
+      phone: userSettings.phone || '',
+      job_title: userSettings.job_title || '',
+      department: userSettings.department || '',
+      bio: userSettings.bio || '',
+      expertise_areas: userSettings.expertise_areas || [],
+      certifications: userSettings.certifications || [],
+      linkedin_url: userSettings.linkedin_url || '',
+      years_in_charity_sector: userSettings.years_in_charity_sector || undefined
+    } : undefined
   })
 
+  const preferencesForm = useForm<PreferencesFormData>({
+    resolver: zodResolver(preferencesSchema),
+    defaultValues: userSettings?.preferences
+  })
+
+  const notificationForm = useForm<NotificationChannelsFormData>({
+    resolver: zodResolver(notificationChannelsSchema),
+    defaultValues: userSettings ? {
+      sms: {
+        number: userSettings.notification_channels.sms.number || '',
+        enabled: userSettings.notification_channels.sms.enabled
+      },
+      slack: {
+        channel: userSettings.notification_channels.slack.channel || '',
+        enabled: userSettings.notification_channels.slack.enabled,
+        webhook_url: userSettings.notification_channels.slack.webhook_url || ''
+      },
+      email: {
+        enabled: userSettings.notification_channels.email.enabled
+      }
+    } : undefined
+  })
+
+  // Update forms when user settings load
+  React.useEffect(() => {
+    if (userSettings) {
+      profileForm.reset({
+        full_name: userSettings.full_name || '',
+        phone: userSettings.phone || '',
+        job_title: userSettings.job_title || '',
+        department: userSettings.department || '',
+        bio: userSettings.bio || '',
+        expertise_areas: userSettings.expertise_areas || [],
+        certifications: userSettings.certifications || [],
+        linkedin_url: userSettings.linkedin_url || '',
+        years_in_charity_sector: userSettings.years_in_charity_sector || undefined
+      })
+
+      preferencesForm.reset(userSettings.preferences)
+
+      notificationForm.reset({
+        sms: {
+          number: userSettings.notification_channels.sms.number || '',
+          enabled: userSettings.notification_channels.sms.enabled
+        },
+        slack: {
+          channel: userSettings.notification_channels.slack.channel || '',
+          enabled: userSettings.notification_channels.slack.enabled,
+          webhook_url: userSettings.notification_channels.slack.webhook_url || ''
+        },
+        email: {
+          enabled: userSettings.notification_channels.email.enabled
+        }
+      })
+    }
+  }, [userSettings, profileForm, preferencesForm, notificationForm])
+
   const handleProfileSubmit = async (data: ProfileFormData) => {
-    if (!updateProfile) return
+    if (!userSettings) return
     
+    setIsUpdating(true)
     try {
-      const success = await updateProfile(data)
-      if (success) {
-        console.log('Profile updated successfully')
-        // Could show success toast here
+      const result = await updateUserProfile(data)
+      if (result.success) {
+        await refreshData()
+        alert('Profile updated successfully')
       } else {
-        console.error('Failed to update profile')
-        // Could show error toast here
+        alert(result.error || 'Failed to update profile')
       }
     } catch (error) {
       console.error('Failed to update profile:', error)
+      alert('Failed to update profile')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handlePreferencesSubmit = async (data: PreferencesFormData) => {
+    if (!userSettings) return
+    
+    setIsUpdating(true)
+    try {
+      const result = await updateUserPreferences(data)
+      if (result.success) {
+        await refreshData()
+        alert('Preferences updated successfully')
+      } else {
+        alert(result.error || 'Failed to update preferences')
+      }
+    } catch (error) {
+      console.error('Failed to update preferences:', error)
+      alert('Failed to update preferences')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleNotificationChannelsSubmit = async (data: NotificationChannelsFormData) => {
+    if (!userSettings || !currentOrganization) return
+    
+    setIsUpdating(true)
+    try {
+      const result = await updateNotificationChannels(currentOrganization.id, {
+        sms: {
+          number: data.sms.number || null,
+          enabled: data.sms.enabled,
+          verified: false
+        },
+        slack: {
+          channel: data.slack.channel || null,
+          enabled: data.slack.enabled,
+          webhook_url: data.slack.webhook_url || null
+        },
+        email: {
+          address: userSettings.email,
+          enabled: data.email.enabled,
+          verified: userSettings.notification_channels.email.verified
+        },
+        teams: userSettings.notification_channels.teams,
+        whatsapp: userSettings.notification_channels.whatsapp
+      })
+      if (result.success) {
+        await refreshData()
+        alert('Notification settings updated successfully')
+      } else {
+        alert(result.error || 'Failed to update notification settings')
+      }
+    } catch (error) {
+      console.error('Failed to update notification settings:', error)
+      alert('Failed to update notification settings')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -177,8 +294,46 @@ export default function ProfilePage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="container max-w-4xl py-6">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!userSettings) {
+    return (
+      <div className="container max-w-4xl py-6">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Unable to load user settings. Please refresh the page or contact support.
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   return (
       <div className="container max-w-4xl py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/settings')}
+              className="gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Settings
+            </Button>
+          </div>
+        </div>
+
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
           <p className="text-muted-foreground">
@@ -205,9 +360,9 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="flex items-center gap-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={userData.avatar_url || undefined} />
+                  <AvatarImage src={userSettings.avatar_url || undefined} />
                   <AvatarFallback>
-                    {userData.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {(userSettings.full_name || userSettings.email).split(' ').map(n => n[0]).join('').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
@@ -251,7 +406,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={form.handleSubmit(handleProfileSubmit)} className="space-y-4">
+                <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="full_name">Full Name</Label>
@@ -260,12 +415,12 @@ export default function ProfilePage() {
                         <Input
                           id="full_name"
                           className="pl-9"
-                          {...form.register('full_name')}
+                          {...profileForm.register('full_name')}
                         />
                       </div>
-                      {form.formState.errors.full_name && (
+                      {profileForm.formState.errors.full_name && (
                         <p className="text-sm text-destructive">
-                          {form.formState.errors.full_name.message}
+                          {profileForm.formState.errors.full_name.message}
                         </p>
                       )}
                     </div>
@@ -278,14 +433,13 @@ export default function ProfilePage() {
                           id="email"
                           type="email"
                           className="pl-9"
-                          {...form.register('email')}
+                          value={userSettings.email}
+                          disabled
                         />
                       </div>
-                      {form.formState.errors.email && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.email.message}
-                        </p>
-                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Email cannot be changed. Contact support if you need to update your email.
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -296,7 +450,7 @@ export default function ProfilePage() {
                           id="phone"
                           type="tel"
                           className="pl-9"
-                          {...form.register('phone')}
+                          {...profileForm.register('phone')}
                         />
                       </div>
                     </div>
@@ -308,10 +462,52 @@ export default function ProfilePage() {
                         <Input
                           id="job_title"
                           className="pl-9"
-                          {...form.register('job_title')}
+                          {...profileForm.register('job_title')}
                         />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="department">Department</Label>
+                    <div className="relative">
+                      <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="department"
+                        className="pl-9"
+                        {...profileForm.register('department')}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin_url">LinkedIn Profile</Label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="linkedin_url"
+                        type="url"
+                        className="pl-9"
+                        placeholder="https://linkedin.com/in/yourprofile"
+                        {...profileForm.register('linkedin_url')}
+                      />
+                    </div>
+                    {profileForm.formState.errors.linkedin_url && (
+                      <p className="text-sm text-destructive">
+                        {profileForm.formState.errors.linkedin_url.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="years_in_charity_sector">Years in Charity Sector</Label>
+                    <Input
+                      id="years_in_charity_sector"
+                      type="number"
+                      min="0"
+                      max="50"
+                      {...profileForm.register('years_in_charity_sector', { valueAsNumber: true })}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -320,17 +516,18 @@ export default function ProfilePage() {
                       id="bio"
                       rows={4}
                       placeholder="Tell us about yourself..."
-                      {...form.register('bio')}
+                      {...profileForm.register('bio')}
                     />
                     <p className="text-xs text-muted-foreground">
-                      {form.watch('bio')?.length || 0}/500 characters
+                      {profileForm.watch('bio')?.length || 0}/500 characters
                     </p>
                   </div>
 
                   <div className="flex justify-end">
-                    <Button type="submit" disabled={profileLoading}>
-                      {profileLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Save Changes
+                    <Button type="submit" disabled={isUpdating}>
+                      {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Profile
                     </Button>
                   </div>
                 </form>
@@ -348,13 +545,13 @@ export default function ProfilePage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="font-medium">{userData.organization.name}</p>
+                    <p className="font-medium">{currentOrganization?.name || 'No Organization'}</p>
                     <p className="text-sm text-muted-foreground">
-                      Member since {new Date(userData.created_at).toLocaleDateString()}
+                      Member since {new Date(userSettings.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <Badge variant="outline" className="capitalize">
-                    {userData.organization.role}
+                  <Badge variant="outline">
+                    Member
                   </Badge>
                 </div>
               </CardContent>
@@ -362,99 +559,292 @@ export default function ProfilePage() {
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-6">
-            {/* Notification Preferences */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notifications</CardTitle>
-                <CardDescription>
-                  Choose how you want to be notified
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications via email
-                    </p>
+            <form onSubmit={preferencesForm.handleSubmit(handlePreferencesSubmit)}>
+              {/* Notification Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Notifications
+                  </CardTitle>
+                  <CardDescription>
+                    Choose how you want to be notified
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="email-notifications">Email Notifications</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Receive notifications via email
+                      </p>
+                    </div>
+                    <Switch
+                      id="email-notifications"
+                      {...preferencesForm.register('email_notifications')}
+                    />
                   </div>
-                  <Switch
-                    id="email-notifications"
-                    defaultChecked={userData.preferences.email_notifications}
-                  />
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive text messages for urgent updates
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="sms-notifications">SMS Notifications</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Receive text messages for urgent updates
+                      </p>
+                    </div>
+                    <Switch
+                      id="sms-notifications"
+                      {...preferencesForm.register('sms_notifications')}
+                    />
                   </div>
-                  <Switch
-                    id="sms-notifications"
-                    defaultChecked={userData.preferences.sms_notifications}
-                  />
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="marketing-emails">Marketing Emails</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive product updates and newsletters
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="weekly-digest">Weekly Digest</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Receive a weekly summary of activity
+                      </p>
+                    </div>
+                    <Switch
+                      id="weekly-digest"
+                      {...preferencesForm.register('weekly_digest')}
+                    />
                   </div>
-                  <Switch
-                    id="marketing-emails"
-                    defaultChecked={userData.preferences.marketing_emails}
-                  />
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Appearance */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>
-                  Customize how Charity Prep looks
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="theme">Theme</Label>
-                  <Select defaultValue={userData.preferences.theme}>
-                    <SelectTrigger id="theme">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <Separator />
 
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select defaultValue={userData.preferences.language}>
-                    <SelectTrigger id="language">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                      <SelectItem value="fr">Français</SelectItem>
-                      <SelectItem value="de">Deutsch</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="marketing-emails">Marketing Emails</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Receive product updates and newsletters
+                      </p>
+                    </div>
+                    <Switch
+                      id="marketing-emails"
+                      {...preferencesForm.register('marketing_emails')}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="product-updates">Product Updates</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Be notified about new features and improvements
+                      </p>
+                    </div>
+                    <Switch
+                      id="product-updates"
+                      {...preferencesForm.register('product_updates')}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Appearance */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Appearance
+                  </CardTitle>
+                  <CardDescription>
+                    Customize how Charity Prep looks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="theme">Theme</Label>
+                    <Select
+                      value={preferencesForm.watch('theme')}
+                      onValueChange={(value: 'light' | 'dark' | 'system') =>
+                        preferencesForm.setValue('theme', value)
+                      }
+                    >
+                      <SelectTrigger id="theme">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Light</SelectItem>
+                        <SelectItem value="dark">Dark</SelectItem>
+                        <SelectItem value="system">System</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Select
+                      value={preferencesForm.watch('language')}
+                      onValueChange={(value) => preferencesForm.setValue('language', value)}
+                    >
+                      <SelectTrigger id="language">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="de">Deutsch</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <Select
+                      value={preferencesForm.watch('timezone')}
+                      onValueChange={(value) => preferencesForm.setValue('timezone', value)}
+                    >
+                      <SelectTrigger id="timezone">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Europe/London">London (GMT)</SelectItem>
+                        <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
+                        <SelectItem value="America/New_York">New York (EST)</SelectItem>
+                        <SelectItem value="America/Los_Angeles">Los Angeles (PST)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dashboard-layout">Dashboard Layout</Label>
+                    <Select
+                      value={preferencesForm.watch('dashboard_layout')}
+                      onValueChange={(value: 'standard' | 'compact' | 'detailed') =>
+                        preferencesForm.setValue('dashboard_layout', value)
+                      }
+                    >
+                      <SelectTrigger id="dashboard-layout">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Standard</SelectItem>
+                        <SelectItem value="compact">Compact</SelectItem>
+                        <SelectItem value="detailed">Detailed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Feature Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Features
+                  </CardTitle>
+                  <CardDescription>
+                    Control which features are enabled
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="ai-suggestions">AI Suggestions</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enable AI-powered suggestions and recommendations
+                      </p>
+                    </div>
+                    <Switch
+                      id="ai-suggestions"
+                      {...preferencesForm.register('ai_suggestions_enabled')}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="compliance-score">Show Compliance Score</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Display compliance score on dashboard
+                      </p>
+                    </div>
+                    <Switch
+                      id="compliance-score"
+                      {...preferencesForm.register('show_compliance_score')}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Preferences
+                </Button>
+              </div>
+            </form>
+
+            {/* Notification Channels */}
+            <form onSubmit={notificationForm.handleSubmit(handleNotificationChannelsSubmit)}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Notification Channels
+                  </CardTitle>
+                  <CardDescription>
+                    Configure how you receive notifications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>SMS Notifications</Label>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Smartphone className="h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="+44 123 456 7890"
+                            {...notificationForm.register('sms.number')}
+                          />
+                          <Switch {...notificationForm.register('sms.enabled')} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <Label>Slack Integration</Label>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Slack className="h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="#compliance-alerts"
+                            {...notificationForm.register('slack.channel')}
+                          />
+                          <Switch {...notificationForm.register('slack.enabled')} />
+                        </div>
+                        <Input
+                          placeholder="Slack webhook URL"
+                          {...notificationForm.register('slack.webhook_url')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Channels
+                </Button>
+              </div>
+            </form>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
