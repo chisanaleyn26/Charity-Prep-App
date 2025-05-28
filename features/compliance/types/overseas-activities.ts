@@ -31,25 +31,25 @@ export interface OverseasActivity {
 }
 
 export const overseasActivitySchema = z.object({
-  activity_name: z.string().min(3, 'Activity name is required'),
+  activity_name: z.string().min(1, 'Activity name is required'),
   activity_type: z.enum(['humanitarian_aid', 'development', 'education', 'healthcare', 'emergency_relief', 'capacity_building', 'advocacy', 'other']),
-  country_code: z.string().length(2, 'Country code must be 2 characters'),
+  country_code: z.string().min(1, 'Country is required'),
   partner_id: z.string().optional().nullable(),
-  amount: z.number().positive('Amount must be positive'),
-  currency: z.string().length(3, 'Currency must be 3 characters'),
-  amount_gbp: z.number().positive('GBP amount must be positive'),
-  exchange_rate: z.number().positive().optional().nullable(),
+  amount: z.number().min(0, 'Amount must be 0 or greater'),
+  currency: z.string().min(1, 'Currency is required'),
+  amount_gbp: z.number().min(0, 'GBP amount must be 0 or greater'),
+  exchange_rate: z.number().min(0).optional().nullable(),
   transfer_method: z.enum(['bank_transfer', 'wire_transfer', 'cryptocurrency', 'cash_courier', 'money_service_business', 'mobile_money', 'informal_value_transfer', 'other']),
-  transfer_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  transfer_date: z.string().min(1, 'Transfer date is required'),
   transfer_reference: z.string().optional().nullable(),
   financial_year: z.number().int().min(2020).max(2100),
   quarter: z.number().int().min(1).max(4).optional().nullable(),
-  beneficiaries_count: z.number().int().positive().optional().nullable(),
+  beneficiaries_count: z.number().int().min(0).optional().nullable(),
   project_code: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
-  sanctions_check_completed: z.boolean().nullable().default(false),
-  requires_reporting: z.boolean().nullable().default(false),
-  reported_to_commission: z.boolean().nullable().default(false)
+  sanctions_check_completed: z.boolean().default(false),
+  requires_reporting: z.boolean().default(false),
+  reported_to_commission: z.boolean().default(false)
 })
 
 export type OverseasActivityFormData = z.infer<typeof overseasActivitySchema>

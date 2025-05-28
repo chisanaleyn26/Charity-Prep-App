@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Calendar } from '@/components/ui/calendar'
+import { CustomCalendar } from '@/components/ui/custom-calendar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -14,88 +16,86 @@ import {
   Plus,
   Filter,
   Download,
-  Bell
+  Bell,
+  MoreHorizontal,
+  ExternalLink,
+  CheckCircle2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { DeadlineModal } from '@/components/deadline-modal'
+import { useToast } from '@/hooks/use-toast'
+import { useOrganization } from '@/features/organizations/components/organization-provider'
+import { DeadlineService } from '@/lib/api/deadlines'
+import type { Deadline } from '@/lib/api/deadlines'
 
-interface Deadline {
-  id: string
-  title: string
-  description: string
-  date: Date
-  type: 'dbs_expiry' | 'annual_return' | 'policy_review' | 'training' | 'other'
-  priority: 'high' | 'medium' | 'low'
-  status: 'upcoming' | 'overdue' | 'completed'
-  relatedUrl?: string
-}
-
-// Mock deadlines data
-const mockDeadlines: Deadline[] = [
-  {
-    id: '1',
-    title: 'DBS Check Renewal - Sarah Johnson',
-    description: 'Enhanced DBS check expires and needs renewal',
-    date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 15), // 15 days from now
-    type: 'dbs_expiry',
-    priority: 'high',
-    status: 'upcoming',
-    relatedUrl: '/compliance/safeguarding'
-  },
-  {
-    id: '2',
-    title: 'Annual Return Submission',
-    description: 'Submit charity annual return to Charity Commission',
-    date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 45), // 45 days from now
-    type: 'annual_return',
-    priority: 'high',
-    status: 'upcoming',
-    relatedUrl: '/reports/annual-return'
-  },
-  {
-    id: '3',
-    title: 'Safeguarding Policy Review',
-    description: 'Annual review of safeguarding policies and procedures',
-    date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days from now
-    type: 'policy_review',
-    priority: 'medium',
-    status: 'upcoming',
-    relatedUrl: '/documents'
-  },
-  {
-    id: '4',
-    title: 'Staff Training - Child Protection',
-    description: 'Mandatory safeguarding training for all staff',
-    date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days from now
-    type: 'training',
-    priority: 'medium',
-    status: 'upcoming'
-  },
-  {
-    id: '5',
-    title: 'DBS Check Renewal - Mike Chen',
-    description: 'Standard DBS check expired 5 days ago',
-    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5), // 5 days ago
-    type: 'dbs_expiry',
-    priority: 'high',
-    status: 'overdue',
-    relatedUrl: '/compliance/safeguarding'
-  },
-  {
-    id: '6',
-    title: 'Trustee Training Completed',
-    description: 'All trustees completed governance training',
-    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-    type: 'training',
-    priority: 'low',
-    status: 'completed'
-  }
-]
 
 export default function CalendarPage() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [deadlines] = useState<Deadline[]>(mockDeadlines)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [deadlines, setDeadlines] = useState<Deadline[]>([])
   const [filterType, setFilterType] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { toast } = useToast()
+  const { currentOrganization } = useOrganization()
+
+  // Fix hydration by setting initial date only on client
+  useEffect(() => {
+    setMounted(true)
+    setSelectedDate(new Date())
+  }, [])
+
+  // Load deadlines from API
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    
+    async function loadDeadlines() {
+      if (!mounted) return
+      
+      // If no organization after 3 seconds, proceed with empty data
+      if (!currentOrganization) {
+        timeoutId = setTimeout(() => {
+          setDeadlines([])
+          setLoading(false)
+        }, 3000)
+        return
+      }
+      
+      // Clear timeout if we have organization
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      
+      try {
+        setLoading(true)
+        const fetchedDeadlines = await DeadlineService.getDeadlines()
+        setDeadlines(fetchedDeadlines)
+      } catch (error) {
+        console.error('Failed to load deadlines:', error)
+        
+        // Fallback to empty array
+        setDeadlines([])
+        
+        toast({
+          title: 'Failed to load deadlines',
+          description: 'Please ensure the database is properly set up',
+          variant: 'destructive'
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadDeadlines()
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }, [mounted, currentOrganization, toast])
 
   const filteredDeadlines = deadlines.filter(deadline => {
     const typeMatch = filterType === 'all' || deadline.type === filterType
@@ -152,6 +152,8 @@ export default function CalendarPage() {
   }
 
   const getDaysUntilDeadline = (date: Date) => {
+    if (!mounted) return 'Loading...'
+    
     const now = new Date()
     const diffMs = date.getTime() - now.getTime()
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
@@ -162,28 +164,115 @@ export default function CalendarPage() {
     return `${diffDays} days remaining`
   }
 
+  const handleCompleteDeadline = async (deadlineId: string) => {
+    const deadline = deadlines.find(d => d.id === deadlineId)
+    
+    try {
+      // Optimistically update UI
+      setDeadlines(prev => 
+        prev.map(deadline => 
+          deadline.id === deadlineId 
+            ? { ...deadline, status: 'completed' as const }
+            : deadline
+        )
+      )
+
+      // Update via API
+      await DeadlineService.completeDeadline(deadlineId)
+      
+      // Show success toast
+      if (deadline) {
+        toast({
+          title: 'Deadline completed',
+          description: `${deadline.title} has been marked as completed.`
+        })
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setDeadlines(prev => 
+        prev.map(d => 
+          d.id === deadlineId 
+            ? { ...d, status: deadline?.status || 'upcoming' }
+            : d
+        )
+      )
+      
+      toast({
+        title: 'Error completing deadline',
+        description: 'Failed to update deadline status',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const handleAddDeadline = () => {
+    setIsModalOpen(true)
+  }
+
+  const handleSaveDeadline = async (deadlineData: Omit<Deadline, 'id' | 'status'>) => {
+    if (!currentOrganization) {
+      toast({
+        title: 'Error',
+        description: 'No organization selected',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    try {
+      // Create via API
+      const newDeadline = await DeadlineService.createDeadline({
+        ...deadlineData,
+        organizationId: currentOrganization.id
+      })
+      
+      // Add to local state
+      setDeadlines(prev => [...prev, newDeadline])
+      
+      // Show success toast
+      toast({
+        title: 'Deadline created',
+        description: `${deadlineData.title} has been added to your calendar.`
+      })
+    } catch (error) {
+      console.error('Failed to create deadline:', error)
+      toast({
+        title: 'Error creating deadline',
+        description: `Failed to save deadline: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: 'destructive'
+      })
+      throw error // Re-throw so modal knows there was an error
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <div className="space-y-8 pb-8">
+      {/* Modern Header */}
       <div className="flex items-start justify-between">
-        <div className="space-y-3">
-          <h1 className="text-5xl font-extralight text-foreground tracking-tight leading-none flex items-center gap-4">
-            <CalendarIcon className="h-12 w-12 text-muted-foreground" />
-            Calendar & Deadlines
-          </h1>
-          <p className="text-lg text-muted-foreground font-normal leading-relaxed tracking-wide">
-            Track important dates and upcoming compliance deadlines.
-          </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-light text-gray-900 tracking-tight leading-tight">
+              Calendar & Deadlines
+            </h1>
+            <p className="text-lg text-gray-600 font-normal leading-relaxed">
+              Track important dates and upcoming compliance deadlines
+            </p>
+          </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <Badge variant="destructive" className="text-sm">
-            {overdueCount} overdue
-          </Badge>
-          <Badge variant="secondary" className="text-sm">
+          {overdueCount > 0 && (
+            <Badge variant="destructive" className="text-sm font-medium px-3 py-1">
+              {overdueCount} overdue
+            </Badge>
+          )}
+          <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
             {upcomingCount} upcoming
           </Badge>
-          <Button size="sm">
+          <Button 
+            onClick={handleAddDeadline}
+            className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Deadline
           </Button>
@@ -191,75 +280,123 @@ export default function CalendarPage() {
       </div>
 
       <Tabs defaultValue="calendar" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-12">
+          <TabsTrigger value="calendar" className="font-medium">Calendar View</TabsTrigger>
+          <TabsTrigger value="list" className="font-medium">List View</TabsTrigger>
+          <TabsTrigger value="upcoming" className="font-medium">Upcoming</TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Calendar */}
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Calendar</CardTitle>
-                <CardDescription>
-                  Select a date to view deadlines
-                </CardDescription>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Enhanced Calendar */}
+            <Card className="lg:col-span-2 shadow-sm border-0 bg-white">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-gray-900">Calendar</CardTitle>
+                    <CardDescription className="text-gray-600 mt-1">
+                      Select a date to view deadlines
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+                      <span className="text-gray-600">Overdue</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
+                      <span className="text-gray-600">Upcoming</span>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  modifiers={{
-                    hasDeadlines: (date) => getDeadlinesForDate(date).length > 0,
-                    overdue: (date) => getDeadlinesForDate(date).some(d => d.status === 'overdue'),
-                    upcoming: (date) => getDeadlinesForDate(date).some(d => d.status === 'upcoming')
-                  }}
-                  modifiersStyles={{
-                    hasDeadlines: { fontWeight: 'bold' },
-                    overdue: { backgroundColor: '#fef2f2', color: '#dc2626' },
-                    upcoming: { backgroundColor: '#eff6ff', color: '#2563eb' }
-                  }}
-                  className="rounded-md border"
-                />
+                {mounted && !loading ? (
+                  <CustomCalendar
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    modifiers={{
+                      hasDeadlines: (date) => getDeadlinesForDate(date).length > 0,
+                      overdue: (date) => getDeadlinesForDate(date).some(d => d.status === 'overdue'),
+                      upcoming: (date) => getDeadlinesForDate(date).some(d => d.status === 'upcoming')
+                    }}
+                    className="w-full"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-2"></div>
+                      <p className="text-sm text-gray-500">
+                        {!mounted ? 'Loading calendar...' : 'Loading deadlines...'}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Selected Date Deadlines */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
+            {/* Enhanced Selected Date Deadlines */}
+            <Card className="shadow-sm border-0 bg-white">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <Clock className="h-5 w-5 text-gray-600" />
                   {selectedDate ? formatDate(selectedDate) : 'Select a date'}
                 </CardTitle>
-                <CardDescription>
-                  Deadlines for selected date
+                <CardDescription className="text-gray-600">
+                  {selectedDateDeadlines.length === 1 
+                    ? '1 deadline' 
+                    : `${selectedDateDeadlines.length} deadlines`} for this date
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {selectedDateDeadlines.length === 0 ? (
                   <div className="text-center py-8">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No deadlines for this date</p>
+                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <CalendarIcon className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 font-medium">No deadlines</p>
+                    <p className="text-sm text-gray-500 mt-1">Select a different date to view deadlines</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {selectedDateDeadlines.map((deadline) => (
-                      <div key={deadline.id} className="p-3 border rounded-lg">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="space-y-1">
-                            <h4 className="font-medium text-sm">{deadline.title}</h4>
-                            <p className="text-xs text-muted-foreground">{deadline.description}</p>
-                            <div className="flex gap-1">
-                              <Badge variant="outline" className={cn('text-xs', getPriorityColor(deadline.priority))}>
+                      <div key={deadline.id} className="group p-4 border border-gray-200 rounded-xl hover:shadow-md hover:border-gray-300 transition-all duration-200">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-2 flex-1">
+                            <h4 className="font-medium text-sm text-gray-900 leading-tight">{deadline.title}</h4>
+                            <p className="text-xs text-gray-600 leading-relaxed">{deadline.description}</p>
+                            <div className="flex gap-2">
+                              <Badge variant="outline" className={cn('text-xs font-medium', getPriorityColor(deadline.priority))}>
                                 {deadline.priority}
                               </Badge>
-                              <Badge variant="outline" className={cn('text-xs', getStatusColor(deadline.status))}>
+                              <Badge variant="outline" className={cn('text-xs font-medium', getStatusColor(deadline.status))}>
                                 {deadline.status}
                               </Badge>
                             </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {deadline.status !== 'completed' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCompleteDeadline(deadline.id)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {deadline.relatedUrl && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                                className="h-8 w-8 p-0"
+                              >
+                                <Link href={deadline.relatedUrl}>
+                                  <ExternalLink className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -272,183 +409,315 @@ export default function CalendarPage() {
         </TabsContent>
 
         <TabsContent value="list" className="space-y-6">
-          {/* Filters */}
-          <div className="flex items-center gap-4">
+          {/* Modern Filters */}
+          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Filter by:</span>
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Filter by:</span>
             </div>
-            <select
-              className="text-sm border rounded px-2 py-1"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="all">All Types</option>
-              <option value="dbs_expiry">DBS Expiry</option>
-              <option value="annual_return">Annual Return</option>
-              <option value="policy_review">Policy Review</option>
-              <option value="training">Training</option>
-              <option value="other">Other</option>
-            </select>
-            <select
-              className="text-sm border rounded px-2 py-1"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="overdue">Overdue</option>
-              <option value="completed">Completed</option>
-            </select>
+            <div className="flex items-center gap-4">
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-[180px] h-10">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="dbs_expiry">DBS Expiry</SelectItem>
+                  <SelectItem value="annual_return">Annual Return</SelectItem>
+                  <SelectItem value="policy_review">Policy Review</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[150px] h-10">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="text-sm text-gray-500">
+                {filteredDeadlines.length} of {deadlines.length} deadlines
+              </div>
+            </div>
           </div>
 
-          {/* Deadlines List */}
-          <div className="space-y-3">
-            {filteredDeadlines.map((deadline) => (
-              <Card key={deadline.id} className={cn(
-                'transition-all hover:shadow-md',
-                deadline.status === 'overdue' && 'ring-2 ring-red-200 bg-red-50'
-              )}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2">
+          {/* Enhanced Deadlines List */}
+          <div className="space-y-4">
+            {filteredDeadlines.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <CalendarIcon className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-gray-600 font-medium">No deadlines found</p>
+                <p className="text-sm text-gray-500 mt-1">Try adjusting your filters</p>
+              </div>
+            ) : (
+              filteredDeadlines.map((deadline) => (
+                <Card key={deadline.id} className={cn(
+                  'group transition-all duration-200 hover:shadow-lg border-0 shadow-sm',
+                  deadline.status === 'overdue' && 'ring-2 ring-red-200 bg-red-50/50',
+                  deadline.status === 'completed' && 'opacity-75'
+                )}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-6">
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start gap-3">
+                          <h3 className="font-semibold text-lg text-gray-900 leading-tight">{deadline.title}</h3>
+                          <div className="flex gap-2">
+                            <Badge variant="outline" className={cn('text-xs font-medium', getPriorityColor(deadline.priority))}>
+                              {deadline.priority}
+                            </Badge>
+                            <Badge variant="outline" className={cn('text-xs font-medium', getStatusColor(deadline.status))}>
+                              {deadline.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">{deadline.description}</p>
+                        <div className="flex items-center gap-6 text-sm text-gray-500">
+                          <span className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4" />
+                            {formatDate(deadline.date)}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            {getDaysUntilDeadline(deadline.date)}
+                          </span>
+                          <Badge variant="outline" className="text-xs font-medium">
+                            {getTypeLabel(deadline.type)}
+                          </Badge>
+                        </div>
+                      </div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{deadline.title}</h3>
-                        <Badge variant="outline" className={cn('text-xs', getPriorityColor(deadline.priority))}>
-                          {deadline.priority}
-                        </Badge>
-                        <Badge variant="outline" className={cn('text-xs', getStatusColor(deadline.status))}>
-                          {deadline.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{deadline.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <CalendarIcon className="h-3 w-3" />
-                          {formatDate(deadline.date)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {getDaysUntilDeadline(deadline.date)}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {getTypeLabel(deadline.type)}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {deadline.relatedUrl && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={deadline.relatedUrl}>View</a>
+                        {deadline.status !== 'completed' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCompleteDeadline(deadline.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Complete
+                          </Button>
+                        )}
+                        {deadline.relatedUrl && (
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={deadline.relatedUrl}>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              View Details
+                            </Link>
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button variant="ghost" size="sm">
-                        <Bell className="h-4 w-4" />
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="upcoming" className="space-y-6">
-          {/* Quick Stats */}
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
+          {/* Enhanced Quick Stats */}
+          <div className="grid gap-6 md:grid-cols-4">
+            <Card className="shadow-sm border-0 bg-gradient-to-br from-red-50 to-red-25">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                  </div>
                   <div>
-                    <p className="text-2xl font-bold">{overdueCount}</p>
-                    <p className="text-xs text-muted-foreground">Overdue</p>
+                    <p className="text-3xl font-light text-gray-900 mb-1">{overdueCount}</p>
+                    <p className="text-sm font-medium text-gray-600">Overdue</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-yellow-500" />
+            
+            <Card className="shadow-sm border-0 bg-gradient-to-br from-amber-50 to-amber-25">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-amber-600" />
+                  </div>
                   <div>
-                    <p className="text-2xl font-bold">
-                      {deadlines.filter(d => d.status === 'upcoming' && new Date(d.date).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000).length}
+                    <p className="text-3xl font-light text-gray-900 mb-1">
+                      {mounted ? deadlines.filter(d => d.status === 'upcoming' && new Date(d.date).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000).length : '0'}
                     </p>
-                    <p className="text-xs text-muted-foreground">Due this week</p>
+                    <p className="text-sm font-medium text-gray-600">Due this week</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5 text-blue-500" />
+            
+            <Card className="shadow-sm border-0 bg-gradient-to-br from-blue-50 to-blue-25">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <CalendarIcon className="h-6 w-6 text-blue-600" />
+                  </div>
                   <div>
-                    <p className="text-2xl font-bold">{upcomingCount}</p>
-                    <p className="text-xs text-muted-foreground">Upcoming</p>
+                    <p className="text-3xl font-light text-gray-900 mb-1">{upcomingCount}</p>
+                    <p className="text-sm font-medium text-gray-600">Upcoming</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+            
+            <Card className="shadow-sm border-0 bg-gradient-to-br from-emerald-50 to-emerald-25">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-emerald-600" />
+                  </div>
                   <div>
-                    <p className="text-2xl font-bold">
+                    <p className="text-3xl font-light text-gray-900 mb-1">
                       {deadlines.filter(d => d.status === 'completed').length}
                     </p>
-                    <p className="text-xs text-muted-foreground">Completed</p>
+                    <p className="text-sm font-medium text-gray-600">Completed</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Upcoming Deadlines */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Next 30 Days</CardTitle>
-              <CardDescription>
-                Deadlines coming up in the next month
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {deadlines
-                  .filter(d => d.status === 'upcoming' || d.status === 'overdue')
-                  .sort((a, b) => a.date.getTime() - b.date.getTime())
-                  .slice(0, 10)
-                  .map((deadline) => (
-                    <div key={deadline.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="space-y-1">
-                        <h4 className="font-medium">{deadline.title}</h4>
-                        <p className="text-sm text-muted-foreground">{deadline.description}</p>
-                        <div className="flex gap-2">
-                          <Badge variant="outline" className={cn('text-xs', getPriorityColor(deadline.priority))}>
-                            {deadline.priority}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {getDaysUntilDeadline(deadline.date)}
-                          </span>
+          {/* Modern Filters - Same as List View */}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Filter by:</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-[180px] h-10">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="dbs_expiry">DBS Expiry</SelectItem>
+                  <SelectItem value="annual_return">Annual Return</SelectItem>
+                  <SelectItem value="policy_review">Policy Review</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[150px] h-10">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="text-sm text-gray-500">
+                {filteredDeadlines.filter(d => d.status === 'upcoming' || d.status === 'overdue').length} upcoming deadlines
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Deadlines List - Same Design as List View */}
+          <div className="space-y-4">
+            {filteredDeadlines.filter(d => d.status === 'upcoming' || d.status === 'overdue').length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <CalendarIcon className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-gray-600 font-medium">No upcoming deadlines found</p>
+                <p className="text-sm text-gray-500 mt-1">Try adjusting your filters</p>
+              </div>
+            ) : (
+              filteredDeadlines
+                .filter(d => d.status === 'upcoming' || d.status === 'overdue')
+                .sort((a, b) => a.date.getTime() - b.date.getTime())
+                .map((deadline) => (
+                  <Card key={deadline.id} className={cn(
+                    'group transition-all duration-200 hover:shadow-lg border-0 shadow-sm',
+                    deadline.status === 'overdue' && 'ring-2 ring-red-200 bg-red-50/50',
+                    deadline.status === 'completed' && 'opacity-75'
+                  )}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between gap-6">
+                        <div className="space-y-3 flex-1">
+                          <div className="flex items-start gap-3">
+                            <h3 className="font-semibold text-lg text-gray-900 leading-tight">{deadline.title}</h3>
+                            <div className="flex gap-2">
+                              <Badge variant="outline" className={cn('text-xs font-medium', getPriorityColor(deadline.priority))}>
+                                {deadline.priority}
+                              </Badge>
+                              <Badge variant="outline" className={cn('text-xs font-medium', getStatusColor(deadline.status))}>
+                                {deadline.status}
+                              </Badge>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 leading-relaxed">{deadline.description}</p>
+                          <div className="flex items-center gap-6 text-sm text-gray-500">
+                            <span className="flex items-center gap-2">
+                              <CalendarIcon className="h-4 w-4" />
+                              {formatDate(deadline.date)}
+                            </span>
+                            <span className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              {getDaysUntilDeadline(deadline.date)}
+                            </span>
+                            <Badge variant="outline" className="text-xs font-medium">
+                              {getTypeLabel(deadline.type)}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {deadline.status !== 'completed' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompleteDeadline(deadline.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                              Complete
+                            </Button>
+                          )}
+                          {deadline.relatedUrl && (
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={deadline.relatedUrl}>
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View Details
+                              </Link>
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{formatDate(deadline.date)}</p>
-                        {deadline.relatedUrl && (
-                          <Button variant="outline" size="sm" className="mt-2" asChild>
-                            <a href={deadline.relatedUrl}>Take Action</a>
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
+                    </CardContent>
+                  </Card>
+                ))
+            )}
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* Deadline Creation Modal */}
+      <DeadlineModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSave={handleSaveDeadline}
+        initialDate={selectedDate}
+      />
     </div>
   )
 }

@@ -102,14 +102,14 @@ export default function OverseasActivitiesClient({
               Add Activity
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Overseas Activity</DialogTitle>
               <DialogDescription>
                 Record a new overseas activity or operation
               </DialogDescription>
             </DialogHeader>
-            <OverseasActivitiesForm onSubmit={handleFormSubmit} />
+            <OverseasActivitiesForm onSuccess={handleFormSubmit} />
           </DialogContent>
         </Dialog>
       </div>
@@ -141,7 +141,6 @@ export default function OverseasActivitiesClient({
       {/* Activities Table */}
       <OverseasActivitiesTable 
         initialActivities={activities}
-        onRefresh={fetchActivities}
       />
     </>
   )

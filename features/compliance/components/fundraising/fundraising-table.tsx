@@ -41,6 +41,25 @@ export function FundraisingTable({ initialActivities }: FundraisingTableProps) {
     return matchesSearch && matchesType && matchesStatus
   })
 
+  // Show empty state when no activities
+  if (activities.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Fundraising Activities</CardTitle>
+          <CardDescription>Track donations and income sources</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No fundraising activities yet</h3>
+          <p className="text-muted-foreground text-center mb-4">
+            Start by recording your first donation or income source using the "Add New Record" button above.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this income record?')) return
 
@@ -278,7 +297,7 @@ export function FundraisingTable({ initialActivities }: FundraisingTableProps) {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Income Record</DialogTitle>
             <DialogDescription>

@@ -27,34 +27,44 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<OverseasActivityFormData>({
-    // resolver: zodResolver(overseasActivitySchema),
+    resolver: zodResolver(overseasActivitySchema),
     defaultValues: activity ? {
-      activity_name: activity.activity_name,
-      activity_type: activity.activity_type,
-      country_code: activity.country_code,
-      partner_id: activity.partner_id,
-      amount: activity.amount,
+      activity_name: activity.activity_name || '',
+      activity_type: activity.activity_type || 'humanitarian_aid',
+      country_code: activity.country_code || '',
+      partner_id: activity.partner_id || '',
+      amount: activity.amount || 0,
       currency: activity.currency || 'GBP',
-      amount_gbp: activity.amount_gbp,
-      exchange_rate: activity.exchange_rate,
-      transfer_method: activity.transfer_method,
-      transfer_date: activity.transfer_date,
-      transfer_reference: activity.transfer_reference,
-      financial_year: activity.financial_year,
-      quarter: activity.quarter,
-      beneficiaries_count: activity.beneficiaries_count,
-      project_code: activity.project_code,
-      description: activity.description,
+      amount_gbp: activity.amount_gbp || 0,
+      exchange_rate: activity.exchange_rate || 0,
+      transfer_method: activity.transfer_method || 'bank_transfer',
+      transfer_date: activity.transfer_date || '',
+      transfer_reference: activity.transfer_reference || '',
+      financial_year: activity.financial_year || new Date().getFullYear(),
+      quarter: activity.quarter || null,
+      beneficiaries_count: activity.beneficiaries_count || null,
+      project_code: activity.project_code || '',
+      description: activity.description || '',
       sanctions_check_completed: activity.sanctions_check_completed || false,
       requires_reporting: activity.requires_reporting || false,
       reported_to_commission: activity.reported_to_commission || false,
     } : {
+      activity_name: '',
       activity_type: 'humanitarian_aid',
+      country_code: '',
+      partner_id: '',
       currency: 'GBP',
       amount: 0,
       amount_gbp: 0,
+      exchange_rate: 0,
       transfer_method: 'bank_transfer',
+      transfer_date: '',
+      transfer_reference: '',
       financial_year: new Date().getFullYear(),
+      quarter: null,
+      beneficiaries_count: null,
+      project_code: '',
+      description: '',
       sanctions_check_completed: false,
       requires_reporting: false,
       reported_to_commission: false,
@@ -64,26 +74,33 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
   async function onSubmit(data: OverseasActivityFormData) {
     setIsSubmitting(true)
     
-    const formData = new FormData()
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        formData.append(key, value.toString())
+    try {
+      const formData = new FormData()
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value.toString())
+        }
+      })
+
+      const result = activity
+        ? await updateOverseasActivity(activity.id, formData)
+        : await createOverseasActivity(formData)
+
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success(activity ? 'Activity updated successfully' : 'Activity created successfully')
+        // Force immediate refresh
+        router.refresh()
+        // Call success callback to close modal and refresh parent
+        onSuccess?.()
       }
-    })
-
-    const result = activity
-      ? await updateOverseasActivity(activity.id, formData)
-      : await createOverseasActivity(formData)
-
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success(activity ? 'Activity updated successfully' : 'Activity created successfully')
-      onSuccess?.()
-      router.refresh()
+    } catch (error) {
+      console.error('Submission error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to save activity')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
   return (
@@ -234,8 +251,8 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
                     type="number"
                     step="0.000001"
                     placeholder="1.0"
-                    value={field.value || ''}
-                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                    value={field.value === null ? '' : field.value || ''}
+                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -343,8 +360,8 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
                 <FormItem>
                   <FormLabel>Quarter (Optional)</FormLabel>
                   <Select 
-                    onValueChange={value => field.onChange(value ? Number(value) : null)} 
-                    defaultValue={field.value?.toString()}
+                    onValueChange={value => field.onChange(value === "none" ? null : Number(value))} 
+                    defaultValue={field.value?.toString() || "none"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -352,7 +369,7 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       <SelectItem value="1">Q1</SelectItem>
                       <SelectItem value="2">Q2</SelectItem>
                       <SelectItem value="3">Q3</SelectItem>
@@ -382,7 +399,7 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
                       {...field}
                       type="number"
                       placeholder="0"
-                      value={field.value || ''}
+                      value={field.value === null ? '' : field.value || ''}
                       onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
                     />
                   </FormControl>
@@ -498,6 +515,7 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
           />
         </div>
 
+
         <div className="flex justify-end gap-4">
           <Button
             type="button"
@@ -507,7 +525,10 @@ export function OverseasActivitiesForm({ activity, onSuccess }: OverseasActiviti
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || !form.formState.isValid}
+          >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {activity ? 'Update' : 'Create'} Activity
           </Button>

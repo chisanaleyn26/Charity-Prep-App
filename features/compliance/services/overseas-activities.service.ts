@@ -1,4 +1,5 @@
 import { createServerClient, getCurrentUserOrganization } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
 import type { 
   OverseasActivity,
   CreateOverseasActivityInput,
@@ -10,7 +11,8 @@ import type {
  * These functions handle direct database operations without auth checks
  */
 
-export async function fetchOverseasActivities(organizationId: string): Promise<OverseasActivity[]> {
+// Internal function without caching
+async function _fetchOverseasActivities(organizationId: string): Promise<OverseasActivity[]> {
   const supabase = await createServerClient()
   
   const { data, error } = await supabase
@@ -20,8 +22,8 @@ export async function fetchOverseasActivities(organizationId: string): Promise<O
     .order('transfer_date', { ascending: false })
 
   if (error) {
-    console.error('Error fetching overseas activities:', error)
-    throw new Error('Failed to fetch overseas activities')
+    console.error('Database error fetching overseas activities:', error)
+    throw new Error(`Failed to fetch overseas activities: ${error.message}`)
   }
 
   // Handle nullable boolean fields with default values
@@ -33,11 +35,18 @@ export async function fetchOverseasActivities(organizationId: string): Promise<O
   }))
 }
 
+export async function fetchOverseasActivities(organizationId: string): Promise<OverseasActivity[]> {
+  return _fetchOverseasActivities(organizationId)
+}
+
 export async function createOverseasActivityInDb(
   organizationId: string,
   input: CreateOverseasActivityInput
 ): Promise<OverseasActivity> {
   const supabase = await createServerClient()
+  
+  // Get current user for created_by field
+  const { data: { user } } = await supabase.auth.getUser()
   
   const insertData = {
     organization_id: organizationId,
@@ -59,8 +68,10 @@ export async function createOverseasActivityInDb(
     description: input.description || null,
     sanctions_check_completed: input.sanctions_check_completed ?? false,
     requires_reporting: input.requires_reporting ?? false,
-    reported_to_commission: input.reported_to_commission ?? false
+    reported_to_commission: input.reported_to_commission ?? false,
+    created_by: user?.id || null
   }
+  
   
   const { data, error } = await supabase
     .from('overseas_activities')
@@ -70,7 +81,7 @@ export async function createOverseasActivityInDb(
 
   if (error) {
     console.error('Error creating overseas activity:', error)
-    throw new Error('Failed to create overseas activity')
+    throw new Error(`Failed to create overseas activity: ${error.message}`)
   }
 
   return data

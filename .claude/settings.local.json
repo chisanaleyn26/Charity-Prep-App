@@ -61,7 +61,9 @@
       "Bash(cat:*)",
       "mcp__supabase__get_project_url",
       "Bash(git add:*)",
-      "mcp__supabase__list_migrations"
+      "mcp__supabase__list_migrations",
+      "Bash(rg:*)",
+      "Bash(fuser:*)"
     ],
     "deny": []
   }

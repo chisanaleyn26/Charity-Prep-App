@@ -19,6 +19,12 @@ export default function FundraisingClient({
   initialActivities, 
   organizationId 
 }: FundraisingClientProps) {
+  console.log('🎨 FundraisingClient render:', { 
+    initialActivitiesLength: initialActivities.length,
+    organizationId,
+    sampleActivity: initialActivities[0]
+  })
+  
   const [activities, setActivities] = useState<FundraisingActivity[]>(initialActivities)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -102,14 +108,14 @@ export default function FundraisingClient({
               Add Income Record
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add Income Record</DialogTitle>
               <DialogDescription>
                 Record a new donation or income source
               </DialogDescription>
             </DialogHeader>
-            <FundraisingForm onSubmit={handleFormSubmit} />
+            <FundraisingForm onSuccess={handleFormSubmit} />
           </DialogContent>
         </Dialog>
       </div>
@@ -141,7 +147,6 @@ export default function FundraisingClient({
       {/* Activities Table */}
       <FundraisingTable 
         initialActivities={activities}
-        onRefresh={fetchActivities}
       />
     </>
   )

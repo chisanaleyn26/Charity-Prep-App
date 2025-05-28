@@ -1,4 +1,5 @@
 import { createServerClient, getCurrentUserOrganization } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
 import type { 
   FundraisingActivity,
   CreateFundraisingActivityInput,
@@ -10,7 +11,8 @@ import type {
  * These functions handle direct database operations without auth checks
  */
 
-export async function fetchFundraisingActivities(organizationId: string): Promise<FundraisingActivity[]> {
+// Internal function without caching
+async function _fetchFundraisingActivities(organizationId: string): Promise<FundraisingActivity[]> {
   const supabase = await createServerClient()
   
   const { data, error } = await supabase
@@ -20,11 +22,15 @@ export async function fetchFundraisingActivities(organizationId: string): Promis
     .order('date_received', { ascending: false })
 
   if (error) {
-    console.error('Error fetching income records:', error)
-    throw new Error('Failed to fetch income records')
+    console.error('Database error fetching income records:', error)
+    throw new Error(`Failed to fetch income records: ${error.message}`)
   }
 
   return data || []
+}
+
+export async function fetchFundraisingActivities(organizationId: string): Promise<FundraisingActivity[]> {
+  return _fetchFundraisingActivities(organizationId)
 }
 
 export async function createFundraisingActivityInDb(
@@ -32,6 +38,9 @@ export async function createFundraisingActivityInDb(
   input: CreateFundraisingActivityInput
 ): Promise<FundraisingActivity> {
   const supabase = await createServerClient()
+  
+  // Get current user for created_by field
+  const { data: { user } } = await supabase.auth.getUser()
   
   const insertData = {
     organization_id: organizationId,
@@ -51,7 +60,8 @@ export async function createFundraisingActivityInDb(
     gift_aid_eligible: input.gift_aid_eligible ?? false,
     gift_aid_claimed: input.gift_aid_claimed ?? false,
     reference_number: input.reference_number || null,
-    notes: input.notes || null
+    notes: input.notes || null,
+    created_by: user?.id || null
   }
   
   const { data, error } = await supabase
@@ -62,7 +72,7 @@ export async function createFundraisingActivityInDb(
 
   if (error) {
     console.error('Error creating income record:', error)
-    throw new Error('Failed to create income record')
+    throw new Error(`Failed to create income record: ${error.message}`)
   }
 
   return data

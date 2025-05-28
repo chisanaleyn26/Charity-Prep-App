@@ -33,20 +33,20 @@ export type FundraisingActivity = IncomeRecord
 
 export const incomeRecordSchema = z.object({
   source: z.enum(['donations_legacies', 'charitable_activities', 'other_trading', 'investments', 'other']),
-  amount: z.number().positive('Amount must be positive'),
-  date_received: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  amount: z.number().min(0, 'Amount must be 0 or greater'),
+  date_received: z.string().min(1, 'Date received is required'),
   financial_year: z.number().int().min(2020).max(2100),
   donor_type: z.enum(['individual', 'corporate', 'trust', 'government', 'other']).optional().nullable(),
   donor_name: z.string().optional().nullable(),
-  is_anonymous: z.boolean().nullable().default(false),
+  is_anonymous: z.boolean().default(false),
   fundraising_method: z.enum(['individual_giving', 'major_donors', 'corporate', 'trusts_foundations', 'events', 'online', 'direct_mail', 'telephone', 'street', 'legacies', 'trading', 'other']).optional().nullable(),
   campaign_name: z.string().optional().nullable(),
-  restricted_funds: z.boolean().nullable().default(false),
+  restricted_funds: z.boolean().default(false),
   restriction_details: z.string().optional().nullable(),
-  is_related_party: z.boolean().nullable().default(false),
+  is_related_party: z.boolean().default(false),
   related_party_relationship: z.string().optional().nullable(),
-  gift_aid_eligible: z.boolean().nullable().default(false),
-  gift_aid_claimed: z.boolean().nullable().default(false),
+  gift_aid_eligible: z.boolean().default(false),
+  gift_aid_claimed: z.boolean().default(false),
   reference_number: z.string().optional().nullable(),
   notes: z.string().optional().nullable()
 })

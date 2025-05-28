@@ -28,59 +28,74 @@ export function FundraisingForm({ activity, onSuccess }: FundraisingFormProps) {
   const form = useForm({
     resolver: zodResolver(incomeRecordSchema) as any,
     defaultValues: activity ? {
-      source: activity.source,
-      amount: activity.amount,
-      date_received: activity.date_received,
-      financial_year: activity.financial_year,
-      donor_type: activity.donor_type,
-      donor_name: activity.donor_name,
-      is_anonymous: activity.is_anonymous,
-      fundraising_method: activity.fundraising_method,
-      campaign_name: activity.campaign_name,
-      restricted_funds: activity.restricted_funds,
-      restriction_details: activity.restriction_details,
-      is_related_party: activity.is_related_party,
-      related_party_relationship: activity.related_party_relationship,
-      gift_aid_eligible: activity.gift_aid_eligible,
-      gift_aid_claimed: activity.gift_aid_claimed,
-      reference_number: activity.reference_number,
-      notes: activity.notes,
+      source: activity.source || 'donations_legacies',
+      amount: activity.amount || 0,
+      date_received: activity.date_received || new Date().toISOString().split('T')[0],
+      financial_year: activity.financial_year || new Date().getFullYear(),
+      donor_type: activity.donor_type || 'individual',
+      donor_name: activity.donor_name || '',
+      is_anonymous: activity.is_anonymous || false,
+      fundraising_method: activity.fundraising_method || 'individual_giving',
+      campaign_name: activity.campaign_name || '',
+      restricted_funds: activity.restricted_funds || false,
+      restriction_details: activity.restriction_details || '',
+      is_related_party: activity.is_related_party || false,
+      related_party_relationship: activity.related_party_relationship || '',
+      gift_aid_eligible: activity.gift_aid_eligible || false,
+      gift_aid_claimed: activity.gift_aid_claimed || false,
+      reference_number: activity.reference_number || '',
+      notes: activity.notes || '',
     } : {
       source: 'donations_legacies' as const,
       amount: 0,
       date_received: new Date().toISOString().split('T')[0],
       financial_year: new Date().getFullYear(),
+      donor_type: 'individual',
+      donor_name: '',
       is_anonymous: false,
+      fundraising_method: 'individual_giving',
+      campaign_name: '',
       restricted_funds: false,
+      restriction_details: '',
       is_related_party: false,
+      related_party_relationship: '',
       gift_aid_eligible: false,
-      gift_aid_claimed: false
+      gift_aid_claimed: false,
+      reference_number: '',
+      notes: '',
     }
   })
 
   async function onSubmit(data: any) {
     setIsSubmitting(true)
     
-    const formData = new FormData()
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        formData.append(key, value.toString())
+    try {
+      const formData = new FormData()
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value.toString())
+        }
+      })
+
+      const result = activity
+        ? await updateFundraisingActivity(activity.id, formData)
+        : await createFundraisingActivity(formData)
+
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        toast.success(activity ? 'Income record updated successfully' : 'Income record created successfully')
+        // Force immediate refresh
+        router.refresh()
+        // Call success callback to close modal and refresh parent
+        onSuccess?.()
       }
-    })
-
-    const result = activity
-      ? await updateFundraisingActivity(activity.id, formData)
-      : await createFundraisingActivity(formData)
-
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success(activity ? 'Income record updated successfully' : 'Income record created successfully')
-      onSuccess?.()
-      router.refresh()
+    } catch (error) {
+      console.error('Fundraising submission error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to save income record')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
   return (
@@ -360,6 +375,7 @@ export function FundraisingForm({ activity, onSuccess }: FundraisingFormProps) {
           )}
         />
 
+
         <div className="flex justify-end gap-4">
           <Button
             type="button"
@@ -369,7 +385,10 @@ export function FundraisingForm({ activity, onSuccess }: FundraisingFormProps) {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || !form.formState.isValid}
+          >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {activity ? 'Update' : 'Create'} Record
           </Button>

@@ -88,12 +88,6 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
       description: 'Overall compliance health'
     },
     {
-      name: 'Compliance Chat',
-      href: '/compliance/chat',
-      icon: Bot,
-      description: 'AI compliance assistant'
-    },
-    {
       name: 'Smart Import',
       href: '/import',
       icon: Sparkles,
@@ -134,10 +128,12 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
 
   const aiFeatures = [
     {
-      name: 'AI Assistant',
-      href: '/ai-assistant',
-      icon: Sparkles,
-      description: 'Smart compliance help'
+      name: 'Compliance Chat',
+      href: '/compliance/chat',
+      icon: Bot,
+      badge: 'NEW',
+      badgeType: 'default' as const,
+      description: 'AI compliance assistant'
     },
     {
       name: 'Calendar',
@@ -335,6 +331,11 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
                       <div className="font-medium text-sm">{item.name}</div>
                       <div className="text-xs text-gray-500 truncate">{item.description}</div>
                     </div>
+                    {item.badge && (
+                      <Badge variant={getBadgeVariant(item.badgeType)} size="sm">
+                        {item.badge}
+                      </Badge>
+                    )}
                   </Link>
                 )
               })}

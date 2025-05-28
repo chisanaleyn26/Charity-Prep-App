@@ -177,14 +177,14 @@ export function ColumnMapper({
                       
                       {/* Column Selector */}
                       <Select
-                        value={currentMapping?.csv_column || ''}
-                        onValueChange={(value) => handleFieldChange(targetField, value || null)}
+                        value={currentMapping?.csv_column || 'none'}
+                        onValueChange={(value) => handleFieldChange(targetField, value === 'none' ? null : value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a CSV column..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           {csvData.headers.map((header) => {
                             const dataType = csvData.dataTypes[header]
                             const isUsed = Object.values(localMapping.mappings)
