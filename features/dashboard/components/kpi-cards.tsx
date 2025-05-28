@@ -34,7 +34,7 @@ interface DashboardStats {
 
 interface KPICardsProps {
   stats?: DashboardStats
-  dashboardData?: DashboardData
+  dashboardData?: DashboardData | { error: string }
 }
 
 export function KPICards({ stats, dashboardData }: KPICardsProps) {
@@ -46,8 +46,8 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
     dashboardData: dashboardData 
   })
   
-  // Early return if no data
-  if (!stats && !dashboardData) {
+  // Early return if no data or if dashboardData is an error object
+  if (!stats && (!dashboardData || 'error' in dashboardData)) {
     return <KPICardsSkeleton />
   }
 
@@ -88,7 +88,7 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
       iconColor: 'text-purple-600',
       bgColor: 'bg-purple-50'
     }
-  ] : dashboardData?.compliance && dashboardData?.quickStats ? [
+  ] : dashboardData && !('error' in dashboardData) && dashboardData.compliance && dashboardData.quickStats ? [
     {
       title: 'Compliance Score',
       value: `${dashboardData.compliance?.score || 0}%`,

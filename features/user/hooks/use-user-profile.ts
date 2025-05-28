@@ -3,13 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
 import { createClient } from '@/lib/supabase/client'
-import type { User } from '@/lib/types/app.types'
+import type { UserProfile as BaseUserProfile, UpdateUserProfile, UpdateUserPreferences } from '@/lib/types/user.types'
 
-export interface UserProfile extends User {
-  full_name?: string
-  job_title?: string
-  phone?: string
-  avatar_url?: string
+export interface UserProfile extends BaseUserProfile {
   profile_completed: boolean
   profile_completion_percentage: number
   missing_fields: string[]

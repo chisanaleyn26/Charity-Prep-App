@@ -60,7 +60,8 @@
       "Bash(timeout 30 npm run dev:*)",
       "Bash(cat:*)",
       "mcp__supabase__get_project_url",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__supabase__list_migrations"
     ],
     "deny": []
   }
