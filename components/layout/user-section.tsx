@@ -43,6 +43,7 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
   const { subscription, isLoading: subscriptionLoading, needsAttention, warningLevel } = useSubscriptionStatus()
   const { currentOrganization } = useOrganization()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   // Get user initials for avatar
   const getInitials = (name?: string, email?: string) => {
@@ -241,13 +242,33 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
             
             <DropdownMenuItem 
               onClick={async () => {
-                // Sign out by redirecting to logout API route
-                window.location.href = '/api/auth/signout'
+                if (isSigningOut) return
+                
+                try {
+                  setIsSigningOut(true)
+                  const response = await fetch('/api/auth/signout', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    }
+                  })
+                  
+                  if (response.ok) {
+                    window.location.href = '/login'
+                  } else {
+                    console.error('Failed to sign out')
+                    setIsSigningOut(false)
+                  }
+                } catch (error) {
+                  console.error('Sign out error:', error)
+                  setIsSigningOut(false)
+                }
               }}
               className="cursor-pointer"
+              disabled={isSigningOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Sign out</span>
+              <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -402,13 +423,33 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
           
           <DropdownMenuItem 
             onClick={async () => {
-              // Sign out by redirecting to logout API route
-              window.location.href = '/api/auth/signout'
+              if (isSigningOut) return
+              
+              try {
+                setIsSigningOut(true)
+                const response = await fetch('/api/auth/signout', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                })
+                
+                if (response.ok) {
+                  window.location.href = '/login'
+                } else {
+                  console.error('Failed to sign out')
+                  setIsSigningOut(false)
+                }
+              } catch (error) {
+                console.error('Sign out error:', error)
+                setIsSigningOut(false)
+              }
             }}
             className="cursor-pointer text-red-600 hover:text-red-700"
+            disabled={isSigningOut}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Sign out</span>
+            <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

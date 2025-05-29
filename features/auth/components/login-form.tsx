@@ -16,6 +16,7 @@ export function LoginForm() {
   const [token, setToken] = useState('')
   const [step, setStep] = useState<'email' | 'otp'>('email')
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Verifying...')
   const [error, setError] = useState('')
 
   // Check for auth errors in URL params
@@ -25,6 +26,53 @@ export function LoginForm() {
       setError(decodeURIComponent(urlError))
     }
   }, [searchParams])
+
+  // Check if user has organizations and redirect accordingly
+  const checkUserOrganizations = async () => {
+    try {
+      setLoadingMessage('Setting up your account...')
+      
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      // Check if user has any organizations
+      const { data: memberships } = await supabase
+        .from('organization_members')
+        .select(`
+          organization_id,
+          organization:organizations(*)
+        `)
+        .eq('user_id', user.id)
+        .not('accepted_at', 'is', null)
+        .limit(1)
+
+      if (memberships && memberships.length > 0) {
+        // User has organizations - go directly to dashboard
+        setLoadingMessage('Redirecting to dashboard...')
+        // Small delay to show the message
+        await new Promise(resolve => setTimeout(resolve, 500))
+        router.push('/dashboard')
+      } else {
+        // No organizations - needs onboarding
+        setLoadingMessage('Redirecting to setup...')
+        // Small delay to show the message
+        await new Promise(resolve => setTimeout(resolve, 500))
+        router.push('/onboarding')
+      }
+    } catch (err) {
+      console.error('Error checking organizations:', err)
+      // On error, default to dashboard and let middleware handle it
+      router.push('/dashboard')
+    }
+  }
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,6 +101,7 @@ export function LoginForm() {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+    setLoadingMessage('Verifying...')
 
     try {
       // Verify the OTP code
@@ -61,13 +110,14 @@ export function LoginForm() {
 
       if (result.error) {
         setError(result.error)
+        setIsLoading(false)
       } else {
-        // Success! The middleware will handle proper redirection
-        router.push('/dashboard')
+        // Success! Check if user has organizations
+        // Keep loading state while checking
+        await checkUserOrganizations()
       }
     } catch (err) {
       setError('Something went wrong. Please try again.')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -175,7 +225,7 @@ export function LoginForm() {
                 {isLoading ? (
                   <>
                     <LoadingSpinner size="sm" variant="dark" />
-                    Verifying...
+                    {loadingMessage}
                   </>
                 ) : (
                   'Verify Code'
