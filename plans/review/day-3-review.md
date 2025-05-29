@@ -19,17 +19,6 @@
 - Organization routing via email address pattern
 - Quality: Production-ready with proper error handling
 
-### CSV Import with AI Mapping
-**Status**: ✅ Complete
-**Location**: `/lib/ai/csv-mapper.ts`, `/lib/api/import.ts`
-**Testing Notes**:
-- Intelligent header-to-field mapping using AI
-- Module-specific schemas with field descriptions
-- Low temperature for consistent mappings
-- Validation against actual database schema
-- Integration with existing import system
-- Handles common column name variations
-- Quality: Excellent implementation
 
 ### Document OCR Extraction
 **Status**: ✅ Complete

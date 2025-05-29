@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { createDocument } from '../services/documents'
 import type { CreateDocumentInput } from '../types/documents'
 import { FormErrorBoundary } from '@/components/common/error-boundary'
+import { useOrganization } from '@/features/organizations/components/organization-provider'
 
 interface DocumentUploadFormProps {
   onSuccess: () => void
@@ -29,6 +30,7 @@ interface FormData {
 }
 
 export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
+  const { currentOrganization } = useOrganization()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [tags, setTags] = useState<string[]>([])
@@ -65,16 +67,21 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
       return
     }
 
+    if (!currentOrganization) {
+      alert('Please select an organization before uploading documents.')
+      return
+    }
+
     setIsUploading(true)
     setUploadProgress(0)
 
     try {
       const supabase = createClient()
       
-      // Generate unique file path
+      // Generate unique file path with organization folder
       const fileExt = selectedFile.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `documents/${fileName}`
+      const filePath = `${currentOrganization.id}/${fileName}`
 
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -147,7 +154,8 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
         tags: tags.length > 0 ? tags : undefined,
         expires_at: data.expires_at || undefined,
         is_public: data.is_public || false,
-        extracted_data: extractedData || undefined
+        extracted_data: extractedData || undefined,
+        organization_id: currentOrganization.id
       }
 
       await createDocument(documentInput)
@@ -191,18 +199,54 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
           Document File *
         </Label>
         <div className="relative">
-          <Input
-            id="file"
-            type="file"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
-            {...register('file', { required: 'Please select a file' })}
-            className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 border-gray-200 rounded-xl"
-          />
-          {selectedFile && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-              <FileText className="h-4 w-4" />
-              <span>{selectedFile.name}</span>
-              <span className="text-gray-400">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+          {!selectedFile ? (
+            <div className="border-2 border-dashed border-gray-300 hover:border-primary/50 rounded-xl p-6 text-center bg-gray-50/50 hover:bg-primary/5 transition-all cursor-pointer group">
+              <input
+                id="file"
+                type="file"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                {...register('file', { required: 'Please select a file' })}
+                className="sr-only"
+              />
+              <label htmlFor="file" className="cursor-pointer">
+                <Upload className="h-8 w-8 mx-auto mb-3 text-gray-400 group-hover:text-primary transition-colors" />
+                <p className="text-sm font-medium text-gray-700 group-hover:text-primary transition-colors mb-1">
+                  Click to browse or drag and drop
+                </p>
+                <p className="text-xs text-gray-500">
+                  Supports: PDF, DOC, DOCX, JPG, PNG, TXT (max 10MB)
+                </p>
+              </label>
+            </div>
+          ) : (
+            <div className="border-2 border-green-200 rounded-xl p-4 bg-green-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-800">{selectedFile.name}</p>
+                    <p className="text-xs text-green-600">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    // Reset the file input
+                    const input = document.getElementById('file') as HTMLInputElement
+                    if (input) input.value = ''
+                    // Trigger the register onChange to update react-hook-form
+                    const event = new Event('change', { bubbles: true })
+                    input?.dispatchEvent(event)
+                  }}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  Change
+                </Button>
+              </div>
             </div>
           )}
         </div>

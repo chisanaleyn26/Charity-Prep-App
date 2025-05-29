@@ -67,25 +67,18 @@ const ONBOARDING_STEPS: Omit<OnboardingStep, 'completed'>[] = [
     order: 3
   },
   {
-    id: 'import-data',
-    title: 'Import Existing Data',
-    description: 'Upload a CSV or forward receipts to quickly populate your records',
-    action: '/import',
-    order: 4
-  },
-  {
     id: 'explore-dashboard',
     title: 'Check Your Compliance Score',
     description: 'See how your charity is doing across all compliance areas',
     action: '/dashboard',
-    order: 5
+    order: 4
   },
   {
     id: 'invite-team',
     title: 'Invite Team Members',
     description: 'Add trustees and staff to collaborate on compliance',
     action: '/settings/team',
-    order: 6
+    order: 5
   }
 ]
 

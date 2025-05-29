@@ -15,8 +15,6 @@ console.log('\n2. AI Service Files:');
 const aiFiles = [
   '/lib/ai/openrouter.ts',
   '/features/ai/services/email-processor.ts',
-  '/features/ai/services/csv-parser.ts',
-  '/features/ai/services/column-mapper.ts',
   '/features/ai/services/document-ocr.ts',
   '/features/ai/services/search-parser.ts',
   '/features/ai/services/search-executor.ts',
@@ -33,8 +31,6 @@ console.log('\n3. AI Component Files:');
 const aiComponents = [
   '/features/ai/components/import-queue.tsx',
   '/features/ai/components/extraction-review.tsx',
-  '/features/ai/components/csv-import-wizard.tsx',
-  '/features/ai/components/column-mapper.tsx',
   '/features/ai/components/smart-search.tsx',
   '/features/ai/components/report-generator.tsx',
   '/features/ai/components/compliance-chat.tsx'
@@ -48,7 +44,6 @@ aiComponents.forEach(file => {
 console.log('\n4. AI Route Files:');
 const aiRoutes = [
   '/app/api/webhooks/email/route.ts',
-  '/app/(app)/import/page.tsx',
   '/app/(app)/search/page.tsx',
   '/app/(app)/reports/ai/page.tsx',
   '/app/(app)/compliance/chat/page.tsx'

@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Logo } from '@/components/common/logo'
-import { EtherealButton } from '@/components/custom-ui/ethereal-button'
+import { DynamicNavButton } from '@/components/marketing/dynamic-nav-button'
 import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -37,12 +37,8 @@ export function NavBar() {
             </div>
 
             <div className="flex items-center gap-3">
-              <EtherealButton variant="ghost" size="sm" asChild>
-                <Link href="/login">Login</Link>
-              </EtherealButton>
-              <EtherealButton size="sm" asChild>
-                <Link href="/login">Get Started</Link>
-              </EtherealButton>
+              <DynamicNavButton variant="ghost" size="sm" type="login" />
+              <DynamicNavButton size="sm" type="cta" />
             </div>
           </div>
 
@@ -81,12 +77,8 @@ export function NavBar() {
               </Link>
             ))}
             <div className="border-t border-[#E0E0E0] pt-6 flex flex-col gap-3">
-              <EtherealButton variant="ghost" className="w-full justify-center" asChild>
-                <Link href="/login">Login</Link>
-              </EtherealButton>
-              <EtherealButton className="w-full justify-center" asChild>
-                <Link href="/login">Get Started</Link>
-              </EtherealButton>
+              <DynamicNavButton variant="ghost" className="w-full justify-center" type="login" />
+              <DynamicNavButton className="w-full justify-center" type="cta" />
             </div>
           </div>
         </div>

@@ -1,5 +1,4 @@
-import { openrouter, AI_MODELS, callOpenRouter } from '@/lib/ai/openrouter'
-import { EXTRACTION_PROMPTS, CONFIDENCE_THRESHOLDS } from '@/lib/ai/prompts'
+import { CONFIDENCE_THRESHOLDS } from '@/lib/ai/prompts'
 import type { 
   ExtractionResult,
   DBSExtraction,
@@ -13,59 +12,34 @@ export async function extractFromImage(
   documentType: string
 ): Promise<ExtractionResult> {
   try {
-    // Get appropriate prompt based on document type
-    const prompt = getOCRPrompt(documentType)
-    
-    if (!prompt) {
-      return {
-        success: false,
-        confidence: 0,
-        error: 'Unknown document type',
-        requires_review: true
-      }
-    }
-
-    // Call AI with vision capabilities
-    const response = await callOpenRouter(async () => {
-      return await openrouter.chat.completions.create({
-        model: AI_MODELS.VISION,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an OCR specialist that extracts structured data from documents. Return valid JSON only.'
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageUrl
-                }
-              }
-            ]
-          }
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.1,
-        max_tokens: 1000
+    // Call our secure API endpoint
+    const response = await fetch('/api/ai/ocr', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        imageUrl,
+        documentType
       })
     })
 
-    const extractedText = response.choices[0]?.message?.content
-    if (!extractedText) {
-      throw new Error('No response from AI')
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'OCR extraction failed')
     }
 
-    const extracted = JSON.parse(extractedText)
+    const result = await response.json()
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Extraction failed')
+    }
+
+    const extracted = result.data
+    const confidence = result.confidence || 0
     
     // Validate and parse based on type
     let validatedData: any
-    let confidence = extracted.confidence || 0
 
     switch (documentType) {
       case 'dbs_certificate':
@@ -106,61 +80,6 @@ export async function extractFromImage(
   }
 }
 
-// Get OCR prompt based on document type
-function getOCRPrompt(documentType: string): string | null {
-  switch (documentType) {
-    case 'dbs_certificate':
-      return EXTRACTION_PROMPTS.DBS_CERTIFICATE
-    case 'receipt':
-    case 'expense':
-      return EXTRACTION_PROMPTS.RECEIPT
-    case 'donation_letter':
-      return EXTRACTION_PROMPTS.EMAIL_DONATION
-    case 'bank_statement':
-      return `Extract transaction information from this bank statement:
-
-Look for:
-- Account holder name
-- Account number (partially masked is fine)
-- Statement period (from and to dates)
-- Opening balance
-- Closing balance
-- List of transactions with:
-  - Date
-  - Description
-  - Amount (debit/credit)
-  - Balance
-
-Return as JSON with these fields:
-{
-  "account_holder": "string",
-  "account_number": "string (masked)",
-  "period_start": "YYYY-MM-DD",
-  "period_end": "YYYY-MM-DD",
-  "opening_balance": number,
-  "closing_balance": number,
-  "transactions": [
-    {
-      "date": "YYYY-MM-DD",
-      "description": "string",
-      "amount": number,
-      "type": "debit" | "credit",
-      "balance": number
-    }
-  ],
-  "confidence": 0.0-1.0
-}`
-    default:
-      return `Extract all text and structured data from this document.
-
-Identify:
-1. Document type
-2. Key information fields
-3. Dates, amounts, names, reference numbers
-
-Return as JSON with extracted fields and confidence scores.`
-  }
-}
 
 // Extract from multiple pages
 export async function extractFromMultipleImages(

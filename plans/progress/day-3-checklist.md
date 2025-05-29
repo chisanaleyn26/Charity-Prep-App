@@ -17,18 +17,6 @@ AI-powered import, document extraction, and intelligent features that create "wo
   4. [x] Show in import queue *(ImportQueue completed)*
 - [x] **Backend: Email processing complete**
 
-### Dev 2: CSV Import with AI Mapping (Hours 1-4)
-- [x] Build features/ai/components/CSVImportWizard.tsx *(CSVImportWizard completed)*
-- [x] Build features/ai/components/ColumnMapper.tsx *(ColumnMapper completed)*
-- [x] Create services/ai/csv-mapper.ts - AI column matching
-- [x] Create app/api/import/csv/route.ts *(Integrated in api/ai.ts)*
-- **AI Implementation:**
-  - [x] Smart column mapping with AI
-  - [x] Schema definitions for each module
-  - [x] Validation of mapped columns
-  - [x] Support for common variations
-- [x] **Backend: CSV AI mapping complete**
-
 ### Dev 3: Document OCR Extraction (Hours 1-4)
 - [x] Build services/ai/ocr-service.ts - GPT-4 Vision integration *(Created as ocr-extraction.ts)*
 - [x] Build features/ai/components/DocumentExtractor.tsx *(DocumentExtractor completed)*
@@ -122,7 +110,6 @@ AI-powered import, document extraction, and intelligent features that create "wo
 
 ## Day 3 Backend Completion Status
 - [x] Email forwarding creates records *(Backend ready)*
-- [x] CSV import with AI mapping works
 - [x] Document OCR extracts accurately
 - [x] Natural language search returns results
 - [x] Q&A bot answers compliance questions

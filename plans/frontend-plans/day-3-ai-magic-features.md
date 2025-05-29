@@ -130,55 +130,9 @@ Building on Day 2's compliance modules, Day 3 adds the AI features that differen
 - [x] Direct camera integration
 - [x] Instant processing feedback
 
-## Phase 4: CSV Import with AI Mapping (Hours 4-5) 📊
+## Phase 4: Natural Language Search (Hours 4-5) 🔍
 
-### 4.1 CSV Parser Service
-- [x] Create `features/ai/services/csv-parser.ts`
-  - [x] File validation
-  - [x] Header extraction
-  - [x] Data preview
-  - [x] Type inference
-
-### 4.2 AI Column Mapper
-- [x] Create `features/ai/services/column-mapper.ts`
-  ```typescript
-  const prompt = `
-    Map these CSV columns to our schema:
-    
-    CSV Headers: ${headers.join(', ')}
-    
-    Target Schema:
-    - person_name: Full name of person
-    - dbs_number: 12-digit DBS certificate number
-    - issue_date: Date certificate was issued
-    - expiry_date: Date certificate expires
-    
-    Return confidence scores for each mapping.
-  `
-  ```
-
-### 4.3 Import Wizard UI
-- [x] Create `features/ai/components/csv-import-wizard.tsx`
-  - [x] File upload step
-  - [x] Column mapping step
-  - [x] Data preview step
-  - [x] Import confirmation
-
-- [x] Build `features/ai/components/column-mapper.tsx`
-  - [x] Drag-and-drop mapping
-  - [x] AI suggestions
-  - [x] Sample data display
-  - [x] Validation feedback
-
-### 4.4 Bulk Import Processing
-- [x] Handle large files (1000+ rows)
-- [x] Progress tracking
-- [x] Error handling per row
-- [x] Partial success handling
-
-## Phase 5: Natural Language Search (Hours 5-6) 🔍
-
-### 5.1 Search Query Parser
+### 4.1 Search Query Parser
 - [x] Create `features/ai/services/search-parser.ts`
   ```typescript
   const prompt = `
@@ -195,13 +149,13 @@ Building on Day 2's compliance modules, Day 3 adds the AI features that differen
   `
   ```
 
-### 5.2 Vector Search Setup
+### 4.2 Vector Search Setup
 - [x] Create embeddings table in Supabase
 - [x] Generate embeddings for existing data
 - [x] Implement similarity search
 - [x] Cache common queries
 
-### 5.3 Smart Search UI
+### 4.3 Smart Search UI
 - [x] Build `features/ai/components/smart-search.tsx`
   - [x] Search bar with suggestions
   - [x] Recent searches
@@ -214,9 +168,9 @@ Building on Day 2's compliance modules, Day 3 adds the AI features that differen
   - [x] Quick actions
   - [x] Export options
 
-## Phase 6: AI Report Generation (Hours 6-7) 📝
+## Phase 5: AI Report Generation (Hours 5-6) 📝
 
-### 6.1 Narrative Generator
+### 5.1 Narrative Generator
 - [x] Create `features/ai/services/report-narrator.ts`
   ```typescript
   const prompt = `
@@ -233,28 +187,28 @@ Building on Day 2's compliance modules, Day 3 adds the AI features that differen
   `
   ```
 
-### 6.2 Report Templates
+### 5.2 Report Templates
 - [x] Create narrative templates
 - [x] Section generators
 - [x] Data aggregation logic
 - [x] Formatting service
 
-### 6.3 Report Builder UI
+### 5.3 Report Builder UI
 - [x] Build `features/ai/components/report-generator.tsx`
   - [x] AI content blocks
   - [x] Regenerate sections
   - [x] Edit capabilities
   - [x] Preview updates
 
-## Phase 7: Compliance Q&A Bot (Hours 7-8) 💬
+## Phase 6: Compliance Q&A Bot (Hours 6-8) 💬
 
-### 7.1 Knowledge Base Setup
+### 6.1 Knowledge Base Setup
 - [x] Index charity regulations
 - [x] Create embeddings
 - [x] Build retrieval system
 - [x] Context management
 
-### 7.2 Chat Service
+### 6.2 Chat Service
 - [x] Create `features/ai/services/compliance-chat.ts`
   ```typescript
   const prompt = `
@@ -270,7 +224,7 @@ Building on Day 2's compliance modules, Day 3 adds the AI features that differen
   `
   ```
 
-### 7.3 Chat UI
+### 6.3 Chat UI
 - [x] Build `features/ai/components/compliance-chat.tsx`
   - [x] Chat interface
   - [x] Suggested questions
@@ -308,10 +262,9 @@ Building on Day 2's compliance modules, Day 3 adds the AI features that differen
 By end of Day 3:
 1. ✅ Email forwarding creates records
 2. ✅ Document OCR extracts data accurately
-3. ✅ CSV import with smart mapping
-4. ✅ Natural language search working
-5. ✅ AI report narratives generating
-6. ✅ Compliance Q&A responding helpfully
+3. ✅ Natural language search working
+4. ✅ AI report narratives generating
+5. ✅ Compliance Q&A responding helpfully
 
 ## AI Service Architecture
 
@@ -323,8 +276,6 @@ features/ai/
 │   ├── email-extraction.ts   # Email AI extraction
 │   ├── document-processor.ts # Document pipeline
 │   ├── ocr-service.ts       # OCR extraction
-│   ├── csv-parser.ts        # CSV handling
-│   ├── column-mapper.ts     # AI mapping
 │   ├── query-parser.ts      # NLP to SQL
 │   ├── narrative-generator.ts # Report writing
 │   └── compliance-chat.ts   # Q&A bot

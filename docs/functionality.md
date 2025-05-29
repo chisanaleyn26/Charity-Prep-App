@@ -216,22 +216,6 @@
 - Editable extraction results
 - Batch processing support
 
-### 1.3 CSV Import with AI Mapping
-
-**Purpose**: Import existing data from spreadsheets
-
-**Functionality**:
-
-- **Column Recognition**
-    - AI suggests field mappings
-    - Handles varied column names
-    - Preview before import
-    - Remember mappings per organization
-- **Data Cleaning**
-    - Date format standardization
-    - Currency recognition
-    - Duplicate detection
-    - Error highlighting
 
 ### 2. Natural Language Interface
 

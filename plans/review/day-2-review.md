@@ -41,7 +41,7 @@
 - Financial year management
 - Major donor identification capability
 - Comprehensive filtering options
-- CSV import/export with field mapping
+- CSV export functionality
 
 ### Compliance Score Calculator
 **Status**: ✅ Complete

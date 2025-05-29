@@ -120,8 +120,38 @@ export async function getDocumentStats(): Promise<DocumentStats> {
 export async function createDocument(input: CreateDocumentInput): Promise<Document> {
   const supabase = await createClient()
   
-  // Get current user's organization
-  const { organizationId } = await getCurrentUserOrganization()
+  let organizationId: string
+  
+  if (input.organization_id) {
+    // Validate that the user belongs to this organization
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error('Not authenticated')
+    }
+    
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .eq('organization_id', input.organization_id)
+      .not('accepted_at', 'is', null)
+      .single()
+    
+    if (!membership) {
+      throw new Error('You do not have access to this organization')
+    }
+    
+    organizationId = input.organization_id
+  } else {
+    // Fall back to current organization
+    const orgInfo = await getCurrentUserOrganization()
+    
+    if (!orgInfo || !orgInfo.organizationId) {
+      throw new Error('No active organization found. Please select an organization.')
+    }
+    
+    organizationId = orgInfo.organizationId
+  }
   
   const insertData = {
     organization_id: organizationId,

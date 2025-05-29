@@ -168,18 +168,18 @@ export function DocumentExtractor({
             <div
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group"
             >
               <input
                 type="file"
                 id="file-upload"
-                className="hidden"
+                className="sr-only"
                 accept={allowedTypes.join(',')}
                 onChange={handleFileSelect}
               />
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-sm font-medium mb-1">
+              <label htmlFor="file-upload" className="cursor-pointer block">
+                <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400 group-hover:text-primary transition-colors" />
+                <p className="text-sm font-medium mb-1 group-hover:text-primary transition-colors">
                   Drop your document here or click to browse
                 </p>
                 <p className="text-xs text-muted-foreground">

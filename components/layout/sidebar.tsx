@@ -89,14 +89,6 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       description: 'Overall compliance health'
     },
     {
-      name: 'Smart Import',
-      href: '/import',
-      icon: Sparkles,
-      badge: 'AI',
-      badgeType: 'default' as const,
-      description: 'Email & document import'
-    },
-    {
       name: 'Documents',
       href: '/documents',
       icon: FileText,

@@ -97,7 +97,6 @@
 **Magic Import:**
 - Email forwarding to data@charityprep.uk
 - OCR from photos/PDFs (DBS certificates, receipts)
-- CSV import with AI column mapping
 - Natural language data entry
 
 **Compliance Chat:**

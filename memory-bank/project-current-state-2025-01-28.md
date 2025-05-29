@@ -36,7 +36,6 @@ Based on docs review, these key UI pages need implementation:
    - Section toggles
 
 3. **Export/Import UI** (`/reports/export`, `/import`)
-   - CSV import wizard with AI column mapping
    - Export format selection
    - Scheduled exports management
    - Import queue with review interface

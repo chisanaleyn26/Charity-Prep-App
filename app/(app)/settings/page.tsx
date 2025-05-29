@@ -172,6 +172,28 @@ export default function SettingsPage() {
       ]
     },
     {
+      id: 'team',
+      title: 'Team Management',
+      description: 'Invite team members, manage roles, and track team activity',
+      icon: Users,
+      href: '/settings/team',
+      badge: isAdmin ? 'Manage' : 'View',
+      badgeVariant: isAdmin ? 'default' : 'secondary',
+      status: 'info',
+      quickStats: [
+        {
+          label: 'Team Size',
+          value: organizations[0]?.member_count || 1,
+          icon: Users
+        },
+        {
+          label: 'Your Role',
+          value: userRole || 'Member',
+          icon: Shield
+        }
+      ]
+    },
+    {
       id: 'security',
       title: 'Security & Privacy',
       description: 'Manage your account security, privacy settings, and data',

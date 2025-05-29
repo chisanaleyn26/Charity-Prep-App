@@ -237,21 +237,16 @@ export function ProfileCompletionModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-2">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <DialogTitle>Complete Your Profile</DialogTitle>
-                <DialogDescription>
-                  Help us personalize your experience
-                </DialogDescription>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-primary/10 p-2">
+              <User className="h-5 w-5 text-primary" />
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div>
+              <DialogTitle>Complete Your Profile</DialogTitle>
+              <DialogDescription>
+                Help us personalize your experience
+              </DialogDescription>
+            </div>
           </div>
         </DialogHeader>
 

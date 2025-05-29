@@ -10,6 +10,11 @@ interface AuthFlowResult {
   currentOrganization: Organization | null
   needsOnboarding: boolean
   hasSubscription: boolean
+  subscription: {
+    tier: string | null
+    price_id: string | null
+    status: string | null
+  } | null
 }
 
 /**
@@ -27,7 +32,8 @@ export async function checkAuthFlow(): Promise<AuthFlowResult> {
       organizations: [],
       currentOrganization: null,
       needsOnboarding: false,
-      hasSubscription: false
+      hasSubscription: false,
+      subscription: null
     }
   }
 
@@ -45,7 +51,8 @@ export async function checkAuthFlow(): Promise<AuthFlowResult> {
       organizations: [],
       currentOrganization: null,
       needsOnboarding: true,
-      hasSubscription: false
+      hasSubscription: false,
+      subscription: null
     }
   }
 
@@ -72,7 +79,8 @@ export async function checkAuthFlow(): Promise<AuthFlowResult> {
       organizations: [],
       currentOrganization: null,
       needsOnboarding: true,
-      hasSubscription: false
+      hasSubscription: false,
+      subscription: null
     }
   }
 
@@ -113,7 +121,12 @@ export async function checkAuthFlow(): Promise<AuthFlowResult> {
     organizations,
     currentOrganization,
     needsOnboarding: false,
-    hasSubscription
+    hasSubscription,
+    subscription: subscription ? {
+      tier: subscription.tier,
+      price_id: subscription.price_id,
+      status: subscription.status
+    } : null
   }
 }
 

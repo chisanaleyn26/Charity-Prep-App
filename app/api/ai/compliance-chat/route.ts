@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOpenRouter } from '@/lib/ai/openrouter'
+import { tryModelsWithFallback, AI_MODELS } from '@/lib/ai/retry-utils'
 import { randomUUID } from 'crypto'
 
 // Compliance knowledge base
@@ -60,6 +61,7 @@ const COMPLIANCE_KNOWLEDGE = {
   }
 }
 
+
 export async function POST(req: NextRequest) {
   try {
     const { question, context, history } = await req.json()
@@ -116,14 +118,20 @@ Use bullet points for lists and keep responses focused and practical.`
       content: question
     })
 
-    // Get AI response
+    // Get AI response with retry logic and model fallback
     const openrouter = getOpenRouter()
-    const response = await openrouter.chat.completions.create({
-      model: 'google/gemini-2.0-flash-exp:free',
-      messages,
-      temperature: 0.3,
-      max_tokens: 1000,
-    })
+    
+    const response = await tryModelsWithFallback(
+      AI_MODELS.CHAT,
+      async (model) => {
+        return await openrouter.chat.completions.create({
+          model,
+          messages,
+          temperature: 0.3,
+          max_tokens: 1000,
+        })
+      }
+    )
 
     const content = response.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response.'
     

@@ -90,8 +90,6 @@ app/
 │   │   └── chat/
 │   │       └── route.ts     # Q&A endpoint
 │   ├── import/
-│   │   ├── csv/
-│   │   │   └── route.ts     # CSV import
 │   │   └── email/
 │   │       └── route.ts     # Email ingestion
 │   ├── webhooks/

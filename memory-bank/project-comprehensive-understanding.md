@@ -134,7 +134,6 @@ This document represents the comprehensive understanding of the Charity Prep pro
 ### Day 3: AI Magic Features
 - Email ingestion
 - Document OCR
-- CSV import with mapping
 - Natural language search
 - Compliance Q&A
 

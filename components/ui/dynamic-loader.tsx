@@ -60,14 +60,6 @@ export const DynamicDocumentProcessor = dynamic(
   }
 )
 
-// CSV Import wizard (Papa Parse is heavy)
-export const DynamicCSVImportWizard = dynamic(
-  () => import('@/features/ai/components/csv-import-wizard'),
-  {
-    loading: () => <FormSkeleton />,
-    ssr: false
-  }
-)
 
 // Rich text editor (heavy editor)
 export const DynamicRichTextEditor = dynamic(
@@ -198,5 +190,4 @@ export function preloadComponent(loader: () => Promise<any>) {
 // Pre-configured preloaders
 export const preloadPDFViewer = preloadComponent(() => import('@/components/reports/pdf-viewer'))
 export const preloadDocumentProcessor = preloadComponent(() => import('@/features/ai/components/document-extractor'))
-export const preloadCSVImporter = preloadComponent(() => import('@/features/ai/components/csv-import-wizard'))
 export const preloadCharts = preloadComponent(() => import('@/features/dashboard/components/compliance-trend-chart'))

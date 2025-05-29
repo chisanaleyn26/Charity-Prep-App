@@ -38,6 +38,7 @@ export interface CreateDocumentInput {
   is_public?: boolean
   metadata?: Record<string, any>
   extracted_data?: Record<string, any>
+  organization_id?: string // Optional, will be validated server-side
 }
 
 export interface UpdateDocumentInput {

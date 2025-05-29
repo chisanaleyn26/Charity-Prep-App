@@ -148,7 +148,7 @@ export async function markPaddleSubscriptionMigrated(
 /**
  * Get subscription features based on tier
  */
-export function getSubscriptionFeatures(tier: string): string[] {
+export async function getSubscriptionFeatures(tier: string): Promise<string[]> {
   const features: Record<string, string[]> = {
     free: [
       'Basic compliance tracking',
@@ -196,7 +196,7 @@ export function getSubscriptionFeatures(tier: string): string[] {
 /**
  * Check if feature is available in tier
  */
-export function isFeatureAvailable(tier: string, feature: string): boolean {
+export async function isFeatureAvailable(tier: string, feature: string): Promise<boolean> {
   const tierFeatures: Record<string, string[]> = {
     free: ['basic_compliance', 'manual_entry', 'basic_reports'],
     starter: [
@@ -224,7 +224,7 @@ export function isFeatureAvailable(tier: string, feature: string): boolean {
 /**
  * Get usage limits for tier
  */
-export function getTierLimits(tier: string) {
+export async function getTierLimits(tier: string) {
   const limits: Record<string, any> = {
     free: {
       users: 3,

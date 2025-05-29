@@ -1,4 +1,5 @@
 import { EtherealButton } from '@/components/custom-ui/ethereal-button'
+import { DynamicCTAButton } from '@/components/marketing/dynamic-cta-button'
 import Link from 'next/link'
 import { CheckCircle2, Sparkles, Shield, Globe, TrendingUp, Users, ArrowRight, Star } from 'lucide-react'
 
@@ -56,11 +57,9 @@ export default function HomePage() {
           </p>
           
           <div className="flex flex-col items-center justify-center gap-6 mb-12">
-            <EtherealButton size="lg" asChild>
-              <Link href="/login" className="px-10 py-4 text-base font-medium">
-                Get Started
-              </Link>
-            </EtherealButton>
+            <DynamicCTAButton size="lg" className="px-10 py-4 text-base font-medium">
+              Get Started
+            </DynamicCTAButton>
             
             <div className="flex items-center justify-center gap-8 text-sm text-[#243837]/60 font-normal">
               <span>✓ 5-minute setup</span>
@@ -170,36 +169,36 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#E0E0E0] hover:shadow-lg transition-all duration-300 flex flex-col h-full mt-8">
               <div className="text-center mb-8">
                 <h3 className="text-xl font-semibold text-[#243837] mb-2">Essentials</h3>
-                <p className="text-sm text-[#243837]/60 mb-6">For small charities (income &lt; £100k)</p>
+                <p className="text-sm text-[#243837]/60 mb-6">Perfect for small charities under £100k</p>
                 <div className="mb-6">
-                  <div className="text-4xl font-light text-[#243837] mb-1">£199</div>
+                  <div className="text-4xl font-light text-[#243837] mb-1">£290</div>
                   <div className="text-[#243837]/60">per year</div>
-                  <div className="text-sm text-[#243837]/50">(~£17/month)</div>
+                  <div className="text-sm text-[#243837]/50">(~£24/month)</div>
                 </div>
               </div>
               
               <ul className="space-y-3 mb-8 text-[#243837]/80 flex-grow">
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>All core compliance modules</span>
+                  <span>Core compliance tracking</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Annual Return data export</span>
+                  <span>Basic reporting</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Automated reminders</span>
+                  <span>Email support</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>1-2 user accounts</span>
+                  <span>Up to 10 users</span>
                 </li>
               </ul>
               
-              <EtherealButton variant="tertiary" className="w-full mt-auto" asChild>
-                <Link href="/login">Get Started</Link>
-              </EtherealButton>
+              <DynamicCTAButton variant="tertiary" className="w-full mt-auto">
+                Get Started
+              </DynamicCTAButton>
             </div>
             
             {/* Standard Tier - Highlighted */}
@@ -212,11 +211,11 @@ export default function HomePage() {
               
               <div className="text-center mb-8">
                 <h3 className="text-xl font-semibold text-[#243837] mb-2">Standard</h3>
-                <p className="text-sm text-[#243837]/60 mb-6">For medium charities (£100k - £1m)</p>
+                <p className="text-sm text-[#243837]/60 mb-6">For growing charities £100k-1M</p>
                 <div className="mb-6">
-                  <div className="text-4xl font-light text-[#243837] mb-1">£549</div>
+                  <div className="text-4xl font-light text-[#243837] mb-1">£790</div>
                   <div className="text-[#243837]/60">per year</div>
-                  <div className="text-sm text-[#243837]/50">(~£46/month)</div>
+                  <div className="text-sm text-[#243837]/50">(~£66/month)</div>
                 </div>
               </div>
               
@@ -227,36 +226,36 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Up to 5 user accounts</span>
+                  <span>Advanced compliance modules</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Document upload & storage</span>
+                  <span>AI-powered insights</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Priority email support</span>
+                  <span>Up to 50 users</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Multi-year data history</span>
+                  <span>Priority support</span>
                 </li>
               </ul>
               
-              <EtherealButton className="w-full mt-auto" asChild>
-                <Link href="/login">Get Started</Link>
-              </EtherealButton>
+              <DynamicCTAButton className="w-full mt-auto">
+                Get Started
+              </DynamicCTAButton>
             </div>
             
             {/* Premium Tier */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#E0E0E0] hover:shadow-lg transition-all duration-300 flex flex-col h-full mt-8">
               <div className="text-center mb-8">
                 <h3 className="text-xl font-semibold text-[#243837] mb-2">Premium</h3>
-                <p className="text-sm text-[#243837]/60 mb-6">For large charities (income &gt; £1m)</p>
+                <p className="text-sm text-[#243837]/60 mb-6">For large charities over £1M</p>
                 <div className="mb-6">
-                  <div className="text-4xl font-light text-[#243837] mb-1">£1,199+</div>
+                  <div className="text-4xl font-light text-[#243837] mb-1">£1,490</div>
                   <div className="text-[#243837]/60">per year</div>
-                  <div className="text-sm text-[#243837]/50">(~£100+/month)</div>
+                  <div className="text-sm text-[#243837]/50">(~£124/month)</div>
                 </div>
               </div>
               
@@ -267,30 +266,31 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>10+ user accounts</span>
+                  <span>Custom integrations</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Enhanced document storage</span>
+                  <span>Dedicated success manager</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>Priority phone support</span>
+                  <span>SLA guarantee</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-[#B1FA63] mt-0.5 flex-shrink-0" />
-                  <span>API access (coming soon)</span>
+                  <span>White-label options</span>
                 </li>
               </ul>
               
-              <EtherealButton variant="tertiary" className="w-full mt-auto" asChild>
-                <Link href="/login">Get Started</Link>
-              </EtherealButton>
+              <DynamicCTAButton variant="tertiary" className="w-full mt-auto">
+                Get Started
+              </DynamicCTAButton>
             </div>
           </div>
           
-          <div className="mt-12 text-center text-[#243837]/60">
-            <p>All prices exclude VAT. Monthly billing available at 20% premium.</p>
+          <div className="mt-12 text-center text-[#243837]/60 space-y-2">
+            <p>All plans include 14-day free trial • No credit card required</p>
+            <p>Cancel anytime • Prices exclude VAT where applicable</p>
           </div>
         </div>
       </section>

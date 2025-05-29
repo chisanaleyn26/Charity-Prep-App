@@ -4,10 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { withErrorHandling, DatabaseError, ValidationError, NetworkError } from '@/lib/utils/error-handling'
 import { 
-  mapCSVColumns, 
-  getModuleSchema 
-} from '@/lib/ai/csv-mapper'
-import { 
   extractDocumentData,
   extractDBSCertificate,
   extractReceipt 
@@ -33,10 +29,6 @@ import {
 } from '@/lib/ai/compliance-qa'
 
 // Input schemas
-const csvMappingSchema = z.object({
-  headers: z.array(z.string()),
-  moduleType: z.enum(['safeguarding', 'overseas', 'income'])
-})
 
 const documentExtractionSchema = z.object({
   imageBase64: z.string(),
@@ -70,45 +62,6 @@ const qaSchema = z.object({
   })).optional()
 })
 
-/**
- * Map CSV columns using AI
- */
-export async function aiMapCSVColumns(
-  organizationId: string,
-  input: unknown
-) {
-  const result = await withErrorHandling(async () => {
-    const validated = csvMappingSchema.safeParse(input)
-    if (!validated.success) {
-      throw new ValidationError('Invalid input: ' + validated.error.message)
-    }
-
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      throw new Error('Unauthorized')
-    }
-
-    const schema = getModuleSchema(validated.data.moduleType)
-    const mappingResult = await mapCSVColumns(
-      validated.data.headers,
-      schema,
-      validated.data.moduleType
-    )
-
-    return mappingResult
-  }, {
-    component: 'ai-api',
-    operation: 'aiMapCSVColumns',
-    organizationId
-  })
-
-  if (!result.success) {
-    return { error: result.error }
-  }
-
-  return result.data
-}
 
 /**
  * Extract data from document image

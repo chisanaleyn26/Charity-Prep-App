@@ -17,14 +17,6 @@
 - Organization routing configured
 - **Status**: Ready for email provider connection
 
-### CSV Import with AI Mapping ⭐ **UI IN DEVELOPMENT**
-**Status**: ✅ Backend Complete
-**Location**: `/lib/ai/csv-mapper.ts`, `/features/ai/components/csv-import-wizard.tsx`
-**Testing Notes**:
-- Intelligent header mapping working
-- Module-specific validation schemas
-- **Import functionality integrated into compliance pages**
-- AI mapping algorithms ready for connection
 
 ### Document OCR Extraction ⭐ **FULL UI IMPLEMENTATION**
 **Status**: ✅ Complete with UI

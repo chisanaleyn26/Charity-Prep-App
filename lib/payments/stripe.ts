@@ -61,10 +61,10 @@ export const STRIPE_PRODUCTS = {
       'Core compliance tracking',
       'Basic reporting',
       'Email support',
-      'Up to 3 users',
+      'Up to 10 users',
     ],
     limits: {
-      users: 3,
+      users: 10,
       storage: 100 * 1024 * 1024, // 100MB
       aiRequests: 50,
       exports: 10
@@ -81,11 +81,11 @@ export const STRIPE_PRODUCTS = {
       'Everything in Essentials',
       'Advanced compliance modules',
       'AI-powered insights',
-      'Unlimited users',
+      'Up to 50 users',
       'Priority support',
     ],
     limits: {
-      users: -1, // unlimited
+      users: 50,
       storage: 1 * 1024 * 1024 * 1024, // 1GB
       aiRequests: 500,
       exports: 100

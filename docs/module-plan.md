@@ -335,23 +335,6 @@ Email flow:
 
 **Test:** Forward email and see it appear in queue
 
-### Dev 2: CSV Import with AI Mapping (Hours 1-4)
-
-```
-Build:
-- features/ai/components/CSVImportWizard.tsx
-- features/ai/components/ColumnMapper.tsx
-- services/ai/csv-mapper.ts - AI column matching
-- app/api/import/csv/route.ts
-
-AI Prompt:
-"Map these CSV headers to our schema:
-CSV: ['Name', 'DBS No.', 'Expires']
-Schema: ['person_name', 'dbs_number', 'expiry_date']"
-
-```
-
-**Test:** Upload messy CSV and see AI map columns correctly
 
 ### Dev 3: Document OCR Extraction (Hours 1-4)
 
@@ -443,7 +426,6 @@ Tasks:
 **Day 3 Complete When:**
 
 - [x] Email forwarding creates records
-- [x] CSV import with AI mapping works
 - [x] Document OCR extracts accurately
 - [x] Natural language search returns results
 - [x] Q&A bot answers compliance questions

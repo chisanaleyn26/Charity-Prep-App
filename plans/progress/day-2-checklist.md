@@ -108,10 +108,8 @@ All compliance tracking modules working with real data, CRUD operations complete
 
 ## Additional Backend Work Completed
 
-### Import/Export System (lib/api/)
-- [x] import.ts - CSV import for all modules
+### Export System (lib/api/)
 - [x] export.ts - CSV/JSON export functionality
-- [x] Column mapping support
 - [x] Error reporting with row numbers
 - [x] GDPR data export
 

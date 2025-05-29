@@ -375,5 +375,4 @@ If behind schedule:
 With compliance modules complete, Day 3 will add the AI magic:
 - Email forwarding system
 - Document OCR
-- CSV import with AI mapping
 - Natural language search

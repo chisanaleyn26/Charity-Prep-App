@@ -38,7 +38,6 @@ Charity Prep is a SaaS platform helping UK charities comply with new 2024 Annual
 #### AI Features (Day 3)
 - Email ingestion system (data@charityprep.uk forwarding)
 - Document OCR with GPT-4 Vision
-- CSV import with AI column mapping
 - Natural language search
 - Compliance Q&A chatbot
 - Report narrative generation
@@ -75,7 +74,6 @@ Charity Prep is a SaaS platform helping UK charities comply with new 2024 Annual
 ### 2. AI-Powered Import
 - Forward emails → automatic data extraction
 - Photo of document → structured data
-- CSV upload → intelligent field mapping
 
 ### 3. Reporting Suite
 - Annual Return preparation with field mapping

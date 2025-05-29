@@ -33,20 +33,8 @@ Successfully implemented all Day 3 AI-powered features with meticulous attention
   - Side-by-side review interface
   - Support for DBS certificates, receipts, donations, overseas transfers
 
-### 4. CSV Import with AI Column Mapping ✅
-- **CSV Parser**: `/features/ai/services/csv-parser.ts`
-- **Column Mapper**: `/features/ai/services/column-mapper.ts`
-- **UI Components**:
-  - CSV Import Wizard: `/features/ai/components/csv-import-wizard.tsx`
-  - Column Mapper: `/features/ai/components/column-mapper.tsx`
-- **Features**:
-  - Intelligent data type inference
-  - AI-powered column mapping
-  - Multi-step wizard interface
-  - Template generation and download
-  - Support for safeguarding, fundraising, and overseas data
 
-### 5. Natural Language Search ✅
+### 4. Natural Language Search ✅
 - **Search Parser**: `/features/ai/services/search-parser.ts`
 - **Search Executor**: `/features/ai/services/search-executor.ts`
 - **UI Components**:
@@ -60,7 +48,7 @@ Successfully implemented all Day 3 AI-powered features with meticulous attention
   - Recent searches
   - Detailed result views
 
-### 6. AI Report Narrative Generator ✅
+### 5. AI Report Narrative Generator ✅
 - **Report Narrator**: `/features/ai/services/report-narrator.ts`
 - **UI Components**:
   - Report Generator: `/features/ai/components/report-generator.tsx`
@@ -73,7 +61,7 @@ Successfully implemented all Day 3 AI-powered features with meticulous attention
   - Recommendations
   - Export to markdown
 
-### 7. Compliance Q&A Chat Bot ✅
+### 6. Compliance Q&A Chat Bot ✅
 - **Chat Service**: `/features/ai/services/compliance-chat.ts`
 - **UI Components**:
   - Compliance Chat: `/features/ai/components/compliance-chat.tsx`

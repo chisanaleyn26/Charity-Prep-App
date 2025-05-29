@@ -101,26 +101,24 @@ export function DocumentViewer({ document, open, onClose }: DocumentViewerProps)
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <DialogTitle className="text-lg font-semibold text-gray-900 truncate">
-                {document.file_name}
-              </DialogTitle>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" className="bg-gray-50">
-                  {document.document_type}
+          <div className="pr-12">
+            <DialogTitle className="text-lg font-semibold text-gray-900 truncate">
+              {document.file_name}
+            </DialogTitle>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="outline" className="bg-gray-50">
+                {document.document_type}
+              </Badge>
+              {document.category && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  {document.category}
                 </Badge>
-                {document.category && (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                    {document.category}
-                  </Badge>
-                )}
-                <span className="text-sm text-gray-500">
-                  {formatFileSize(document.file_size)}
-                </span>
-              </div>
+              )}
+              <span className="text-sm text-gray-500">
+                {formatFileSize(document.file_size)}
+              </span>
             </div>
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2 mt-4">
               <Button
                 variant="outline"
                 size="sm"
