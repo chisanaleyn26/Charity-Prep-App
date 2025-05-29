@@ -13,236 +13,236 @@ Building on Day 1's UI foundation and Supabase setup, Day 2 focuses on implement
 ## Phase 1: Auth Integration (Hour 1) 🔐
 
 ### 1.1 Supabase Auth Setup
-- [ ] Create `lib/supabase/client.ts` - Browser client
-- [ ] Create `lib/supabase/server.ts` - Server client with cookies
-- [ ] Create `lib/supabase/middleware.ts` - Auth middleware
-- [ ] Update `middleware.ts` - Protect `/app/*` routes
+- [x] Create `lib/supabase/client.ts` - Browser client
+- [x] Create `lib/supabase/server.ts` - Server client with cookies
+- [x] Create `lib/supabase/middleware.ts` - Auth middleware
+- [x] Update `middleware.ts` - Protect `/app/*` routes
 
 ### 1.2 Auth Flow Implementation
-- [ ] Connect login form to Supabase magic link
-- [ ] Implement auth callback handler
-- [ ] Add user to `users` table on first login
-- [ ] Create organization setup flow for new users
-- [ ] Update auth store with real user data
+- [x] Connect login form to Supabase magic link
+- [x] Implement auth callback handler
+- [x] Add user to `users` table on first login
+- [x] Create organization setup flow for new users
+- [x] Update auth store with real user data
 
 ### 1.3 Session Management
-- [ ] Implement auth state listener
-- [ ] Handle session refresh
-- [ ] Add logout functionality
-- [ ] Test protected route access
+- [x] Implement auth state listener
+- [x] Handle session refresh
+- [x] Add logout functionality
+- [x] Test protected route access
 
 ## Phase 2: Safeguarding Module (Hours 2-3) 🛡️
 
 ### 2.1 Database Integration
-- [ ] Generate TypeScript types from Supabase
+- [x] Generate TypeScript types from Supabase
   ```bash
   npx supabase gen types typescript --project-id rovdrincpttusrppftai > types/database.ts
   ```
-- [ ] Create `features/compliance/types/safeguarding.ts`
-- [ ] Define Zod schemas for validation
+- [x] Create `features/compliance/types/safeguarding.ts`
+- [x] Define Zod schemas for validation
 
 ### 2.2 Server Actions
-- [ ] Create `features/compliance/actions/safeguarding.ts`
-  - [ ] `createDBSRecord(formData: FormData)`
-  - [ ] `updateDBSRecord(id: string, formData: FormData)`
-  - [ ] `deleteDBSRecord(id: string)`
-  - [ ] `bulkUpdateExpiredStatus()`
+- [x] Create `features/compliance/actions/safeguarding.ts`
+  - [x] `createDBSRecord(formData: FormData)`
+  - [x] `updateDBSRecord(id: string, formData: FormData)`
+  - [x] `deleteDBSRecord(id: string)`
+  - [x] `bulkUpdateExpiredStatus()`
 
 ### 2.3 Data Fetching Services
-- [ ] Create `features/compliance/services/safeguarding.ts`
-  - [ ] `getSafeguardingRecords()` - With expiry sorting
-  - [ ] `getExpiringRecords(days: number)`
-  - [ ] `getComplianceStats()`
+- [x] Create `features/compliance/services/safeguarding.ts`
+  - [x] `getSafeguardingRecords()` - With expiry sorting
+  - [x] `getExpiringRecords(days: number)`
+  - [x] `getComplianceStats()`
 
 ### 2.4 UI Components
-- [ ] Create `app/(app)/compliance/safeguarding/page.tsx`
-- [ ] Build `features/compliance/components/safeguarding/dbs-table.tsx`
-  - [ ] Sortable columns
-  - [ ] Status badges (Valid/Expiring/Expired)
-  - [ ] Search/filter functionality
-  - [ ] Bulk selection
+- [x] Create `app/(app)/compliance/safeguarding/page.tsx`
+- [x] Build `features/compliance/components/safeguarding/dbs-table.tsx`
+  - [x] Sortable columns
+  - [x] Status badges (Valid/Expiring/Expired)
+  - [x] Search/filter functionality
+  - [x] Bulk selection
 
-- [ ] Build `features/compliance/components/safeguarding/dbs-form.tsx`
-  - [ ] Person name input
-  - [ ] DBS number (12 digits validation)
-  - [ ] Issue/expiry date pickers
-  - [ ] Role selection
-  - [ ] Department field
+- [x] Build `features/compliance/components/safeguarding/dbs-form.tsx`
+  - [x] Person name input
+  - [x] DBS number (12 digits validation)
+  - [x] Issue/expiry date pickers
+  - [x] Role selection
+  - [x] Department field
 
-- [ ] Build `features/compliance/components/safeguarding/expiry-status.tsx`
-  - [ ] Color-coded badges
-  - [ ] Days remaining calculation
-  - [ ] Urgency indicators
+- [x] Build `features/compliance/components/safeguarding/expiry-status.tsx`
+  - [x] Color-coded badges
+  - [x] Days remaining calculation
+  - [x] Urgency indicators
 
 ### 2.5 Real-time Updates
-- [ ] Implement Supabase real-time subscription
-- [ ] Auto-refresh on record changes
-- [ ] Show notification on updates
+- [x] Implement Supabase real-time subscription
+- [x] Auto-refresh on record changes
+- [x] Show notification on updates
 
 ## Phase 3: Overseas Activities Module (Hours 3-4) 🌍
 
 ### 3.1 Server Actions
-- [ ] Create `features/compliance/actions/overseas.ts`
-  - [ ] `createOverseasActivity(formData: FormData)`
-  - [ ] `updateOverseasActivity(id: string, formData: FormData)`
-  - [ ] `deleteOverseasActivity(id: string)`
-  - [ ] `createPartner(formData: FormData)`
+- [x] Create `features/compliance/actions/overseas.ts`
+  - [x] `createOverseasActivity(formData: FormData)`
+  - [x] `updateOverseasActivity(id: string, formData: FormData)`
+  - [x] `deleteOverseasActivity(id: string)`
+  - [x] `createPartner(formData: FormData)`
 
 ### 3.2 Data Services
-- [ ] Create `features/compliance/services/overseas.ts`
-  - [ ] `getOverseasActivities(year?: number)`
-  - [ ] `getCountryBreakdown()`
-  - [ ] `getPartners()`
-  - [ ] `getTransferMethodStats()`
+- [x] Create `features/compliance/services/overseas.ts`
+  - [x] `getOverseasActivities(year?: number)`
+  - [x] `getCountryBreakdown()`
+  - [x] `getPartners()`
+  - [x] `getTransferMethodStats()`
 
 ### 3.3 UI Components
-- [ ] Create `app/(app)/compliance/overseas/page.tsx`
-- [ ] Build `features/compliance/components/overseas/activity-form.tsx`
-  - [ ] Country dropdown (with risk flags)
-  - [ ] Partner selection/creation
-  - [ ] Amount with currency conversion
-  - [ ] Transfer method selection
-  - [ ] Warning for non-bank transfers
+- [x] Create `app/(app)/compliance/overseas/page.tsx`
+- [x] Build `features/compliance/components/overseas/activity-form.tsx`
+  - [x] Country dropdown (with risk flags)
+  - [x] Partner selection/creation
+  - [x] Amount with currency conversion
+  - [x] Transfer method selection
+  - [x] Warning for non-bank transfers
 
-- [ ] Build `features/compliance/components/overseas/country-map.tsx`
-  - [ ] Interactive world map
-  - [ ] Country coloring by spend
-  - [ ] Hover tooltips
-  - [ ] Click for details
+- [x] Build `features/compliance/components/overseas/country-map.tsx`
+  - [x] Interactive world map
+  - [x] Country coloring by spend
+  - [x] Hover tooltips
+  - [x] Click for details
 
-- [ ] Build `features/compliance/components/overseas/activity-list.tsx`
-  - [ ] Filter by country/year
-  - [ ] Transfer method badges
-  - [ ] Risk indicators
-  - [ ] Total calculations
+- [x] Build `features/compliance/components/overseas/activity-list.tsx`
+  - [x] Filter by country/year
+  - [x] Transfer method badges
+  - [x] Risk indicators
+  - [x] Total calculations
 
 ## Phase 4: Fundraising Module (Hours 4-5) 💰
 
 ### 4.1 Server Actions
-- [ ] Create `features/compliance/actions/fundraising.ts`
-  - [ ] `createIncomeRecord(formData: FormData)`
-  - [ ] `updateIncomeRecord(id: string, formData: FormData)`
-  - [ ] `deleteIncomeRecord(id: string)`
-  - [ ] `markAsRelatedParty(id: string, relationship: string)`
+- [x] Create `features/compliance/actions/fundraising.ts`
+  - [x] `createIncomeRecord(formData: FormData)`
+  - [x] `updateIncomeRecord(id: string, formData: FormData)`
+  - [x] `deleteIncomeRecord(id: string)`
+  - [x] `markAsRelatedParty(id: string, relationship: string)`
 
 ### 4.2 Data Services
-- [ ] Create `features/compliance/services/fundraising.ts`
-  - [ ] `getIncomeRecords(year?: number)`
-  - [ ] `getIncomeBySource()`
-  - [ ] `getMajorDonations()`
-  - [ ] `getRelatedPartyTransactions()`
+- [x] Create `features/compliance/services/fundraising.ts`
+  - [x] `getIncomeRecords(year?: number)`
+  - [x] `getIncomeBySource()`
+  - [x] `getMajorDonations()`
+  - [x] `getRelatedPartyTransactions()`
 
 ### 4.3 UI Components
-- [ ] Create `app/(app)/compliance/fundraising/page.tsx`
-- [ ] Build `features/compliance/components/fundraising/income-form.tsx`
-  - [ ] Income source dropdown
-  - [ ] Amount input
-  - [ ] Donor information
-  - [ ] Gift Aid checkbox
-  - [ ] Restricted funds toggle
+- [x] Create `app/(app)/compliance/fundraising/page.tsx`
+- [x] Build `features/compliance/components/fundraising/income-form.tsx`
+  - [x] Income source dropdown
+  - [x] Amount input
+  - [x] Donor information
+  - [x] Gift Aid checkbox
+  - [x] Restricted funds toggle
 
-- [ ] Build `features/compliance/components/fundraising/income-breakdown.tsx`
-  - [ ] Pie chart by source
-  - [ ] Year-over-year comparison
-  - [ ] Major donor highlights
+- [x] Build `features/compliance/components/fundraising/income-breakdown.tsx`
+  - [x] Pie chart by source
+  - [x] Year-over-year comparison
+  - [x] Major donor highlights
 
-- [ ] Build `features/compliance/components/fundraising/donor-list.tsx`
-  - [ ] Sortable by amount
-  - [ ] Related party flags
-  - [ ] Anonymous handling
+- [x] Build `features/compliance/components/fundraising/donor-list.tsx`
+  - [x] Sortable by amount
+  - [x] Related party flags
+  - [x] Anonymous handling
 
 ## Phase 5: Compliance Score Calculator (Hours 5-6) 📊
 
 ### 5.1 Score Calculation Service
-- [ ] Create `features/compliance/services/compliance-score.ts`
-  - [ ] Real calculation logic:
+- [x] Create `features/compliance/services/compliance-score.ts`
+  - [x] Real calculation logic:
     ```typescript
     - 40% Safeguarding (% with valid DBS)
     - 30% Overseas (completeness of records)
     - 30% Fundraising (income sources tracked)
     ```
-  - [ ] Missing data identification
-  - [ ] Improvement suggestions
+  - [x] Missing data identification
+  - [x] Improvement suggestions
 
 ### 5.2 Update Dashboard
-- [ ] Replace mock score with real calculation
-- [ ] Create `features/compliance/components/score-breakdown.tsx`
-- [ ] Add drill-down navigation to problem areas
-- [ ] Implement score history tracking
+- [x] Replace mock score with real calculation
+- [x] Create `features/compliance/components/score-breakdown.tsx`
+- [x] Add drill-down navigation to problem areas
+- [x] Implement score history tracking
 
 ### 5.3 Risk Radar Updates
-- [ ] Connect to real compliance data
-- [ ] Dynamic status calculations
-- [ ] Quick action buttons
-- [ ] Missing data alerts
+- [x] Connect to real compliance data
+- [x] Dynamic status calculations
+- [x] Quick action buttons
+- [x] Missing data alerts
 
 ## Phase 6: Document Management (Hours 6-7) 📄
 
 ### 6.1 Storage Setup
-- [ ] Configure Supabase Storage buckets
-- [ ] Set up storage policies
-- [ ] Create upload size limits
+- [x] Configure Supabase Storage buckets
+- [x] Set up storage policies
+- [x] Create upload size limits
 
 ### 6.2 Document Service
-- [ ] Create `features/documents/services/document-service.ts`
-  - [ ] `uploadDocument(file: File, metadata: any)`
-  - [ ] `linkDocument(docId: string, recordId: string)`
-  - [ ] `getDocuments(filters: any)`
-  - [ ] `deleteDocument(id: string)`
+- [x] Create `features/documents/services/document-service.ts`
+  - [x] `uploadDocument(file: File, metadata: any)`
+  - [x] `linkDocument(docId: string, recordId: string)`
+  - [x] `getDocuments(filters: any)`
+  - [x] `deleteDocument(id: string)`
 
 ### 6.3 UI Components
-- [ ] Create `app/(app)/documents/page.tsx`
-- [ ] Build `features/documents/components/document-upload.tsx`
-  - [ ] Drag & drop zone
-  - [ ] Progress indicator
-  - [ ] File type validation
-  - [ ] Auto-link to records
+- [x] Create `app/(app)/documents/page.tsx`
+- [x] Build `features/documents/components/document-upload.tsx`
+  - [x] Drag & drop zone
+  - [x] Progress indicator
+  - [x] File type validation
+  - [x] Auto-link to records
 
-- [ ] Build `features/documents/components/document-list.tsx`
-  - [ ] Grid/list view toggle
-  - [ ] Preview thumbnails
-  - [ ] Download buttons
-  - [ ] Link indicators
+- [x] Build `features/documents/components/document-list.tsx`
+  - [x] Grid/list view toggle
+  - [x] Preview thumbnails
+  - [x] Download buttons
+  - [x] Link indicators
 
 ## Phase 7: Notifications System (Hours 7-8) 🔔
 
 ### 7.1 Notification Service
-- [ ] Create `features/notifications/services/notification-service.ts`
-  - [ ] `createNotification(type: string, data: any)`
-  - [ ] `markAsRead(id: string)`
-  - [ ] `getUnreadCount()`
+- [x] Create `features/notifications/services/notification-service.ts`
+  - [x] `createNotification(type: string, data: any)`
+  - [x] `markAsRead(id: string)`
+  - [x] `getUnreadCount()`
 
 ### 7.2 Scheduled Jobs Setup
-- [ ] Create `app/api/cron/check-expirations/route.ts`
-  - [ ] Check DBS expiring in 30/60/90 days
-  - [ ] Create notifications for each
-  - [ ] Send email reminders
+- [x] Create `app/api/cron/check-expirations/route.ts`
+  - [x] Check DBS expiring in 30/60/90 days
+  - [x] Create notifications for each
+  - [x] Send email reminders
 
 ### 7.3 UI Components
-- [ ] Build `features/notifications/components/notification-bell.tsx`
-- [ ] Build `features/notifications/components/notification-list.tsx`
-- [ ] Add real-time notification updates
-- [ ] Toast notifications for urgent items
+- [x] Build `features/notifications/components/notification-bell.tsx`
+- [x] Build `features/notifications/components/notification-list.tsx`
+- [x] Add real-time notification updates
+- [x] Toast notifications for urgent items
 
 ## Testing & Integration (Hour 8) 🧪
 
 ### 8.1 End-to-End Testing
-- [ ] Test complete DBS workflow
-- [ ] Test overseas activity with warnings
-- [ ] Test income tracking with Gift Aid
-- [ ] Test document upload and linking
+- [x] Test complete DBS workflow
+- [x] Test overseas activity with warnings
+- [x] Test income tracking with Gift Aid
+- [x] Test document upload and linking
 
 ### 8.2 Performance Optimization
-- [ ] Add loading states for all data fetches
-- [ ] Implement error boundaries
-- [ ] Add optimistic updates
-- [ ] Test with large datasets
+- [x] Add loading states for all data fetches
+- [x] Implement error boundaries
+- [x] Add optimistic updates
+- [x] Test with large datasets
 
 ### 8.3 Deployment
-- [ ] Update environment variables
-- [ ] Test production build
-- [ ] Deploy to Vercel
-- [ ] Verify all features in production
+- [x] Update environment variables
+- [x] Test production build
+- [x] Deploy to Vercel
+- [x] Verify all features in production
 
 ## Success Criteria ✅
 

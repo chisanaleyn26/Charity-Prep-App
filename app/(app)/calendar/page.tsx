@@ -35,10 +35,11 @@ export default function CalendarPage() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([])
   const [filterType, setFilterType] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [loading, setLoading] = useState(true)
+  const [deadlinesLoading, setDeadlinesLoading] = useState(false)
+  const [deadlinesLoaded, setDeadlinesLoaded] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [orgReady, setOrgReady] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
   const { toast } = useToast()
   const { currentOrganization, isLoading: orgLoading } = useOrganization()
 
@@ -48,51 +49,40 @@ export default function CalendarPage() {
     setSelectedDate(new Date())
   }, [])
 
-  // Track when organization is ready on client side only
+  // Reset when organization changes
   useEffect(() => {
-    if (mounted) {
-      const ready = !orgLoading && !!currentOrganization
-      setOrgReady(ready)
-      console.log('📊 Organization status:', {
-        mounted: true,
-        orgLoading,
-        hasOrganization: !!currentOrganization,
-        organizationId: currentOrganization?.id,
-        orgReady: ready
-      })
+    if (mounted && currentOrganization?.id) {
+      // Reset loading states when organization changes
+      setDeadlinesLoaded(false)
+      setDeadlinesLoading(false)
     }
-  }, [mounted, orgLoading, currentOrganization])
+  }, [mounted, currentOrganization?.id])
 
   // Load deadlines from API
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-    
     async function loadDeadlines() {
-      if (!mounted) return
+      // Only load if mounted and organization is ready
+      if (!mounted || orgLoading) return
       
-      // If no organization after 3 seconds, proceed with empty data
-      if (!currentOrganization) {
-        timeoutId = setTimeout(() => {
-          setDeadlines([])
-          setLoading(false)
-        }, 3000)
-        return
-      }
-      
-      // Clear timeout if we have organization
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
+      // Skip if already loaded/loading
+      if (deadlinesLoaded || deadlinesLoading) return
       
       try {
-        setLoading(true)
-        const fetchedDeadlines = await DeadlineService.getDeadlines()
-        setDeadlines(fetchedDeadlines)
+        setDeadlinesLoading(true)
+        
+        if (currentOrganization) {
+          const fetchedDeadlines = await DeadlineService.getDeadlines()
+          setDeadlines(fetchedDeadlines)
+        } else {
+          // No organization, use empty deadlines
+          setDeadlines([])
+        }
+        
+        setDeadlinesLoaded(true)
       } catch (error) {
         console.error('Failed to load deadlines:', error)
-        
-        // Fallback to empty array
         setDeadlines([])
+        setDeadlinesLoaded(true)
         
         toast({
           title: 'Failed to load deadlines',
@@ -100,18 +90,23 @@ export default function CalendarPage() {
           variant: 'destructive'
         })
       } finally {
-        setLoading(false)
+        setDeadlinesLoading(false)
       }
     }
 
     loadDeadlines()
-    
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
+  }, [mounted, orgLoading, currentOrganization, deadlinesLoading, deadlinesLoaded, toast])
+
+  // Control calendar visibility with minimum display time
+  useEffect(() => {
+    if (mounted && !orgLoading && deadlinesLoaded) {
+      // Add a small delay to prevent flash
+      const timer = setTimeout(() => {
+        setShowCalendar(true)
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [mounted, currentOrganization, toast])
+  }, [mounted, orgLoading, deadlinesLoaded])
 
   const filteredDeadlines = deadlines.filter(deadline => {
     const typeMatch = filterType === 'all' || deadline.type === filterType
@@ -319,7 +314,7 @@ export default function CalendarPage() {
           <Button 
             onClick={handleAddDeadline}
             className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium"
-            disabled={mounted ? !orgReady : false}
+            disabled={!currentOrganization}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Deadline
@@ -359,7 +354,7 @@ export default function CalendarPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {mounted && !loading ? (
+                {showCalendar ? (
                   <CustomCalendar
                     selected={selectedDate}
                     onSelect={setSelectedDate}
@@ -375,7 +370,7 @@ export default function CalendarPage() {
                     <div className="text-center">
                       <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-2"></div>
                       <p className="text-sm text-gray-500">
-                        {!mounted ? 'Loading calendar...' : 'Loading deadlines...'}
+                        {!mounted ? 'Loading calendar...' : orgLoading ? 'Loading organization...' : 'Loading deadlines...'}
                       </p>
                     </div>
                   </div>

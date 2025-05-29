@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useOrganization } from '@/features/organizations/components/organization-provider'
 import { createClient } from '@/lib/supabase/client'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 export interface SubscriptionStatus {
   tier: 'essentials' | 'standard' | 'premium' | null
@@ -106,7 +107,6 @@ export function useSubscriptionStatus(): UseSubscriptionStatusReturn {
         .from('subscriptions')
         .select('*')
         .eq('organization_id', currentOrganization.id)
-        .in('status', ['trialing', 'active', 'past_due', 'unpaid'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
@@ -114,12 +114,14 @@ export function useSubscriptionStatus(): UseSubscriptionStatusReturn {
       if (subError) {
         // Only log actual errors, not "no rows returned"
         if (subError.code !== 'PGRST116') {
-          console.error('Error loading subscription:', {
-            message: subError.message,
-            details: subError.details,
-            hint: subError.hint,
-            code: subError.code
-          })
+          const errorDetails = {
+            message: subError.message || 'Unknown error',
+            code: subError.code || 'UNKNOWN',
+            details: subError.details || null,
+            hint: subError.hint || null,
+            organizationId: currentOrganization.id
+          }
+          console.error('Error loading subscription:', errorDetails)
         }
         setSubscription(DEFAULT_SUBSCRIPTION)
         return
@@ -127,6 +129,14 @@ export function useSubscriptionStatus(): UseSubscriptionStatusReturn {
 
       if (!subData) {
         // No active subscription
+        setSubscription(DEFAULT_SUBSCRIPTION)
+        return
+      }
+
+      // Check if subscription has a valid status
+      const validStatuses = ['trialing', 'active', 'past_due', 'unpaid']
+      if (!validStatuses.includes(subData.status)) {
+        // Subscription exists but is not in an active state (e.g., canceled)
         setSubscription(DEFAULT_SUBSCRIPTION)
         return
       }
@@ -159,7 +169,10 @@ export function useSubscriptionStatus(): UseSubscriptionStatusReturn {
 
       setSubscription(subscriptionStatus)
     } catch (error) {
-      console.error('Failed to load subscription status:', error instanceof Error ? error.message : 'Unknown error')
+      console.error('Failed to load subscription status:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        organizationId: currentOrganization?.id
+      })
       setSubscription(DEFAULT_SUBSCRIPTION)
     } finally {
       setIsLoading(false)

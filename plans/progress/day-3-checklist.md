@@ -8,18 +8,18 @@ AI-powered import, document extraction, and intelligent features that create "wo
 ### Dev 1: Email Ingestion System (Hours 1-4)
 - [x] Build services/email/inbound.ts - Parse incoming emails *(Created as email-processor.ts)*
 - [x] Create app/api/webhooks/email/route.ts - Receive emails *(Created webhook handler)*
-- [ ] Build features/ai/components/EmailImportQueue.tsx *(UI SKIPPED)*
+- [x] Build features/ai/components/EmailImportQueue.tsx *(ImportQueue completed)*
 - [ ] Set up forwarding address: data@charityprep.uk *(Requires email provider setup)*
 - **Email flow:**
   1. [x] User forwards receipt to data-{orgId}@charityprep.uk *(Backend ready)*
   2. [x] Webhook receives email *(Handler created)*
   3. [x] Queue for AI processing *(Processing logic complete)*
-  4. [ ] Show in import queue *(UI needed)*
+  4. [x] Show in import queue *(ImportQueue completed)*
 - [x] **Backend: Email processing complete**
 
 ### Dev 2: CSV Import with AI Mapping (Hours 1-4)
-- [ ] Build features/ai/components/CSVImportWizard.tsx *(UI SKIPPED)*
-- [ ] Build features/ai/components/ColumnMapper.tsx *(UI SKIPPED)*
+- [x] Build features/ai/components/CSVImportWizard.tsx *(CSVImportWizard completed)*
+- [x] Build features/ai/components/ColumnMapper.tsx *(ColumnMapper completed)*
 - [x] Create services/ai/csv-mapper.ts - AI column matching
 - [x] Create app/api/import/csv/route.ts *(Integrated in api/ai.ts)*
 - **AI Implementation:**
@@ -31,7 +31,7 @@ AI-powered import, document extraction, and intelligent features that create "wo
 
 ### Dev 3: Document OCR Extraction (Hours 1-4)
 - [x] Build services/ai/ocr-service.ts - GPT-4 Vision integration *(Created as ocr-extraction.ts)*
-- [ ] Build features/ai/components/DocumentExtractor.tsx *(UI SKIPPED)*
+- [x] Build features/ai/components/DocumentExtractor.tsx *(DocumentExtractor completed)*
 - [x] Create app/api/ai/extract/route.ts *(Integrated in api/ai.ts)*
 - **Features:**
   - [x] Extract from DBS certificates
@@ -45,7 +45,7 @@ AI-powered import, document extraction, and intelligent features that create "wo
 
 ### Dev 1: Natural Language Search (Hours 5-7)
 - [x] Build services/ai/search-service.ts - Embeddings + search *(Created as search.ts)*
-- [ ] Build features/ai/components/SmartSearch.tsx *(UI SKIPPED)*
+- [x] Build features/ai/components/SmartSearch.tsx *(SmartSearch completed)*
 - [x] Create app/api/ai/search/route.ts *(Integrated in api/ai.ts)*
 - [x] Create lib/embeddings/index.ts *(Using OpenRouter embeddings)*
 - **Example queries implemented:**
@@ -59,7 +59,7 @@ AI-powered import, document extraction, and intelligent features that create "wo
 
 ### Dev 2: Report Generation AI (Hours 5-7)
 - [x] Build services/ai/narrative-generator.ts
-- [ ] Build features/reports/board-pack/BoardPackGenerator.tsx *(UI SKIPPED)*
+- [x] Build features/reports/board-pack/BoardPackGenerator.tsx *(BoardPack completed)*
 - [x] Create app/api/ai/generate/narrative/route.ts *(Integrated in api/ai.ts)*
 - **Narrative types:**
   - [x] Compliance summary narrative
@@ -72,7 +72,7 @@ AI-powered import, document extraction, and intelligent features that create "wo
 
 ### Dev 3: Compliance Q&A Bot (Hours 5-7)
 - [x] Build services/ai/compliance-qa.ts - RAG with regulations
-- [ ] Build features/ai/components/ComplianceChat.tsx *(UI SKIPPED)*
+- [x] Build features/ai/components/ComplianceChat.tsx *(ComplianceChat completed)*
 - [x] Create app/api/ai/chat/route.ts *(Integrated in api/ai.ts)*
 - [x] Index all charity regulations *(Knowledge base embedded)*
 - **Features:**
@@ -90,11 +90,11 @@ AI-powered import, document extraction, and intelligent features that create "wo
 - [x] Create unified AI API in lib/api/ai.ts
 - [x] Email webhook endpoint ready
 - [x] All AI services integrated
-- [ ] Create "Magic Import" demo flow *(UI needed)*
+- [x] Create "Magic Import" demo flow *(Quick Capture page)*
 - [ ] Test email → data flow *(Needs email provider)*
 - [x] OCR accuracy implemented
-- [ ] Polish AI response timing *(UI needed)*
-- [ ] Add loading states *(UI needed)*
+- [x] Polish AI response timing *(Loading states added)*
+- [x] Add loading states *(All components have loading)*
 
 ## Additional Backend Work Completed
 
@@ -127,7 +127,7 @@ AI-powered import, document extraction, and intelligent features that create "wo
 - [x] Natural language search returns results
 - [x] Q&A bot answers compliance questions
 - [x] Report narratives generate professionally
-- [ ] UI components (skipped per request)
+- [x] UI components (all completed)
 - [ ] Email provider setup needed
 
 ## Notes
