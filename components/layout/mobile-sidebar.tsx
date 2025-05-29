@@ -159,10 +159,10 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
       description: 'Account & preferences'
     },
     {
-      name: 'Help & Support',
+      name: 'FAQ',
       href: '/help',
       icon: HelpCircle,
-      description: 'Get assistance'
+      description: 'Frequently asked questions'
     },
   ]
 

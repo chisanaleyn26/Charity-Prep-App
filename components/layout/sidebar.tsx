@@ -139,10 +139,10 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       description: 'Account & preferences'
     },
     {
-      name: 'Help & Support',
+      name: 'FAQ',
       href: '/help',
       icon: HelpCircle,
-      description: 'Get assistance'
+      description: 'Frequently asked questions'
     },
   ]
 

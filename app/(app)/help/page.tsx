@@ -1,33 +1,19 @@
-import { Suspense } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { 
-  BookOpen, 
-  HelpCircle, 
-  MessageCircle, 
-  Video, 
-  FileText,
-  Mail,
-  Phone,
-  ExternalLink,
+  HelpCircle,
   Search,
   ChevronRight,
-  Lightbulb,
+  ChevronDown,
   Zap,
   Shield,
-  Globe,
-  DollarSign,
-  Download,
-  Upload,
+  FileText,
+  Lightbulb,
   Calendar
 } from 'lucide-react'
-import Link from 'next/link'
-
-// Route segment configuration - static content with 1 hour cache
-export const revalidate = 3600 // 1 hour
-export const dynamic = 'force-static' // Build at compile time
 
 const faqs = [
   {
@@ -35,52 +21,60 @@ const faqs = [
     icon: Zap,
     questions: [
       {
-        q: 'How do I add my first DBS check?',
-        a: 'Navigate to Compliance > Safeguarding and click "Add DBS Check". Enter the volunteer details, DBS number, and expiry date. The system will automatically track and notify you before expiry.'
+        q: 'How do I add my first safeguarding record?',
+        a: 'Navigate to Safeguarding in the sidebar and click "Add Record". Enter the person\'s name, role, DBS certificate number, issue date, and expiry date. The system will automatically track expiry dates and send notifications 30 days before they expire.'
       },
       {
         q: 'What is a compliance score?',
-        a: 'Your compliance score is a percentage (0-100%) that reflects how well your charity meets regulatory requirements across safeguarding, overseas activities, and fundraising compliance.'
+        a: 'Your compliance score is a percentage (0-100%) that reflects how well your charity meets regulatory requirements across three key areas: safeguarding (DBS checks), overseas activities reporting, and fundraising compliance. Each area contributes to your overall score.'
       },
       {
-        q: 'How do I import existing data?',
-        a: 'Go to Documents > Import and upload your CSV or Excel files. Our AI will automatically map columns and help you import safeguarding records, income data, and more.'
+        q: 'How do I switch between organizations?',
+        a: 'Use the organization switcher at the top of the sidebar. Click on your current organization name to see a dropdown of all organizations you have access to, then select the one you want to switch to.'
+      },
+      {
+        q: 'How do notifications work?',
+        a: 'Notifications appear automatically for important events like DBS expiries, deadline reminders, and compliance alerts. Access them via the Notifications link in the sidebar. You\'ll see a badge with the unread count.'
       }
     ]
   },
   {
-    category: 'Compliance',
+    category: 'Compliance Management',
     icon: Shield,
     questions: [
       {
-        q: 'What counts as an overseas activity?',
-        a: 'Any charitable work, funding, or operations conducted outside the UK. This includes grants to overseas partners, direct service delivery, or volunteer programs abroad.'
+        q: 'What safeguarding information should I track?',
+        a: 'Track all DBS checks for staff and volunteers including: person name, role, DBS certificate number, issue date, expiry date, and check level (Basic, Standard, or Enhanced). Also note if they have safeguarding training and are in regulated activity.'
       },
       {
-        q: 'How often should I update safeguarding records?',
-        a: 'Update immediately when: new volunteers join, DBS checks are renewed, training is completed, or any safeguarding incidents occur. Review all records quarterly.'
+        q: 'How do I record overseas activities?',
+        a: 'Go to Overseas in the sidebar and click "Add Activity". Record the country, activity type, description, expenditure amount, beneficiaries reached, and whether it\'s been reported to the Charity Commission. High-risk countries are automatically flagged.'
       },
       {
-        q: 'What fundraising activities need to be tracked?',
-        a: 'All public fundraising including: events, online campaigns, grant applications, regular giving programs, and commercial partnerships. Track income source and compliance measures.'
+        q: 'What fundraising records do I need to maintain?',
+        a: 'Navigate to Fundraising and add records for each campaign including: campaign name, type (events, online, grants, etc.), start/end dates, target amount, amount raised, and any compliance measures taken. This helps track your fundraising compliance.'
+      },
+      {
+        q: 'How are high-risk countries identified?',
+        a: 'The system automatically identifies high-risk countries based on Charity Commission guidelines. When you select a country for an overseas activity, you\'ll see a warning badge if it\'s classified as high-risk, requiring additional reporting.'
       }
     ]
   },
   {
-    category: 'Reports & Export',
-    icon: FileText,
+    category: 'Calendar & Deadlines',
+    icon: Calendar,
     questions: [
       {
-        q: 'How do I generate my Annual Return?',
-        a: 'Go to Reports > Annual Return. The system automatically compiles your data into the Charity Commission format. Review, edit if needed, and copy sections to paste into the official portal.'
+        q: 'How do I manage deadlines?',
+        a: 'The Calendar page shows all your upcoming deadlines including Annual Return due dates, DBS expiry dates, and custom deadlines. Each deadline shows days remaining and is color-coded by urgency (red for overdue, amber for soon, green for later).'
       },
       {
-        q: 'Can I create custom board reports?',
-        a: 'Yes! Reports > Board Pack lets you select sections, customize content, and generate professional PDF reports with your compliance data, trends, and AI-powered insights.'
+        q: 'Can I add custom deadlines?',
+        a: 'Yes! On the Calendar page, click "Add Deadline" to create custom deadlines for grant applications, report submissions, or any other important dates. Set the title, description, due date, and category.'
       },
       {
-        q: 'How do I export my data?',
-        a: 'Reports > Export allows you to download all your data in CSV, Excel, or PDF formats. You can also schedule regular automated exports for backup or reporting.'
+        q: 'How do deadline notifications work?',
+        a: 'The system automatically creates notifications based on your organization\'s reminder settings (default 30 days before). You\'ll receive notifications for DBS expiries, Annual Return deadlines, and any custom deadlines you\'ve created.'
       }
     ]
   },
@@ -89,327 +83,195 @@ const faqs = [
     icon: Lightbulb,
     questions: [
       {
-        q: 'How does document extraction work?',
-        a: 'Upload any document (PDF, image, email) and our AI extracts relevant compliance data. It identifies DBS numbers, dates, names, and other key information automatically.'
+        q: 'What can the Compliance Chat help with?',
+        a: 'The AI Compliance Chat can answer questions about charity regulations, help interpret Charity Commission guidance, suggest compliance improvements, and provide tailored advice based on your charity\'s specific situation. Access it via Compliance Chat in the sidebar.'
       },
       {
-        q: 'What can the AI assistant help with?',
-        a: 'Ask compliance questions, get regulation explanations, draft policies, analyze risks, or get suggestions for improving your compliance score. Access it via the chat icon.'
+        q: 'How does Smart Import work?',
+        a: 'Smart Import uses AI to extract data from documents and emails. Upload spreadsheets, PDFs, or forward emails to automatically extract safeguarding records, financial data, or other compliance information. The AI maps the data to the correct fields.'
       },
       {
-        q: 'Is my data used to train AI models?',
-        a: 'No. Your data is never used for AI training. We use secure, private AI processing that keeps your charity data completely confidential.'
+        q: 'Is my data kept private when using AI features?',
+        a: 'Yes, absolutely. Your data is never used to train AI models. All AI processing happens in isolated, secure environments. Your charity\'s information remains completely confidential and is only used to provide you with personalized assistance.'
+      },
+      {
+        q: 'Can the AI generate reports for me?',
+        a: 'Yes! The AI can help generate narrative sections for your Annual Return, create summaries of your compliance status, and draft board reports. It uses your actual data to create accurate, professional reports tailored to your charity.'
+      }
+    ]
+  },
+  {
+    category: 'Data & Security',
+    icon: FileText,
+    questions: [
+      {
+        q: 'How do I export my data?',
+        a: 'Go to Reports > Export Data to download your information in CSV or Excel format. You can export safeguarding records, overseas activities, fundraising data, or all data at once. This is useful for backups or external reporting.'
+      },
+      {
+        q: 'Is my data backed up?',
+        a: 'Yes, all data is automatically backed up continuously. You can also create your own backups by exporting data regularly. We recommend downloading a full export monthly for your own records.'
+      },
+      {
+        q: 'Who can access my charity\'s data?',
+        a: 'Only users you\'ve invited to your organization can access your data. You can manage team members in Settings > Organization. Each user can be assigned different permission levels to control what they can view and edit.'
+      },
+      {
+        q: 'How do I delete old records?',
+        a: 'You can delete individual records by clicking the delete button on any item. Deleted records are soft-deleted and can be recovered within 30 days. After that, they are permanently removed in compliance with data protection regulations.'
       }
     ]
   }
 ]
 
-const tutorials = [
-  {
-    title: 'Quick Start Guide',
-    duration: '5 min',
-    icon: Zap,
-    description: 'Get up and running with your first compliance checks',
-    link: '#'
-  },
-  {
-    title: 'Managing Safeguarding',
-    duration: '10 min',
-    icon: Shield,
-    description: 'Complete guide to DBS checks and volunteer management',
-    link: '#'
-  },
-  {
-    title: 'Overseas Compliance',
-    duration: '8 min',
-    icon: Globe,
-    description: 'Track and report international charitable activities',
-    link: '#'
-  },
-  {
-    title: 'Annual Return Preparation',
-    duration: '15 min',
-    icon: Calendar,
-    description: 'Step-by-step Annual Return completion',
-    link: '#'
+export default function FAQPage() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(
+    faqs.map(f => f.category) // All expanded by default
+  )
+  const [expandedQuestions, setExpandedQuestions] = useState<string[]>([])
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
   }
-]
 
-export default function HelpPage() {
+  const toggleQuestion = (questionId: string) => {
+    setExpandedQuestions(prev =>
+      prev.includes(questionId)
+        ? prev.filter(q => q !== questionId)
+        : [...prev, questionId]
+    )
+  }
+
+  // Filter FAQs based on search term
+  const filteredFAQs = faqs.map(category => ({
+    ...category,
+    questions: category.questions.filter(
+      item => 
+        item.q.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.a.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })).filter(category => category.questions.length > 0)
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Help & Support</h1>
-        <p className="text-muted-foreground">
-          Everything you need to master Charity Prep
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="space-y-3">
+          <h1 className="text-5xl font-extralight text-foreground tracking-tight leading-none flex items-center gap-4">
+            <HelpCircle className="h-12 w-12 text-muted-foreground" />
+            FAQ
+          </h1>
+          <p className="text-lg text-muted-foreground font-normal leading-relaxed tracking-wide">
+            Find answers to common questions about CharityPrep.
+          </p>
+        </div>
       </div>
 
-      {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Video className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-base">Video Tutorials</CardTitle>
-              <CardDescription>Learn with guided walkthroughs</CardDescription>
-            </div>
-          </CardHeader>
-        </Card>
+      {/* Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search frequently asked questions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <BookOpen className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-base">Documentation</CardTitle>
-              <CardDescription>Detailed guides and references</CardDescription>
-            </div>
-          </CardHeader>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <MessageCircle className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-base">Contact Support</CardTitle>
-              <CardDescription>Get help from our team</CardDescription>
-            </div>
-          </CardHeader>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <Tabs defaultValue="faq" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="faq">FAQs</TabsTrigger>
-          <TabsTrigger value="tutorials">Tutorials</TabsTrigger>
-          <TabsTrigger value="contact">Contact</TabsTrigger>
-        </TabsList>
-
-        {/* FAQs */}
-        <TabsContent value="faq" className="space-y-6">
+      {/* FAQ Content */}
+      <div className="space-y-4">
+        {filteredFAQs.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>Frequently Asked Questions</CardTitle>
-              <CardDescription>
-                Quick answers to common questions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {faqs.map((category) => (
-                  <div key={category.category} className="space-y-4">
-                    <div className="flex items-center gap-2">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Search className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No results found</h3>
+              <p className="text-muted-foreground text-center">
+                Try searching with different keywords
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredFAQs.map((category) => (
+            <Card key={category.category}>
+              <CardHeader 
+                className="cursor-pointer"
+                onClick={() => toggleCategory(category.category)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
                       <category.icon className="h-5 w-5 text-primary" />
-                      <h3 className="font-semibold text-lg">{category.category}</h3>
                     </div>
-                    <div className="space-y-4 ml-7">
-                      {category.questions.map((item, idx) => (
-                        <div key={idx} className="space-y-2">
-                          <h4 className="font-medium flex items-start gap-2">
-                            <ChevronRight className="h-4 w-4 text-muted-foreground mt-0.5" />
-                            {item.q}
-                          </h4>
-                          <p className="text-sm text-muted-foreground ml-6">
-                            {item.a}
-                          </p>
+                    <CardTitle className="text-lg">{category.category}</CardTitle>
+                  </div>
+                  {expandedCategories.includes(category.category) ? (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              </CardHeader>
+              
+              {expandedCategories.includes(category.category) && (
+                <CardContent>
+                  <div className="space-y-4">
+                    {category.questions.map((item, idx) => {
+                      const questionId = `${category.category}-${idx}`
+                      const isExpanded = expandedQuestions.includes(questionId)
+                      
+                      return (
+                        <div 
+                          key={idx} 
+                          className="border-b last:border-0 pb-4 last:pb-0"
+                        >
+                          <button
+                            className="w-full text-left"
+                            onClick={() => toggleQuestion(questionId)}
+                          >
+                            <h4 className="font-medium flex items-start gap-2 hover:text-primary transition-colors">
+                              <ChevronRight className={`h-4 w-4 text-muted-foreground mt-0.5 transition-transform ${
+                                isExpanded ? 'rotate-90' : ''
+                              }`} />
+                              {item.q}
+                            </h4>
+                          </button>
+                          {isExpanded && (
+                            <p className="text-sm text-muted-foreground ml-6 mt-2">
+                              {item.a}
+                            </p>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      )
+                    })}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </CardContent>
+              )}
+            </Card>
+          ))
+        )}
+      </div>
 
-        {/* Tutorials */}
-        <TabsContent value="tutorials" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Video Tutorials</CardTitle>
-              <CardDescription>
-                Step-by-step guides to get you started
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {tutorials.map((tutorial) => (
-                  <div
-                    key={tutorial.title}
-                    className="group border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                        <tutorial.icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold group-hover:text-primary transition-colors">
-                          {tutorial.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {tutorial.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {tutorial.duration}
-                        </p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Interactive Guides</CardTitle>
-              <CardDescription>
-                Learn by doing with our interactive walkthroughs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button className="w-full justify-start" variant="outline">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Start the onboarding tour
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Learn how to import data
-                </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generate your first report
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Contact */}
-        <TabsContent value="contact" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Get in Touch</CardTitle>
-              <CardDescription>
-                We&apos;re here to help with your compliance journey
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Mail className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Email Support</p>
-                      <a href="mailto:support@charityprep.uk" className="text-sm text-primary hover:underline">
-                        support@charityprep.uk
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Phone className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Phone Support</p>
-                      <p className="text-sm text-muted-foreground">
-                        Mon-Fri, 9am-5pm GMT
-                      </p>
-                      <a href="tel:+442012345678" className="text-sm text-primary hover:underline">
-                        020 1234 5678
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <MessageCircle className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Live Chat</p>
-                      <p className="text-sm text-muted-foreground">
-                        Available during business hours
-                      </p>
-                      <Button size="sm" className="mt-2">
-                        Start Chat
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Send us a message</h3>
-                  <form className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium">Topic</label>
-                      <select className="w-full mt-1 px-3 py-2 border rounded-md">
-                        <option>Technical Support</option>
-                        <option>Billing Question</option>
-                        <option>Feature Request</option>
-                        <option>Compliance Question</option>
-                        <option>Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Message</label>
-                      <textarea 
-                        className="w-full mt-1 px-3 py-2 border rounded-md"
-                        rows={4}
-                        placeholder="How can we help?"
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Send Message
-                    </Button>
-                  </form>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Additional Resources</CardTitle>
-              <CardDescription>
-                Helpful links and documentation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Link href="#" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
-                  <ExternalLink className="h-4 w-4" />
-                  Charity Commission Guidelines
-                </Link>
-                <Link href="#" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
-                  <ExternalLink className="h-4 w-4" />
-                  Annual Return Requirements 2024
-                </Link>
-                <Link href="#" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
-                  <ExternalLink className="h-4 w-4" />
-                  Safeguarding Best Practices
-                </Link>
-                <Link href="#" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
-                  <ExternalLink className="h-4 w-4" />
-                  API Documentation
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Help Card */}
+      <Card>
+        <CardContent className="flex items-center justify-between py-6">
+          <div className="space-y-1">
+            <h3 className="font-semibold">Can't find what you're looking for?</h3>
+            <p className="text-sm text-muted-foreground">
+              Contact our support team at support@charityprep.uk
+            </p>
+          </div>
+          <HelpCircle className="h-8 w-8 text-muted-foreground" />
+        </CardContent>
+      </Card>
     </div>
   )
 }
