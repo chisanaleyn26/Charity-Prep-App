@@ -101,19 +101,26 @@ export function useSubscriptionStatus(): UseSubscriptionStatusReturn {
     try {
       const supabase = createClient()
       
-      // Get subscription data
+      // Get subscription data - simplified query
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('organization_id', currentOrganization.id)
-        .eq('status', 'trialing')
-        .or('status.eq.active,status.eq.past_due,status.eq.unpaid')
+        .in('status', ['trialing', 'active', 'past_due', 'unpaid'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
       if (subError) {
-        console.error('Error loading subscription:', subError)
+        // Only log actual errors, not "no rows returned"
+        if (subError.code !== 'PGRST116') {
+          console.error('Error loading subscription:', {
+            message: subError.message,
+            details: subError.details,
+            hint: subError.hint,
+            code: subError.code
+          })
+        }
         setSubscription(DEFAULT_SUBSCRIPTION)
         return
       }
@@ -152,7 +159,7 @@ export function useSubscriptionStatus(): UseSubscriptionStatusReturn {
 
       setSubscription(subscriptionStatus)
     } catch (error) {
-      console.error('Failed to load subscription status:', error)
+      console.error('Failed to load subscription status:', error instanceof Error ? error.message : 'Unknown error')
       setSubscription(DEFAULT_SUBSCRIPTION)
     } finally {
       setIsLoading(false)

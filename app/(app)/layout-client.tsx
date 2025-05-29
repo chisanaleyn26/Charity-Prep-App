@@ -35,7 +35,7 @@ export function AppLayoutClient({
   }, []);
 
   return (
-    <OrganizationProvider>
+    <OrganizationProvider initialOrganization={organization}>
       <ProfileCompletionProvider>
         <div className="flex h-screen bg-white touch-manipulation">
         {/* Desktop Sidebar */}

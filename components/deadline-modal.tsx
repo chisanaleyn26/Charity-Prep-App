@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useOrganization } from '@/features/organizations/components/organization-provider'
 
 interface Deadline {
   id: string
@@ -46,6 +47,7 @@ const relatedUrls = {
 }
 
 export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: DeadlineModalProps) {
+  const { currentOrganization } = useOrganization()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [date, setDate] = useState<Date | undefined>(initialDate)
@@ -103,6 +105,14 @@ export function DeadlineModal({ open, onOpenChange, onSave, initialDate }: Deadl
 
   const handleSave = async () => {
     console.log('🔄 Save button clicked - starting validation...')
+    console.log('🏢 Modal organization check:', currentOrganization?.name, currentOrganization?.id)
+    
+    if (!currentOrganization) {
+      console.log('❌ No organization in modal')
+      setSubmitStatus('error')
+      setErrorMessage('Organization not loaded. Please refresh the page and try again.')
+      return
+    }
     
     if (!validateForm()) {
       console.log('❌ Validation failed')

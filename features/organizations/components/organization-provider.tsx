@@ -25,9 +25,10 @@ export function useOrganization() {
 
 interface OrganizationProviderProps {
   children: React.ReactNode
+  initialOrganization?: Organization
 }
 
-export function OrganizationProvider({ children }: OrganizationProviderProps) {
+export function OrganizationProvider({ children, initialOrganization }: OrganizationProviderProps) {
   const { 
     user, 
     organizations, 
@@ -39,13 +40,24 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   } = useAuthStore()
   
   const [isLoading, setIsLoading] = useState(false)
+  const [initialized, setInitialized] = useState(false)
+
+  // Set initial organization immediately if provided
+  useEffect(() => {
+    if (initialOrganization && !currentOrganization && !initialized) {
+      setCurrentOrganization(initialOrganization)
+      setInitialized(true)
+    }
+  }, [initialOrganization, currentOrganization, initialized, setCurrentOrganization])
 
   // Initialize organizations when user changes
   useEffect(() => {
     async function initializeOrganizations() {
       if (!user || !isAuthenticated) {
         setOrganizations([])
-        setCurrentOrganization(null)
+        if (!initialOrganization) {
+          setCurrentOrganization(null)
+        }
         return
       }
 
@@ -54,7 +66,8 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
         try {
           const { organizations: userOrgs, defaultOrganization } = await initializeUserContext(user)
           setOrganizations(userOrgs)
-          if (defaultOrganization && !currentOrganization) {
+          // Only set default organization if we don't have an initial one
+          if (defaultOrganization && !currentOrganization && !initialOrganization) {
             setCurrentOrganization(defaultOrganization)
           }
         } catch (error) {
@@ -66,7 +79,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
     }
 
     initializeOrganizations()
-  }, [user, isAuthenticated, organizations.length, currentOrganization, setOrganizations, setCurrentOrganization])
+  }, [user, isAuthenticated, organizations.length, currentOrganization, initialOrganization, setOrganizations, setCurrentOrganization])
 
   // Subscribe to real-time updates for current organization
   useEffect(() => {

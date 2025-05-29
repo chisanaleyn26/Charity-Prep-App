@@ -38,14 +38,30 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [orgReady, setOrgReady] = useState(false)
   const { toast } = useToast()
-  const { currentOrganization } = useOrganization()
+  const { currentOrganization, isLoading: orgLoading } = useOrganization()
 
   // Fix hydration by setting initial date only on client
   useEffect(() => {
     setMounted(true)
     setSelectedDate(new Date())
   }, [])
+
+  // Track when organization is ready on client side only
+  useEffect(() => {
+    if (mounted) {
+      const ready = !orgLoading && !!currentOrganization
+      setOrgReady(ready)
+      console.log('📊 Organization status:', {
+        mounted: true,
+        orgLoading,
+        hasOrganization: !!currentOrganization,
+        organizationId: currentOrganization?.id,
+        orgReady: ready
+      })
+    }
+  }, [mounted, orgLoading, currentOrganization])
 
   // Load deadlines from API
   useEffect(() => {
@@ -206,6 +222,14 @@ export default function CalendarPage() {
   }
 
   const handleAddDeadline = () => {
+    if (!currentOrganization) {
+      toast({
+        title: 'Organization Required',
+        description: 'Please wait for your organization to load or refresh the page.',
+        variant: 'destructive'
+      })
+      return
+    }
     setIsModalOpen(true)
   }
 
@@ -216,11 +240,11 @@ export default function CalendarPage() {
     if (!currentOrganization) {
       console.log('❌ No organization available')
       toast({
-        title: 'Error',
-        description: 'No organization selected',
+        title: 'Organization Required',
+        description: 'Please wait for your organization to load or refresh the page.',
         variant: 'destructive'
       })
-      throw new Error('No organization selected')
+      return // Don't throw error, just return early
     }
 
     try {
@@ -249,6 +273,9 @@ export default function CalendarPage() {
       
       console.log('🎯 handleSaveDeadline completed successfully!')
       
+      // Close the modal
+      setIsModalOpen(false)
+      
     } catch (error) {
       console.error('💥 Failed to create deadline:', error)
       toast({
@@ -256,7 +283,6 @@ export default function CalendarPage() {
         description: `Failed to save deadline: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive'
       })
-      throw error // Re-throw so modal knows there was an error
     }
   }
 
@@ -276,6 +302,12 @@ export default function CalendarPage() {
         </div>
         
         <div className="flex items-center gap-3">
+          {mounted && orgLoading && (
+            <Badge variant="outline" className="text-sm font-medium px-3 py-1">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
+              Loading organization...
+            </Badge>
+          )}
           {overdueCount > 0 && (
             <Badge variant="destructive" className="text-sm font-medium px-3 py-1">
               {overdueCount} overdue
@@ -287,6 +319,7 @@ export default function CalendarPage() {
           <Button 
             onClick={handleAddDeadline}
             className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium"
+            disabled={mounted ? !orgReady : false}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Deadline

@@ -32,6 +32,7 @@ interface UpdateDeadlineData {
 export class DeadlineService {
   private static async request(url: string, options: RequestInit = {}) {
     const response = await fetch(url, {
+      credentials: 'include', // Include cookies for authentication
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -41,6 +42,7 @@ export class DeadlineService {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Unknown error' }))
+      console.error('API Error:', error)
       throw new Error(error.error || `HTTP ${response.status}`)
     }
 

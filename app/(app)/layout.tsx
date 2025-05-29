@@ -29,13 +29,21 @@ export default async function AppLayout({
 
   if (!memberships || memberships.length === 0 || !memberships[0].organization) {
     // User has no organization, redirect to onboarding
+    console.log('🚫 No organization found for user:', user.id)
     redirect('/onboarding')
   }
   
   const membership = memberships[0]
+  const organization = membership.organization
+  
+  console.log('🏢 Server layout - Organization loaded:', {
+    userId: user.id,
+    organizationId: organization.id,
+    organizationName: organization.name
+  })
 
   return (
-    <AppLayoutClient organization={membership.organization}>
+    <AppLayoutClient organization={organization}>
       {children}
     </AppLayoutClient>
   )
