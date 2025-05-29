@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, Crown, Shield, Users, ChevronDown } from 'lucide-react'
+import { Building2, Crown, Shield, Users, ChevronDown, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useOrganization } from './organization-provider'
+import { useRouter } from 'next/navigation'
 import type { OrganizationMember } from '@/lib/types/app.types'
 
 interface OrgSwitcherProps {
@@ -33,6 +34,7 @@ const roleLabels = {
 
 export function OrgSwitcher({ className }: OrgSwitcherProps) {
   const { organizations, currentOrganization, switchOrganization, isLoading } = useOrganization()
+  const router = useRouter()
 
   const handleSelect = async (orgMember: OrganizationMember) => {
     if (orgMember.organization_id === currentOrganization?.id) {
@@ -40,6 +42,10 @@ export function OrgSwitcher({ className }: OrgSwitcherProps) {
     }
 
     await switchOrganization(orgMember.organization_id)
+  }
+
+  const handleCreateNew = () => {
+    router.push('/onboarding')
   }
 
   if (organizations.length === 0) {
@@ -151,6 +157,15 @@ export function OrgSwitcher({ className }: OrgSwitcherProps) {
             })}
           </>
         )}
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={handleCreateNew}
+          className="flex items-center gap-2 cursor-pointer text-primary"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="font-medium">Create New Organization</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

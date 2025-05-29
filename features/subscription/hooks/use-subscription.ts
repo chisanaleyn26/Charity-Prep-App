@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { useOrganization } from '@/features/organizations/components/organization-provider'
 
 export interface SubscriptionInfo {
@@ -52,6 +52,9 @@ const TRIAL_FEATURES = [
   'document_upload',
 ]
 
+// Default function for canAccessFeature
+const defaultCanAccessFeature = () => false
+
 export function useSubscription() {
   const { currentOrganization } = useOrganization()
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null)
@@ -67,7 +70,7 @@ export function useSubscription() {
 
     const fetchSubscription = async () => {
       try {
-        const supabase = createBrowserClient()
+        const supabase = createClient()
         const { data, error } = await supabase
           .from('subscriptions')
           .select('*')
@@ -80,41 +83,46 @@ export function useSubscription() {
         }
 
         if (data) {
-          const isActive = 
-            data.status === 'active' || 
-            (data.status === 'trialing' && 
-             data.trial_ends_at && 
-             new Date(data.trial_ends_at) > new Date())
+          try {
+            const isActive = 
+              data.status === 'active' || 
+              (data.status === 'trialing' && 
+               data.trial_ends_at && 
+               new Date(data.trial_ends_at) > new Date())
 
-          const daysUntilTrialEnd = data.trial_ends_at
-            ? Math.ceil(
-                (new Date(data.trial_ends_at).getTime() - Date.now()) / 
-                (1000 * 60 * 60 * 24)
-              )
-            : null
+            const daysUntilTrialEnd = data.trial_ends_at
+              ? Math.ceil(
+                  (new Date(data.trial_ends_at).getTime() - Date.now()) / 
+                  (1000 * 60 * 60 * 24)
+                )
+              : null
 
-          const canAccessFeature = (feature: string) => {
-            if (!isActive) return false
-            
-            const allowedFeatures = 
-              data.status === 'trialing' 
-                ? TRIAL_FEATURES 
-                : TIER_FEATURES[data.tier as keyof typeof TIER_FEATURES] || []
-            
-            return allowedFeatures.includes(feature)
+            const canAccessFeature = (feature: string) => {
+              if (!isActive) return false
+              
+              const allowedFeatures = 
+                data.status === 'trialing' 
+                  ? TRIAL_FEATURES 
+                  : TIER_FEATURES[data.tier as keyof typeof TIER_FEATURES] || []
+              
+              return allowedFeatures.includes(feature)
+            }
+
+            setSubscription({
+              id: data.id,
+              tier: data.tier,
+              status: data.status,
+              payment_provider: data.payment_provider || 'stripe',
+              trial_ends_at: data.trial_ends_at,
+              current_period_end: data.current_period_end,
+              is_active: isActive,
+              days_until_trial_end: daysUntilTrialEnd,
+              can_access_feature: canAccessFeature,
+            })
+          } catch (error) {
+            console.error('Error processing subscription data:', error)
+            setSubscription(null)
           }
-
-          setSubscription({
-            id: data.id,
-            tier: data.tier,
-            status: data.status,
-            payment_provider: data.payment_provider || 'paddle',
-            trial_ends_at: data.trial_ends_at,
-            current_period_end: data.current_period_end,
-            is_active: isActive,
-            days_until_trial_end: daysUntilTrialEnd,
-            can_access_feature,
-          })
         } else {
           setSubscription(null)
         }
@@ -129,7 +137,7 @@ export function useSubscription() {
     fetchSubscription()
 
     // Subscribe to changes
-    const supabase = createBrowserClient()
+    const supabase = createClient()
     const subscription = supabase
       .channel('subscription_changes')
       .on(
@@ -156,7 +164,7 @@ export function useSubscription() {
     isLoading,
     error,
     isActive: subscription?.is_active || false,
-    canAccessFeature: subscription?.can_access_feature || (() => false),
+    canAccessFeature: subscription?.can_access_feature || defaultCanAccessFeature,
     needsUpgrade: !subscription || subscription.status === 'canceled',
     isInTrial: subscription?.status === 'trialing',
     daysUntilTrialEnd: subscription?.days_until_trial_end,

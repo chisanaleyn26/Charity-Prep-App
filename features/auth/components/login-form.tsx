@@ -62,7 +62,7 @@ export function LoginForm() {
       if (result.error) {
         setError(result.error)
       } else {
-        // Success! Redirect to dashboard
+        // Success! The middleware will handle proper redirection
         router.push('/dashboard')
       }
     } catch (err) {

@@ -6,22 +6,45 @@ let stripe: Stripe | null = null;
 
 function getStripe(): Stripe {
   if (!stripe) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error('STRIPE_SECRET_KEY is not defined');
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!secretKey) {
+      console.error('Environment variables:', Object.keys(process.env).filter(k => k.includes('STRIPE')));
+      throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
     }
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-12-18.acacia',
-    });
+    
+    console.log('Initializing Stripe with key starting with:', secretKey.substring(0, 10) + '...');
+    
+    try {
+      stripe = new Stripe(secretKey, {
+        apiVersion: '2024-12-18.acacia',
+      });
+    } catch (error) {
+      console.error('Failed to initialize Stripe:', error);
+      throw error;
+    }
   }
   return stripe;
 }
 
-// Pricing configuration
-export const STRIPE_PRICES = {
-  essentials: process.env.STRIPE_PRICE_ESSENTIALS || 'price_essentials',
-  standard: process.env.STRIPE_PRICE_STANDARD || 'price_standard',
-  premium: process.env.STRIPE_PRICE_PREMIUM || 'price_premium',
-} as const;
+// Get pricing configuration at runtime
+// These environment variables are only available on the server
+function getStripePrices() {
+  return {
+    essentials: {
+      monthly: process.env.STRIPE_PRICE_ESSENTIALS_MONTHLY || 'price_1RU8JlFqLaCwMbaKEraYuFdq',
+      yearly: process.env.STRIPE_PRICE_ESSENTIALS_YEARLY || 'price_1RU8BAFqLaCwMbaKy4Z1Fcqu'
+    },
+    standard: {
+      monthly: process.env.STRIPE_PRICE_STANDARD_MONTHLY || 'price_1RU8JPFqLaCwMbaK1MCWbApS',
+      yearly: process.env.STRIPE_PRICE_STANDARD_YEARLY || 'price_1RU8BWFqLaCwMbaKdpIAOcXP'
+    },
+    premium: {
+      monthly: process.env.STRIPE_PRICE_PREMIUM_MONTHLY || 'price_1RU8K0FqLaCwMbaKRJGw0GVk',
+      yearly: process.env.STRIPE_PRICE_PREMIUM_YEARLY || 'price_1RU8ByFqLaCwMbaKK9t2z3N1'
+    }
+  };
+}
 
 export type SubscriptionTier = 'ESSENTIALS' | 'STANDARD' | 'PREMIUM';
 
@@ -93,15 +116,11 @@ export const STRIPE_PRODUCTS = {
 
 // Helper functions
 export function getPriceId(tier: SubscriptionTier, cycle: 'monthly' | 'yearly' = 'monthly'): string {
-  const tierKey = tier.toLowerCase() as keyof typeof STRIPE_PRICES;
-  const basePriceId = STRIPE_PRICES[tierKey];
+  const tierKey = tier.toLowerCase() as 'essentials' | 'standard' | 'premium';
+  const prices = getStripePrices();
+  const priceConfig = prices[tierKey];
   
-  // Add suffix for yearly pricing (assuming price IDs follow pattern: price_xxx for monthly, price_xxx_yearly for yearly)
-  if (cycle === 'yearly') {
-    return `${basePriceId}_yearly`;
-  }
-  
-  return basePriceId;
+  return priceConfig[cycle];
 }
 
 export async function getStripeClient() {
@@ -260,108 +279,7 @@ export async function createPortalSession({
   return session;
 }
 
-/**
- * Handle Stripe webhook events
- */
-export async function handleStripeWebhook(
-  payload: string | Buffer,
-  signature: string
-) {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-  
-  let event: Stripe.Event;
-
-  try {
-    event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err);
-    throw new Error('Invalid webhook signature');
-  }
-
-  const supabase = createServerClient();
-
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const { organizationId, tier } = session.metadata!;
-      const customerId = session.customer as string;
-      const subscriptionId = session.subscription as string;
-
-      // Update subscription in database
-      await supabase
-        .from('subscriptions')
-        .update({
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          status: 'active',
-          tier: tier as any,
-        })
-        .eq('organization_id', organizationId);
-
-      break;
-    }
-
-    case 'customer.subscription.updated': {
-      const subscription = event.data.object as Stripe.Subscription;
-      const { organizationId } = subscription.metadata;
-
-      await supabase
-        .from('subscriptions')
-        .update({
-          status: subscription.status === 'active' ? 'active' : 'past_due',
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-        })
-        .eq('stripe_subscription_id', subscription.id);
-
-      break;
-    }
-
-    case 'customer.subscription.deleted': {
-      const subscription = event.data.object as Stripe.Subscription;
-
-      await supabase
-        .from('subscriptions')
-        .update({
-          status: 'canceled',
-          canceled_at: new Date().toISOString(),
-        })
-        .eq('stripe_subscription_id', subscription.id);
-
-      break;
-    }
-
-    case 'invoice.payment_succeeded': {
-      const invoice = event.data.object as Stripe.Invoice;
-      // Log successful payment
-      console.log('Payment succeeded for invoice:', invoice.id);
-      break;
-    }
-
-    case 'invoice.payment_failed': {
-      const invoice = event.data.object as Stripe.Invoice;
-      const customerId = invoice.customer as string;
-
-      // Update subscription status
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('organization_id')
-        .eq('stripe_customer_id', customerId)
-        .single();
-
-      if (subscription) {
-        await supabase
-          .from('subscriptions')
-          .update({ status: 'past_due' })
-          .eq('organization_id', subscription.organization_id);
-      }
-
-      break;
-    }
-  }
-
-  return { received: true };
-}
+// Webhook handling removed for now - will be implemented when needed
 
 /**
  * Get subscription status for an organization

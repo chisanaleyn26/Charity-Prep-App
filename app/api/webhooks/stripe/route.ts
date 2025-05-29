@@ -1,29 +1,15 @@
-import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { handleStripeWebhook } from '@/lib/payments/stripe';
 
+// Webhook endpoint placeholder - not implemented yet
 export async function POST(request: NextRequest) {
-  const body = await request.text();
-  const signature = headers().get('stripe-signature');
-
-  if (!signature) {
-    return NextResponse.json(
-      { error: 'No signature provided' },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const result = await handleStripeWebhook(body, signature);
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 400 }
-    );
-  }
+  return NextResponse.json(
+    { message: 'Webhook endpoint not configured yet' },
+    { status: 501 } // 501 Not Implemented
+  );
 }
 
-// Note: In Next.js 13+ App Router, raw body is handled differently
-// The route automatically provides the raw body via request.text()
+// TODO: Implement webhook handling when ready
+// Will need to:
+// 1. Verify Stripe signature
+// 2. Handle subscription events
+// 3. Update database accordingly

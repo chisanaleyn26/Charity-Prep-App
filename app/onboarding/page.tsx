@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/auth-store'
+import { ArrowLeft } from 'lucide-react'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [hasExistingOrgs, setHasExistingOrgs] = useState(false)
   const { user, setCurrentOrganization, setOrganizations } = useAuthStore()
   
   const [formData, setFormData] = useState({
@@ -24,6 +26,28 @@ export default function OnboardingPage() {
     city: '',
     postcode: ''
   })
+
+  // Check if user has existing organizations
+  useEffect(() => {
+    const checkExistingOrgs = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        const { data: memberships } = await supabase
+          .from('organization_members')
+          .select('*')
+          .eq('user_id', user.id)
+          .not('accepted_at', 'is', null)
+        
+        if (memberships && memberships.length > 0) {
+          setHasExistingOrgs(true)
+        }
+      }
+    }
+    
+    checkExistingOrgs()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -238,9 +262,37 @@ export default function OnboardingPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div style={{ width: '100%', maxWidth: '42rem' }}>
+        {hasExistingOrgs && (
+          <div style={{ marginBottom: '2rem' }}>
+            <button
+              onClick={() => router.push('/dashboard')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                color: '#4b5563',
+                background: 'white',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '500'
+              }}
+            >
+              <ArrowLeft style={{ width: '1rem', height: '1rem' }} />
+              Back to Dashboard
+            </button>
+          </div>
+        )}
+        
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Welcome to Charity Prep!</h1>
-          <p style={{ fontSize: '1.125rem', color: '#4b5563' }}>Let&apos;s set up your charity&apos;s account</p>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>
+            {hasExistingOrgs ? 'Add Another Organization' : 'Welcome to Charity Prep!'}
+          </h1>
+          <p style={{ fontSize: '1.125rem', color: '#4b5563' }}>
+            {hasExistingOrgs ? 'Set up an additional charity account' : "Let's set up your charity's account"}
+          </p>
         </div>
 
         <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', padding: '2rem' }}>
