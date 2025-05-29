@@ -95,20 +95,35 @@ export function useUserProfile(): UseUserProfileReturn {
       try {
         const supabase = createClient()
         
+        // Get the auth user first to ensure we have the correct ID and email
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!authUser) {
+          console.error('No authenticated user in loadProfile')
+          setProfile(null)
+          setIsLoading(false)
+          return
+        }
+        
         // Get user profile from users table
         const { data: userProfile, error } = await supabase
           .from('users')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', authUser.id)
           .single()
 
         if (error) {
-          console.error('Error loading user profile:', error)
+          console.error('Error loading user profile - Full JSON:', JSON.stringify(error, null, 2))
+          console.error('Error details:', {
+            message: error?.message,
+            code: error?.code,
+            details: error?.details,
+            hint: error?.hint
+          })
           // If user doesn't exist in users table, create basic profile from auth user
           const basicProfile: UserProfile = {
-            id: user.id,
-            email: user.email || '',
-            created_at: user.created_at || new Date().toISOString(),
+            id: authUser.id,
+            email: authUser.email || '',
+            created_at: authUser.created_at || new Date().toISOString(),
             profile_completed: false,
             profile_completion_percentage: 0,
             missing_fields: [...REQUIRED_FIELDS, ...RECOMMENDED_FIELDS]
@@ -147,31 +162,54 @@ export function useUserProfile(): UseUserProfileReturn {
 
   // Update profile function
   const updateProfile = async (updates: Partial<UserProfile>): Promise<boolean> => {
-    if (!user || !profile) return false
+    if (!user) return false // Allow updating even if profile doesn't exist yet
 
     try {
       const supabase = createClient()
       
+      // Get the auth user to ensure we have the email
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) {
+        console.error('No authenticated user found')
+        return false
+      }
+      
+      console.log('Debug - Auth user email:', authUser.email)
+      console.log('Debug - Profile email:', profile?.email)
+      console.log('Debug - User email:', user.email)
+      
       // Remove completion fields from updates (calculated dynamically)
       const { profile_completed, profile_completion_percentage, missing_fields, ...profileUpdates } = updates
       
+      const upsertData = {
+        id: authUser.id, // Use auth user ID to ensure consistency
+        email: authUser.email || '', // Auth user should always have email
+        ...profileUpdates,
+        updated_at: new Date().toISOString(),
+        created_at: profile?.created_at || new Date().toISOString() // Include created_at for new records
+      }
+      
+      console.log('Debug - Upsert data:', JSON.stringify(upsertData, null, 2))
+      
       const { error } = await supabase
         .from('users')
-        .upsert({
-          id: user.id,
-          ...profileUpdates,
-          updated_at: new Date().toISOString()
-        }, {
+        .upsert(upsertData, {
           onConflict: 'id'
         })
 
       if (error) {
-        console.error('Error updating profile:', error)
-        return false
+        console.error('Error updating profile:', JSON.stringify(error, null, 2))
+        // Throw the error so it can be caught in the component
+        throw error
       }
 
       // Update local state with new completion status
-      const updatedProfile = { ...profile, ...profileUpdates }
+      const updatedProfile = { 
+        ...profile, 
+        ...profileUpdates,
+        id: authUser.id,
+        email: authUser.email || ''
+      }
       const completion = checkProfileCompletion(updatedProfile)
       
       const finalProfile: UserProfile = {

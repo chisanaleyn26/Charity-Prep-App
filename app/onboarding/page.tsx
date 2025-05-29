@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/stores/auth-store'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [debugInfo, setDebugInfo] = useState<any>(null)
+  const { user, setCurrentOrganization, setOrganizations } = useAuthStore()
   
   const [formData, setFormData] = useState({
     name: '',
@@ -164,14 +166,17 @@ export default function OnboardingPage() {
       
       if (orgData) {
         // Create membership
-        const { error: memberError } = await supabase
+        const { data: memberData, error: memberError } = await supabase
           .from('organization_members')
           .insert({
             organization_id: orgData.id,
             user_id: user.id,
             role: 'admin',
-            accepted_at: new Date().toISOString()
+            accepted_at: new Date().toISOString(),
+            invited_by: user.id
           })
+          .select()
+          .single()
         
         if (memberError) {
           console.error('Membership error:', memberError)
@@ -193,6 +198,15 @@ export default function OnboardingPage() {
         // Skip subscription creation for now - payments not set up yet
         console.log('Skipping subscription creation - payments not configured')
         
+        // Update auth store with new organization
+        setCurrentOrganization(orgData)
+        if (memberData) {
+          setOrganizations([{
+            ...memberData,
+            organization: orgData
+          }])
+        }
+        
         console.log('Organization created successfully:', orgData)
         // Show success message briefly before redirect
         setError('')
@@ -201,7 +215,11 @@ export default function OnboardingPage() {
           message: 'Organization created successfully! Redirecting to dashboard...',
           orgId: orgData.id
         })
-        setTimeout(() => router.push('/dashboard'), 1500)
+        
+        // Force a page refresh to ensure clean state
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1500)
       }
       
     } catch (err: any) {

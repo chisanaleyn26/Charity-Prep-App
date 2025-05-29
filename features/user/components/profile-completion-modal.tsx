@@ -154,9 +154,27 @@ export function ProfileCompletionModal({
       } else {
         toast.error('Failed to update profile. Please try again.')
       }
-    } catch (error) {
-      console.error('Profile completion error:', error)
-      toast.error('Failed to update profile. Please try again.')
+    } catch (error: any) {
+      console.error('Profile completion error - Full JSON:', JSON.stringify(error, null, 2))
+      
+      // Display the full error details
+      const errorMessage = error?.message || 'Unknown error occurred'
+      const errorDetails = error?.details || error?.hint || ''
+      
+      toast.error('Failed to update profile', {
+        description: `${errorMessage}${errorDetails ? ` - ${errorDetails}` : ''}`,
+        duration: 10000 // Show for 10 seconds
+      })
+      
+      // Also log the full error object for debugging
+      console.error('Full error object:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        statusCode: error?.statusCode,
+        stack: error?.stack
+      })
     } finally {
       setIsSubmitting(false)
     }

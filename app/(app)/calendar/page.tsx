@@ -17,7 +17,6 @@ import {
   Filter,
   Download,
   Bell,
-  MoreHorizontal,
   ExternalLink,
   CheckCircle2
 } from 'lucide-react'
@@ -557,9 +556,6 @@ export default function CalendarPage() {
                             </Link>
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -741,9 +737,6 @@ export default function CalendarPage() {
                               </Link>
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     </CardContent>

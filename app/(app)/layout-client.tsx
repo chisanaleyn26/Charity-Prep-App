@@ -8,20 +8,37 @@ import {
 } from "@/components/layout/mobile-sidebar";
 import { OrganizationProvider } from "@/features/organizations/components/organization-provider";
 import { ProfileCompletionProvider } from "@/features/user/components/profile-completion-provider";
-import { Tables } from "@/lib/types/database.types";
-
-type Organization = Tables<"organizations">;
+import { useAuthStore } from "@/stores/auth-store";
+import { Toaster } from "sonner";
+import type { Organization, OrganizationMember, User } from "@/lib/types/app.types";
 
 export function AppLayoutClient({
   children,
   organization,
+  organizations,
+  user,
 }: {
   children: React.ReactNode;
   organization: Organization;
+  organizations?: OrganizationMember[];
+  user?: User;
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  const { setUser, setOrganizations, setCurrentOrganization } = useAuthStore();
+
+  // Initialize auth store with server data
+  useEffect(() => {
+    if (user) {
+      setUser(user);
+    }
+    if (organizations) {
+      setOrganizations(organizations);
+    }
+    setCurrentOrganization(organization);
+  }, [user, organizations, organization, setUser, setOrganizations, setCurrentOrganization]);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -70,6 +87,13 @@ export function AppLayoutClient({
           </main>
         </div>
         </div>
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            duration: 4000,
+            className: 'sonner-toast',
+          }}
+        />
       </ProfileCompletionProvider>
     </OrganizationProvider>
   );

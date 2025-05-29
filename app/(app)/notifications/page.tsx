@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Bell, 
   BellOff, 
@@ -16,117 +14,226 @@ import {
   Info,
   Calendar,
   Mail,
-  Settings,
   Filter,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useOrganization } from '@/features/organizations/components/organization-provider'
+import { 
+  getNotifications, 
+  markNotificationRead, 
+  markAllNotificationsRead,
+  dismissNotification 
+} from '@/lib/api/notifications'
+import { createClient } from '@/lib/supabase/client'
 
 interface Notification {
   id: string
-  type: 'info' | 'warning' | 'error' | 'success'
+  organization_id: string
+  user_id?: string | null
+  type: string
   title: string
   message: string
-  timestamp: Date
-  read: boolean
-  action?: {
-    label: string
-    url: string
-  }
-}
-
-// Mock notifications data
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'warning',
-    title: 'DBS Checks Expiring Soon',
-    message: '3 DBS checks will expire in the next 30 days. Please review and renew.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    read: false,
-    action: { label: 'View DBS Records', url: '/compliance/safeguarding' }
-  },
-  {
-    id: '2',
-    type: 'info',
-    title: 'Annual Return Due',
-    message: 'Your charity\'s annual return is due in 60 days. Start preparing now.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    read: false,
-    action: { label: 'Generate Annual Return', url: '/reports/annual-return' }
-  },
-  {
-    id: '3',
-    type: 'success',
-    title: 'Compliance Score Improved',
-    message: 'Your compliance score has increased to 92% - well done!',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-    read: true
-  },
-  {
-    id: '4',
-    type: 'warning',
-    title: 'Document Upload Required',
-    message: 'Please upload your updated safeguarding policy.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    read: true,
-    action: { label: 'Upload Document', url: '/documents' }
-  },
-  {
-    id: '5',
-    type: 'info',
-    title: 'New Fundraising Guidelines',
-    message: 'The Charity Commission has published updated fundraising guidelines.',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-    read: true,
-    action: { label: 'View Guidelines', url: '/compliance/chat' }
-  }
-]
-
-const mockPreferences = {
-  email: true,
-  push: true,
-  sms: false,
-  categories: {
-    compliance_alerts: true,
-    deadline_reminders: true,
-    score_updates: true,
-    system_updates: false
-  }
+  severity: 'info' | 'warning' | 'error' | 'success'
+  link?: string | null
+  read_at?: string | null
+  dismissed_at?: string | null
+  created_at: string
+  scheduled_for?: string | null
+  sent_at?: string | null
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
-  const [preferences, setPreferences] = useState(mockPreferences)
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { currentOrganization } = useOrganization()
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter(n => !n.read_at && !n.dismissed_at).length
   
   const filteredNotifications = notifications.filter(notification => {
-    if (filter === 'unread') return !notification.read
-    if (filter === 'read') return notification.read
+    if (notification.dismissed_at) return false // Don't show dismissed
+    if (filter === 'unread') return !notification.read_at
+    if (filter === 'read') return !!notification.read_at
     return true
   })
 
-  const markAsRead = (id: string) => {
+  // Load notifications
+  const loadNotifications = useCallback(async () => {
+    if (!currentOrganization?.id) {
+      console.log('No organization ID, skipping notification load')
+      return
+    }
+
+    console.log('Loading notifications for org:', currentOrganization.id)
+    console.log('Current organization full object:', currentOrganization)
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const result = await getNotifications(currentOrganization.id, {
+        page: 1,
+        pageSize: 50
+      })
+      
+      console.log('Notifications result:', result)
+      console.log('Result data:', result.data)
+      console.log('Result error:', result.error)
+      console.log('Data is array:', Array.isArray(result.data))
+      console.log('Data length:', result.data?.length)
+      
+      // Also do a direct query to see what's happening
+      const supabase = createClient()
+      const { data: directQuery, error: directError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('organization_id', currentOrganization.id)
+        .limit(5)
+      
+      console.log('Direct query result:', { data: directQuery, error: directError })
+      
+      if (result.error) {
+        setError(result.error)
+        toast.error('Failed to load notifications')
+      } else if (result.data) {
+        setNotifications(result.data)
+        console.log('Loaded notifications:', result.data.length)
+      }
+    } catch (err) {
+      console.error('Error loading notifications:', err)
+      setError('Failed to load notifications')
+      toast.error('Failed to load notifications')
+    } finally {
+      setLoading(false)
+    }
+  }, [currentOrganization?.id])
+
+  // Load notifications on mount and when organization changes
+  useEffect(() => {
+    loadNotifications()
+  }, [loadNotifications])
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!currentOrganization?.id) return
+
+    const supabase = createClient()
+    
+    // Subscribe to new notifications
+    const subscription = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `organization_id=eq.${currentOrganization.id}`
+        },
+        (payload) => {
+          // Add new notification to the list
+          const newNotification = payload.new as Notification
+          setNotifications(prev => [newNotification, ...prev])
+          
+          // Show toast for new notification
+          toast(newNotification.title, {
+            description: newNotification.message,
+            action: newNotification.link ? {
+              label: 'View',
+              onClick: () => window.location.href = newNotification.link!
+            } : undefined
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `organization_id=eq.${currentOrganization.id}`
+        },
+        (payload) => {
+          // Update notification in the list
+          const updatedNotification = payload.new as Notification
+          setNotifications(prev => 
+            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+          )
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications'
+        },
+        (payload) => {
+          // Remove notification from the list
+          const deletedId = payload.old.id
+          setNotifications(prev => prev.filter(n => n.id !== deletedId))
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [currentOrganization?.id])
+
+  const markAsRead = async (id: string) => {
+    // Optimistically update UI
     setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
+      prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
     )
+
+    const result = await markNotificationRead(id)
+    
+    if (result.error) {
+      // Revert on error
+      loadNotifications()
+      toast.error('Failed to mark as read')
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-    toast.success('All notifications marked as read')
+  const markAllAsRead = async () => {
+    if (!currentOrganization?.id) return
+
+    // Optimistically update UI
+    setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })))
+    
+    const result = await markAllNotificationsRead(currentOrganization.id)
+    
+    if (result.error) {
+      // Revert on error
+      loadNotifications()
+      toast.error('Failed to mark all as read')
+    } else {
+      toast.success('All notifications marked as read')
+    }
   }
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
+    // Optimistically update UI
     setNotifications(prev => prev.filter(n => n.id !== id))
-    toast.success('Notification deleted')
+    
+    const result = await dismissNotification(id)
+    
+    if (result.error) {
+      // Revert on error
+      loadNotifications()
+      toast.error('Failed to delete notification')
+    } else {
+      toast.success('Notification deleted')
+    }
   }
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
+  const getNotificationIcon = (severity: string) => {
+    switch (severity) {
       case 'warning': return <AlertTriangle className="h-4 w-4" />
       case 'error': return <X className="h-4 w-4" />
       case 'success': return <Check className="h-4 w-4" />
@@ -134,8 +241,8 @@ export default function NotificationsPage() {
     }
   }
 
-  const getNotificationColor = (type: string) => {
-    switch (type) {
+  const getNotificationColor = (severity: string) => {
+    switch (severity) {
       case 'warning': return 'border-warning bg-warning/5 text-warning-foreground'
       case 'error': return 'border-destructive bg-destructive/5 text-destructive-foreground'
       case 'success': return 'border-success bg-success/5 text-success-foreground'
@@ -143,9 +250,10 @@ export default function NotificationsPage() {
     }
   }
 
-  const formatTimestamp = (timestamp: Date) => {
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp)
     const now = new Date()
-    const diffMs = now.getTime() - timestamp.getTime()
+    const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / (1000 * 60))
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
@@ -153,7 +261,33 @@ export default function NotificationsPage() {
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
-    return timestamp.toLocaleDateString()
+    return date.toLocaleDateString()
+  }
+
+  // Show loading state if no organization
+  if (!currentOrganization) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-3">
+            <h1 className="text-5xl font-extralight text-foreground tracking-tight leading-none flex items-center gap-4">
+              <Bell className="h-12 w-12 text-muted-foreground" />
+              Notifications
+            </h1>
+            <p className="text-lg text-muted-foreground font-normal leading-relaxed tracking-wide">
+              Stay updated with important alerts and deadlines.
+            </p>
+          </div>
+        </div>
+        
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Loading organization...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -174,22 +308,49 @@ export default function NotificationsPage() {
           <Badge variant="secondary" className="text-sm">
             {unreadCount} unread
           </Badge>
+          {!loading && (
+            <Button onClick={loadNotifications} variant="outline" size="sm">
+              <Loader2 className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
+              Refresh
+            </Button>
+          )}
           {unreadCount > 0 && (
-            <Button onClick={markAllAsRead} variant="outline" size="sm">
+            <Button onClick={markAllAsRead} variant="outline" size="sm" disabled={loading}>
               <Check className="h-4 w-4 mr-2" />
               Mark all read
+            </Button>
+          )}
+          {/* Test button for development */}
+          {process.env.NODE_ENV === 'development' && currentOrganization?.id && (
+            <Button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/test-notifications', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ organizationId: currentOrganization.id })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    toast.success(data.message)
+                    loadNotifications()
+                  } else {
+                    toast.error(data.error || 'Failed to create test notifications')
+                  }
+                } catch (error) {
+                  toast.error('Failed to create test notifications')
+                }
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Create Test Notification
             </Button>
           )}
         </div>
       </div>
 
-      <Tabs defaultValue="notifications" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="notifications" className="space-y-6">
+      <div className="space-y-6">
           {/* Filters */}
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
@@ -201,6 +362,7 @@ export default function NotificationsPage() {
                   size="sm"
                   onClick={() => setFilter(f)}
                   className="capitalize"
+                  disabled={loading}
                 >
                   {f}
                 </Button>
@@ -210,7 +372,25 @@ export default function NotificationsPage() {
 
           {/* Notifications List */}
           <div className="space-y-3">
-            {filteredNotifications.length === 0 ? (
+            {loading ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Loading notifications...</p>
+                </CardContent>
+              </Card>
+            ) : error ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Error loading notifications</h3>
+                  <p className="text-muted-foreground text-center mb-4">{error}</p>
+                  <Button onClick={loadNotifications} variant="outline">
+                    Try again
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : filteredNotifications.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <BellOff className="h-12 w-12 text-muted-foreground mb-4" />
@@ -226,7 +406,7 @@ export default function NotificationsPage() {
                   key={notification.id}
                   className={cn(
                     'transition-all hover:shadow-md',
-                    !notification.read && 'ring-2 ring-primary/20 bg-primary/5'
+                    !notification.read_at && 'ring-2 ring-primary/20 bg-primary/5'
                   )}
                 >
                   <CardContent className="p-4">
@@ -234,9 +414,9 @@ export default function NotificationsPage() {
                       {/* Icon */}
                       <div className={cn(
                         'p-2 rounded-full',
-                        getNotificationColor(notification.type)
+                        getNotificationColor(notification.severity)
                       )}>
-                        {getNotificationIcon(notification.type)}
+                        {getNotificationIcon(notification.severity)}
                       </div>
 
                       {/* Content */}
@@ -245,7 +425,7 @@ export default function NotificationsPage() {
                           <div className="space-y-1">
                             <h3 className={cn(
                               'font-semibold',
-                              !notification.read && 'text-foreground'
+                              !notification.read_at && 'text-foreground'
                             )}>
                               {notification.title}
                             </h3>
@@ -254,12 +434,12 @@ export default function NotificationsPage() {
                             </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Clock className="h-3 w-3" />
-                              {formatTimestamp(notification.timestamp)}
+                              {formatTimestamp(notification.created_at)}
                             </div>
                           </div>
                           
                           <div className="flex items-center gap-1">
-                            {!notification.read && (
+                            {!notification.read_at && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -279,11 +459,11 @@ export default function NotificationsPage() {
                         </div>
 
                         {/* Action Button */}
-                        {notification.action && (
+                        {notification.link && (
                           <div className="mt-3">
                             <Button variant="outline" size="sm" asChild>
-                              <a href={notification.action.url}>
-                                {notification.action.label}
+                              <a href={notification.link}>
+                                View
                               </a>
                             </Button>
                           </div>
@@ -295,149 +475,7 @@ export default function NotificationsPage() {
               ))
             )}
           </div>
-        </TabsContent>
-
-        <TabsContent value="preferences" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Delivery Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Delivery Methods
-                </CardTitle>
-                <CardDescription>
-                  Choose how you want to receive notifications
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">Email Notifications</div>
-                    <div className="text-xs text-muted-foreground">Receive notifications via email</div>
-                  </div>
-                  <Switch
-                    checked={preferences.email}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ ...prev, email: checked }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">Push Notifications</div>
-                    <div className="text-xs text-muted-foreground">Browser push notifications</div>
-                  </div>
-                  <Switch
-                    checked={preferences.push}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ ...prev, push: checked }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">SMS Notifications</div>
-                    <div className="text-xs text-muted-foreground">Text message alerts</div>
-                  </div>
-                  <Switch
-                    checked={preferences.sms}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ ...prev, sms: checked }))
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Categories */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notification Categories
-                </CardTitle>
-                <CardDescription>
-                  Select which types of notifications you want to receive
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">Compliance Alerts</div>
-                    <div className="text-xs text-muted-foreground">DBS expiry, policy updates</div>
-                  </div>
-                  <Switch
-                    checked={preferences.categories.compliance_alerts}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        categories: { ...prev.categories, compliance_alerts: checked }
-                      }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">Deadline Reminders</div>
-                    <div className="text-xs text-muted-foreground">Annual returns, submissions</div>
-                  </div>
-                  <Switch
-                    checked={preferences.categories.deadline_reminders}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        categories: { ...prev.categories, deadline_reminders: checked }
-                      }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">Score Updates</div>
-                    <div className="text-xs text-muted-foreground">Compliance score changes</div>
-                  </div>
-                  <Switch
-                    checked={preferences.categories.score_updates}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        categories: { ...prev.categories, score_updates: checked }
-                      }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-sm font-medium">System Updates</div>
-                    <div className="text-xs text-muted-foreground">App updates, maintenance</div>
-                  </div>
-                  <Switch
-                    checked={preferences.categories.system_updates}
-                    onCheckedChange={(checked) => 
-                      setPreferences(prev => ({ 
-                        ...prev, 
-                        categories: { ...prev.categories, system_updates: checked }
-                      }))
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="flex justify-end">
-            <Button onClick={() => toast.success('Preferences saved')}>
-              Save Preferences
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+      </div>
     </div>
   )
 }

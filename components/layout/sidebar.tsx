@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils'
 import { Tables } from '@/lib/types/database.types'
 import { OrgSwitcher } from '@/features/organizations/components/org-switcher'
 import { UserSection } from './user-section'
+import { useNotificationCount } from '@/hooks/use-notification-count'
 
 type Organization = Tables<'organizations'>
 
@@ -44,6 +45,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed = false, onToggle, organization }: SidebarProps) {
   const pathname = usePathname()
   const [reportsExpanded, setReportsExpanded] = useState(pathname?.startsWith('/reports') || false)
+  const notificationCount = useNotificationCount()
 
   const mainNavigation = [
     {
@@ -126,7 +128,7 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
       name: 'Notifications',
       href: '/notifications',
       icon: Bell,
-      badge: '5',
+      badge: notificationCount > 0 ? notificationCount.toString() : undefined,
       badgeType: 'default' as const,
       description: 'Alerts & updates'
     },

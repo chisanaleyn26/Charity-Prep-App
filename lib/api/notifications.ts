@@ -91,7 +91,9 @@ export async function markNotificationRead(notificationId: string) {
 
   const { error } = await supabase
     .from('notifications')
-    .update({ read_at: new Date().toISOString() })
+    .update({ 
+      read_at: new Date().toISOString() 
+    })
     .eq('id', notificationId)
 
   if (error) {
@@ -115,7 +117,9 @@ export async function markAllNotificationsRead(organizationId: string) {
 
   const { error } = await supabase
     .from('notifications')
-    .update({ read_at: new Date().toISOString() })
+    .update({ 
+      read_at: new Date().toISOString() 
+    })
     .or(`user_id.eq.${user.id},and(user_id.is.null,organization_id.eq.${organizationId})`)
     .is('read_at', null)
 
@@ -235,9 +239,13 @@ async function createNotification(
     .from('notifications')
     .insert({
       organization_id: organizationId,
-      ...notification,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      severity: notification.severity || 'info',
+      link: notification.link,
       user_id: notification.userId,
-      scheduled_for: notification.scheduledFor,
+      scheduled_for: notification.scheduledFor
     })
     .select()
     .single()
@@ -295,7 +303,7 @@ export async function checkDBSExpiryNotifications(organizationId: string) {
 
         if (!existing || existing.length === 0) {
           await createNotification(organizationId, {
-            type: 'dbs_expiry',
+            type: 'expiry_warning',
             title: 'DBS Check Expiring Soon',
             message: `${record.person_name}'s DBS check expires in ${daysToExpiry} days`,
             link: `/compliance/safeguarding/${record.id}`,
@@ -318,7 +326,7 @@ export async function checkDBSExpiryNotifications(organizationId: string) {
 
         if (!existing || existing.length === 0) {
           await createNotification(organizationId, {
-            type: 'dbs_expired',
+            type: 'expiry_warning',
             title: 'DBS Check Expired',
             message: `${record.person_name}'s DBS check has expired`,
             link: `/compliance/safeguarding/${record.id}`,
@@ -368,7 +376,7 @@ export async function checkOverseasNotifications(organizationId: string) {
 
     if (!existing || existing.length === 0) {
       await createNotification(organizationId, {
-        type: 'overseas_reporting',
+        type: 'compliance_alert',
         title: 'High-Risk Activities Need Reporting',
         message: `${highRiskActivities.length} overseas activities in high-risk countries need to be reported to the Commission`,
         link: '/compliance/overseas',

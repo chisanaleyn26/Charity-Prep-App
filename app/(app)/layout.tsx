@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { checkAuthFlow } from '@/lib/api/auth-flow'
 import { AppLayoutClient } from './layout-client'
 
 export default async function AppLayout({
@@ -7,43 +7,38 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
+  // Use comprehensive auth flow check
+  const authFlow = await checkAuthFlow()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
+  if (!authFlow.user) {
     redirect('/login')
   }
 
-  // Get user's organization (use most recent if multiple)
-  const { data: memberships } = await supabase
-    .from('organization_members')
-    .select(`
-      *,
-      organization:organizations(*)
-    `)
-    .eq('user_id', user.id)
-    .not('accepted_at', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(1)
+  if (authFlow.needsOnboarding) {
+    console.log('🚀 User needs onboarding:', authFlow.user?.id)
+    redirect('/onboarding')
+  }
 
-  if (!memberships || memberships.length === 0 || !memberships[0].organization) {
-    // User has no organization, redirect to onboarding
-    console.log('🚫 No organization found for user:', user.id)
+  if (!authFlow.currentOrganization) {
+    // This shouldn't happen if needsOnboarding check passed
+    console.error('❌ No organization found despite passing onboarding check')
     redirect('/onboarding')
   }
   
-  const membership = memberships[0]
-  const organization = membership.organization
-  
-  console.log('🏢 Server layout - Organization loaded:', {
-    userId: user.id,
-    organizationId: organization.id,
-    organizationName: organization.name
+  console.log('🏢 Server layout - Auth flow complete:', {
+    userId: authFlow.user.id,
+    organizationId: authFlow.currentOrganization.id,
+    organizationName: authFlow.currentOrganization.name,
+    totalOrgs: authFlow.organizations.length,
+    hasSubscription: authFlow.hasSubscription
   })
 
   return (
-    <AppLayoutClient organization={organization}>
+    <AppLayoutClient 
+      organization={authFlow.currentOrganization}
+      organizations={authFlow.organizations}
+      user={authFlow.user}
+    >
       {children}
     </AppLayoutClient>
   )

@@ -6,7 +6,16 @@ All references to Paddle payment processing have been updated to use Stripe inst
 ## Implementation Status
 - **Migration Start**: December 2024
 - **Server Actions Implementation**: January 2025
-- **Status**: Complete (using Next.js 15 server actions architecture)
+- **Auth Flow Fix**: January 2025 - Fixed infinite redirect loop
+- **Status**: Complete with working subscription system
+
+## 🎉 Major Fix: Auth Flow Issue Resolved
+
+### The Problem
+Users were being redirected to onboarding even with existing accounts because the system wasn't recognizing trial subscriptions as valid.
+
+### The Solution
+Updated `/lib/api/auth-flow.ts` to check for both 'active' AND 'trialing' subscription statuses. Trial subscriptions with valid end dates are now properly recognized.
 
 ## Files Updated
 
