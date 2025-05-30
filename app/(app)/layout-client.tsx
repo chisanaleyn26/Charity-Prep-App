@@ -27,18 +27,16 @@ export function AppLayoutClient({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
-  const { setUser, setOrganizations, setCurrentOrganization } = useAuthStore();
+  const { setUser, setCurrentOrganization } = useAuthStore();
 
-  // Initialize auth store with server data
+  // Initialize auth store with server data - only set user and current org
   useEffect(() => {
     if (user) {
       setUser(user);
     }
-    if (organizations) {
-      setOrganizations(organizations);
-    }
+    // Only set the current organization (no multiple orgs)
     setCurrentOrganization(organization);
-  }, [user, organizations, organization, setUser, setOrganizations, setCurrentOrganization]);
+  }, [user, organization, setUser, setCurrentOrganization]);
 
   // Detect mobile viewport
   useEffect(() => {

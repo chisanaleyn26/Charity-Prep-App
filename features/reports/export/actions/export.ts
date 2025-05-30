@@ -30,13 +30,17 @@ export async function getExportConfigs(): Promise<ExportConfig[]> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id')
+  // Get user's current organization through organization_members
+  const { data: membership } = await supabase
+    .from('organization_members')
+    .select('organization_id')
     .eq('user_id', user.id)
+    .not('accepted_at', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .single()
 
-  if (!org) throw new Error('Organization not found')
+  if (!membership) throw new Error('Organization not found')
 
   // TODO: Fetch from scheduled_exports table
   return []
@@ -49,13 +53,17 @@ export async function createExportConfig(config: Omit<ExportConfig, 'id' | 'crea
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id')
+  // Get user's current organization through organization_members
+  const { data: membership } = await supabase
+    .from('organization_members')
+    .select('organization_id')
     .eq('user_id', user.id)
+    .not('accepted_at', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .single()
 
-  if (!org) throw new Error('Organization not found')
+  if (!membership) throw new Error('Organization not found')
 
   const newConfig: ExportConfig = {
     ...config,
@@ -80,13 +88,17 @@ export async function startExportJob(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id')
+  // Get user's current organization through organization_members
+  const { data: membership } = await supabase
+    .from('organization_members')
+    .select('organization_id')
     .eq('user_id', user.id)
+    .not('accepted_at', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .single()
 
-  if (!org) throw new Error('Organization not found')
+  if (!membership) throw new Error('Organization not found')
 
   // Create job record
   const job: ExportJob = {
@@ -98,7 +110,7 @@ export async function startExportJob(
   }
 
   // Start async export process
-  processExportJob(job, org.id, dataSource, format, config)
+  processExportJob(job, membership.organization_id, dataSource, format, config)
 
   return job
 }
@@ -196,13 +208,17 @@ export async function testExportConfig(config: ExportConfig): Promise<{
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id')
+  // Get user's current organization through organization_members
+  const { data: membership } = await supabase
+    .from('organization_members')
+    .select('organization_id')
     .eq('user_id', user.id)
+    .not('accepted_at', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .single()
 
-  if (!org) throw new Error('Organization not found')
+  if (!membership) throw new Error('Organization not found')
 
   try {
     // Generate sample data

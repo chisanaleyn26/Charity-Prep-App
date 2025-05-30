@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { createCheckoutSession, getStripeServer } from '@/lib/payments/stripe'
 import { z } from 'zod'
+import { rateLimit, RateLimitConfigs } from '@/lib/security/rate-limiter'
 
 const CreateCheckoutSchema = z.object({
   priceId: z.string().min(1, 'Price ID is required'),
@@ -15,6 +16,16 @@ const CreateCheckoutSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting to prevent checkout abuse
+  const rateLimitResponse = await rateLimit({
+    ...RateLimitConfigs.billing.createCheckout,
+    keyPrefix: 'billing:checkout'
+  })
+  
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   try {
     const supabase = await createServerClient()
     

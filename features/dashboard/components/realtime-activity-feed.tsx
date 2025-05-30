@@ -149,12 +149,14 @@ export function RealtimeActivityFeed({ organizationId }: { organizationId: strin
           const data = await response.json()
           const mapped = data.activities.map((item: any) => ({
             id: item.id,
-            type: item.type || 'default',
-            icon: getIconForType(item.activity_type),
+            type: item.color === 'red' ? 'warning' : 
+                  item.color === 'green' ? 'success' : 
+                  item.color === 'blue' ? 'info' : 'default',
+            icon: getIconForType(item.icon || item.type),
             title: item.title,
             description: item.description,
-            time: new Date(item.created_at),
-            user: item.user_name || 'System'
+            time: new Date(item.timestamp),
+            user: item.user?.name || 'System'
           }))
           setActivities(mapped)
         }
@@ -168,8 +170,28 @@ export function RealtimeActivityFeed({ organizationId }: { organizationId: strin
     }
   }, [organizationId])
 
-  const getIconForType = (type: string) => {
+  const getIconForType = (iconName: string) => {
     const iconMap: Record<string, React.ElementType> = {
+      // Icon names from API
+      Shield: Shield,
+      Globe: Globe,
+      DollarSign: DollarSign,
+      FileText: FileText,
+      UserCheck: UserCheck,
+      AlertCircle: AlertCircle,
+      Upload: Upload,
+      Mail: Mail,
+      CheckCircle: CheckCircle,
+      Plus: Upload,
+      Edit: FileText,
+      Trash2: AlertCircle,
+      Users: Users,
+      Eye: Activity,
+      TrendingUp: Activity,
+      Sparkles: Activity,
+      Search: Activity,
+      User: UserCheck,
+      // Type-based fallbacks
       safeguarding: Shield,
       overseas: Globe,
       income: DollarSign,
@@ -179,7 +201,7 @@ export function RealtimeActivityFeed({ organizationId }: { organizationId: strin
       upload: Upload,
       email: Mail
     }
-    return iconMap[type] || Activity
+    return iconMap[iconName] || Activity
   }
 
   const getActivityColor = (type: string) => {
@@ -192,12 +214,12 @@ export function RealtimeActivityFeed({ organizationId }: { organizationId: strin
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-3xl flex flex-col hover:border-gray-300 transition-all duration-300 relative">
+    <div className="bg-white border border-gray-200 rounded-2xl flex flex-col hover:border-gray-300 hover:shadow-sm transition-all duration-300 relative h-full w-full">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-transparent opacity-20" />
       
-      <div className="relative z-10">
-        <div className="p-6 pb-5 border-b border-gray-100">
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="p-6 pb-5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-gray-900 tracking-tight leading-tight">
@@ -234,7 +256,7 @@ export function RealtimeActivityFeed({ organizationId }: { organizationId: strin
         </div>
 
         {/* Activity list */}
-        <div className="flex-1 p-6 space-y-3 max-h-[400px] overflow-y-auto">
+        <div className="flex-1 p-6 space-y-3 overflow-y-auto min-h-0">
           {activities.length === 0 ? (
             <div className="text-center py-8">
               <Activity className="h-8 w-8 text-gray-400 mx-auto mb-3" />
@@ -282,7 +304,7 @@ export function RealtimeActivityFeed({ organizationId }: { organizationId: strin
 
         {/* Footer */}
         {activities.length > 0 && (
-          <div className="p-6 pt-5 border-t border-gray-100">
+          <div className="p-6 pt-5 border-t border-gray-100 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="bg-gray-100 rounded-xl px-3 py-2">
                 <span className="text-xs text-gray-700 font-bold tracking-wider uppercase">

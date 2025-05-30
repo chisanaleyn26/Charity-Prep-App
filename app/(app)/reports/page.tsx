@@ -187,12 +187,17 @@ function ReportsSkeleton() {
 
 export default function ReportsPage() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-        <p className="text-muted-foreground">
-          Generate compliance reports, board packs, and export your charity data
-        </p>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div className="space-y-3">
+          <h1 className="text-5xl font-extralight text-gray-900 tracking-tight leading-none flex items-center gap-4">
+            <FileText className="h-12 w-12 text-gray-600" />
+            Reports & Analytics
+          </h1>
+          <p className="text-lg text-gray-600 font-normal leading-relaxed tracking-wide">
+            Generate compliance reports, board packs, and export your charity data.
+          </p>
+        </div>
       </div>
 
       <Suspense fallback={<ReportsSkeleton />}>

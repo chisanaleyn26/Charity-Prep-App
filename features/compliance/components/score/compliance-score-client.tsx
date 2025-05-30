@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Award, TrendingUp, TrendingDown, Minus, Shield, Globe, DollarSign, Target, AlertTriangle, CheckCircle, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import type { ComplianceStatistics } from '@/lib/services/compliance-statistics.service'
 import Link from 'next/link'
+import { logActivity } from '@/lib/services/activity-logging.service'
+import { ActivityTypes } from '@/lib/constants/activity-types'
 
 interface ComplianceScoreClientProps {
   statistics: ComplianceStatistics
@@ -20,6 +22,18 @@ export default function ComplianceScoreClient({ statistics }: ComplianceScoreCli
   
   const score = Math.round(statistics.overall.percentage)
   const level = statistics.overall.level
+  
+  // Log compliance score view on mount
+  useEffect(() => {
+    logActivity({
+      activity_type: ActivityTypes.COMPLIANCE_SCORE_VIEW,
+      metadata: {
+        score: score,
+        level: level,
+        highPriorityActions: statistics.actionItems.filter(item => item.priority === 'high').length
+      }
+    })
+  }, [])
   
   // Calculate key metrics
   const metrics = {
@@ -142,7 +156,17 @@ export default function ComplianceScoreClient({ statistics }: ComplianceScoreCli
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        setActiveTab(value)
+        // Log tab change
+        logActivity({
+          activity_type: ActivityTypes.PAGE_VIEW,
+          metadata: {
+            page: `compliance_score_${value}`,
+            section: 'compliance'
+          }
+        })
+      }} className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="actions">Action Items</TabsTrigger>

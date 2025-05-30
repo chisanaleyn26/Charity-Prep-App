@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCurrentUserOrganization } from '@/lib/supabase/server'
 import { 
   BoardPackTemplate, 
   BoardPackData,
@@ -11,6 +11,7 @@ import {
 } from '../types/board-pack'
 import { generateNarrative } from '@/lib/ai/narrative-generator'
 import { calculateComplianceScore } from '@/features/compliance/services/compliance-score'
+import { AuthError, isAuthError } from '@/lib/errors/auth-errors'
 
 // Get available templates
 export async function getBoardPackTemplates(): Promise<BoardPackTemplate[]> {
@@ -29,68 +30,114 @@ export async function generateBoardPackData(
   templateId: string,
   period: { start: Date; end: Date }
 ): Promise<BoardPackData> {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-
-  // Get organization
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!org) throw new Error('Organization not found')
-
-  // Get template
-  const template = DEFAULT_BOARD_PACK_TEMPLATES.find(t => t.id === templateId)
-  if (!template) throw new Error('Template not found')
-
-  // Generate data for each enabled section
-  const sections: Record<string, any> = {}
-
-  for (const section of template.sections.filter(s => s.enabled)) {
-    switch (section.type) {
-      case 'compliance-overview':
-        sections[section.id] = await generateComplianceOverview(org.id, period)
-        break
-      case 'financial-summary':
-        sections[section.id] = await generateFinancialSummary(org.id, period)
-        break
-      case 'risk-analysis':
-        sections[section.id] = await generateRiskAnalysis(org.id)
-        break
-      case 'fundraising-report':
-        sections[section.id] = await generateFundraisingReport(org.id, period)
-        break
-      case 'safeguarding-report':
-        sections[section.id] = await generateSafeguardingReport(org.id, period)
-        break
-      case 'overseas-activities':
-        sections[section.id] = await generateOverseasReport(org.id, period)
-        break
-      case 'key-metrics':
-        sections[section.id] = await generateKeyMetrics(org.id, period)
-        break
-      case 'recommendations':
-        sections[section.id] = await generateRecommendations(org.id, sections)
-        break
-      case 'narrative-summary':
-        sections[section.id] = await generateNarrativeSummary(org.id, sections)
-        break
+  try {
+    const supabase = await createClient()
+    
+    // Get user's current organization with enhanced error handling
+    let currentOrgData
+    try {
+      currentOrgData = await getCurrentUserOrganization()
+    } catch (error) {
+      // Re-throw auth errors with context
+      if (isAuthError(error)) {
+        console.error('[BoardPack] Auth error:', error)
+        throw error
+      }
+      // Wrap other errors
+      throw new Error(`Failed to get organization: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
-  }
 
-  return {
-    organizationId: org.id,
-    templateId,
-    generatedAt: new Date(),
-    period,
-    sections,
-    metadata: {
-      preparedBy: user.email || 'System Generated'
+    const org = currentOrgData.organization
+
+    // Get template
+    const template = DEFAULT_BOARD_PACK_TEMPLATES.find(t => t.id === templateId)
+    if (!template) {
+      throw new Error(`Template not found: ${templateId}`)
     }
+
+    // Generate data for each enabled section with error handling
+    const sections: Record<string, any> = {}
+    const errors: Record<string, string> = {}
+
+    // Process sections in parallel with error handling
+    const sectionPromises = template.sections
+      .filter(s => s.enabled)
+      .map(async (section) => {
+        try {
+          let data
+          switch (section.type) {
+            case 'compliance-overview':
+              data = await generateComplianceOverview(org.id, period)
+              break
+            case 'financial-summary':
+              data = await generateFinancialSummary(org.id, period)
+              break
+            case 'risk-analysis':
+              data = await generateRiskAnalysis(org.id)
+              break
+            case 'fundraising-report':
+              data = await generateFundraisingReport(org.id, period)
+              break
+            case 'safeguarding-report':
+              data = await generateSafeguardingReport(org.id, period)
+              break
+            case 'overseas-activities':
+              data = await generateOverseasReport(org.id, period)
+              break
+            case 'key-metrics':
+              data = await generateKeyMetrics(org.id, period)
+              break
+            case 'recommendations':
+              data = await generateRecommendations(org.id, sections)
+              break
+            case 'narrative-summary':
+              data = await generateNarrativeSummary(org.id, sections)
+              break
+            default:
+              console.warn(`[BoardPack] Unknown section type: ${section.type}`)
+              return
+          }
+          sections[section.id] = data
+        } catch (error) {
+          console.error(`[BoardPack] Failed to generate section ${section.id}:`, error)
+          errors[section.id] = error instanceof Error ? error.message : 'Failed to generate section'
+          // Continue with other sections
+        }
+      })
+
+    await Promise.all(sectionPromises)
+
+    // If all sections failed, throw error
+    if (Object.keys(sections).length === 0 && Object.keys(errors).length > 0) {
+      throw new Error('Failed to generate any board pack sections')
+    }
+
+    // Get current user for metadata
+    const { data: { user } } = await supabase.auth.getUser()
+
+    return {
+      organizationId: org.id,
+      templateId,
+      generatedAt: new Date(),
+      period,
+      sections,
+      metadata: {
+        preparedBy: user?.email || 'System Generated',
+        errors: Object.keys(errors).length > 0 ? errors : undefined
+      }
+    }
+  } catch (error) {
+    console.error('[BoardPack] Failed to generate board pack:', error)
+    
+    // If it's an auth error, re-throw it
+    if (isAuthError(error)) {
+      throw error
+    }
+    
+    // Otherwise, wrap it in a generic error
+    throw new Error(
+      `Failed to generate board pack: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
   }
 }
 

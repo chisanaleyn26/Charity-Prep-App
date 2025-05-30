@@ -30,7 +30,7 @@ import {
 import { cn } from '@/lib/utils'
 import { signOutAction } from '@/lib/actions/auth'
 import { Tables } from '@/lib/types/database.types'
-import { OrgSwitcher } from '@/features/organizations/components/org-switcher'
+import { OrganizationBadge } from './organization-badge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -193,9 +193,9 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
         </Button>
       </div>
 
-      {/* Organization Switcher */}
+      {/* Organization Badge */}
       <div className="p-4 border-b border-gray-100">
-        <OrgSwitcher />
+        <OrganizationBadge />
       </div>
 
       {/* Navigation Content */}

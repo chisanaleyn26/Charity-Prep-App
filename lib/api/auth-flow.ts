@@ -84,11 +84,9 @@ export async function checkAuthFlow(): Promise<AuthFlowResult> {
     }
   }
 
-  // 5. Get the most recent organization or stored preference
-  // First, check if there's a stored preference in localStorage (handled client-side)
-  // For server-side, we'll use the most recently accessed
-  const mostRecentMembership = organizations[0]
-  currentOrganization = mostRecentMembership.organization
+  // 5. Get the user's organization (first one, since we don't support multiple)
+  const membership = organizations[0]
+  currentOrganization = membership.organization
 
   // 6. Check subscription status for current organization
   let hasSubscription = false

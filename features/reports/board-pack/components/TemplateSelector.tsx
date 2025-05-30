@@ -134,16 +134,22 @@ export default function TemplateSelector({ onSelectTemplate }: TemplateSelectorP
   async function loadTemplates() {
     try {
       const data = await getBoardPackTemplates()
-      setTemplates(data)
+      // Ensure all templates have sections array
+      const validTemplates = data.filter(t => Array.isArray(t.sections))
+      setTemplates(validTemplates)
       
       // Select default template
-      const defaultTemplate = data.find(t => t.isDefault) || data[0]
-      if (defaultTemplate) {
+      const defaultTemplate = validTemplates.find(t => t.isDefault) || validTemplates[0]
+      if (defaultTemplate && defaultTemplate.sections) {
         setSelectedTemplateId(defaultTemplate.id)
-        setCustomizedTemplate({ ...defaultTemplate })
+        setCustomizedTemplate({ 
+          ...defaultTemplate,
+          sections: defaultTemplate.sections || []
+        })
       }
     } catch (error) {
       console.error('Failed to load templates:', error)
+      setTemplates([])
     } finally {
       setLoading(false)
     }
@@ -151,9 +157,12 @@ export default function TemplateSelector({ onSelectTemplate }: TemplateSelectorP
 
   function handleTemplateSelect(templateId: string) {
     const template = templates.find(t => t.id === templateId)
-    if (template) {
+    if (template && template.sections) {
       setSelectedTemplateId(templateId)
-      setCustomizedTemplate({ ...template })
+      setCustomizedTemplate({ 
+        ...template,
+        sections: template.sections || []
+      })
     }
   }
 
@@ -162,9 +171,9 @@ export default function TemplateSelector({ onSelectTemplate }: TemplateSelectorP
 
     setCustomizedTemplate({
       ...customizedTemplate,
-      sections: customizedTemplate.sections.map(section =>
+      sections: customizedTemplate.sections?.map(section =>
         section.id === sectionId ? { ...section, enabled } : section
-      )
+      ) || []
     })
   }
 
@@ -175,8 +184,10 @@ export default function TemplateSelector({ onSelectTemplate }: TemplateSelectorP
       return
     }
 
-    const oldIndex = customizedTemplate.sections.findIndex(s => s.id === active.id)
-    const newIndex = customizedTemplate.sections.findIndex(s => s.id === over.id)
+    const oldIndex = customizedTemplate.sections?.findIndex(s => s.id === active.id) ?? -1
+    const newIndex = customizedTemplate.sections?.findIndex(s => s.id === over.id) ?? -1
+
+    if (oldIndex === -1 || newIndex === -1 || !customizedTemplate.sections) return
 
     const newSections = arrayMove(customizedTemplate.sections, oldIndex, newIndex)
     
@@ -245,7 +256,7 @@ export default function TemplateSelector({ onSelectTemplate }: TemplateSelectorP
                       {template.description}
                     </p>
                     <div className="flex gap-1 mt-2">
-                      {template.sections.filter(s => s.enabled).map((section) => {
+                      {template.sections?.filter(s => s.enabled).map((section) => {
                         const Icon = sectionIcons[section.type] || FileText
                         return (
                           <Badge
@@ -283,25 +294,25 @@ export default function TemplateSelector({ onSelectTemplate }: TemplateSelectorP
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={customizedTemplate.sections.map(s => s.id)}
+                items={customizedTemplate.sections?.map(s => s.id) || []}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-2">
-                  {customizedTemplate.sections.map((section) => (
+                  {customizedTemplate.sections?.map((section) => (
                     <SortableSection
                       key={section.id}
                       section={section}
                       onToggle={handleSectionToggle}
                     />
-                  ))}
+                  )) || null}
                 </div>
               </SortableContext>
             </DndContext>
 
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                {customizedTemplate.sections.filter(s => s.enabled).length} of{' '}
-                {customizedTemplate.sections.length} sections enabled
+                {customizedTemplate.sections?.filter(s => s.enabled).length || 0} of{' '}
+                {customizedTemplate.sections?.length || 0} sections enabled
               </div>
               <Button onClick={handleGenerateReport}>
                 Generate Board Pack

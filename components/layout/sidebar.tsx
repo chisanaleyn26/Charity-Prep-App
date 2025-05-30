@@ -30,7 +30,7 @@ import {
 import { cn } from '@/lib/utils'
 // Remove server action import - will handle signout client-side
 import { Tables } from '@/lib/types/database.types'
-import { OrgSwitcher } from '@/features/organizations/components/org-switcher'
+import { OrganizationBadge } from './organization-badge'
 import { UserSection } from './user-section'
 import { useNotificationCount } from '@/hooks/use-notification-count'
 
@@ -172,10 +172,10 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
         </button>
       </div>
 
-      {/* Organization Switcher */}
+      {/* Organization Badge */}
       {!collapsed && (
         <div className="px-6 py-4 border-b border-gray-100">
-          <OrgSwitcher />
+          <OrganizationBadge />
         </div>
       )}
 

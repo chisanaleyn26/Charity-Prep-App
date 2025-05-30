@@ -65,14 +65,15 @@ export default function LoginPage() {
       if (verifyError) {
         setError(verifyError.message)
       } else if (data?.user) {
-        // Check if user has an organization
+        // Check if user has any organizations
         const { data: orgs } = await supabase
           .from('organization_members')
           .select('organization_id')
           .eq('user_id', data.user.id)
-          .single()
+          .not('accepted_at', 'is', null)
+          .limit(1)
         
-        if (orgs?.organization_id) {
+        if (orgs && orgs.length > 0) {
           router.push('/dashboard')
         } else {
           router.push('/onboarding')
