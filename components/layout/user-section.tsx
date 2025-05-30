@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
-  Building2
+  Building2,
+  HelpCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 // Remove server action import - will handle signout client-side
@@ -168,7 +169,7 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
 
   if (collapsed) {
     return (
-      <div className="border-t border-gray-100 p-6 flex justify-center">
+      <div className="border-t border-gray-100 p-4 flex justify-center">
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative p-2 h-auto group">
@@ -238,6 +239,13 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
               </Link>
             </DropdownMenuItem>
             
+            <DropdownMenuItem asChild>
+              <Link href="/help" className="flex items-center">
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>FAQ</span>
+              </Link>
+            </DropdownMenuItem>
+            
             <DropdownMenuSeparator />
             
             <DropdownMenuItem 
@@ -277,7 +285,7 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
   }
 
   return (
-    <div className="border-t border-gray-100 p-6 space-y-4">
+    <div className="border-t border-gray-100 p-4 space-y-3">
       {/* Profile Completion Banner */}
       <ProfileCompletion />
 
@@ -416,6 +424,13 @@ export function UserSection({ collapsed = false }: UserSectionProps) {
             <Link href="/settings" className="flex items-center">
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem asChild>
+            <Link href="/help" className="flex items-center">
+              <HelpCircle className="mr-2 h-4 w-4" />
+              <span>FAQ</span>
             </Link>
           </DropdownMenuItem>
           

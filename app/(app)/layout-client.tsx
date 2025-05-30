@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sidebar } from "@/components/layout/sidebar";
+import { SimpleAppSidebar } from "@/components/layout/simple-app-sidebar";
 import {
   MobileSidebar,
   MobileHeader,
@@ -25,7 +25,6 @@ export function AppLayoutClient({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   
   const { setUser, setCurrentOrganization } = useAuthStore();
 
@@ -38,55 +37,44 @@ export function AppLayoutClient({
     setCurrentOrganization(organization);
   }, [user, organization, setUser, setCurrentOrganization]);
 
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   return (
     <OrganizationProvider initialOrganization={organization}>
       <ProfileCompletionProvider>
-        <div className="flex h-screen bg-white touch-manipulation">
-        {/* Desktop Sidebar - Fixed */}
-        <div className="hidden lg:flex">
-          <Sidebar
-            collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            organization={organization}
-          />
-        </div>
+        <div className="flex h-screen bg-white">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:flex">
+            <SimpleAppSidebar
+              collapsed={sidebarCollapsed}
+              onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            />
+          </div>
 
-        {/* Mobile Sidebar */}
-        <MobileSidebar
-          isOpen={mobileSidebarOpen}
-          onClose={() => setMobileSidebarOpen(false)}
-          organization={organization}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header */}
-          <MobileHeader
-            onMenuToggle={() => setMobileSidebarOpen(true)}
+          {/* Mobile Sidebar */}
+          <MobileSidebar
+            isOpen={mobileSidebarOpen}
+            onClose={() => setMobileSidebarOpen(false)}
             organization={organization}
           />
 
-          {/* Page Content - Single scroll context */}
-          <main className="flex-1 overflow-y-auto bg-background">
-            <div className="min-h-full">
-              <div className="px-4 sm:px-6 py-4 sm:py-8">
-                {children}
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Mobile Header */}
+            <MobileHeader
+              onMenuToggle={() => setMobileSidebarOpen(true)}
+              organization={organization}
+            />
+
+            {/* Page Content */}
+            <main className="flex-1 overflow-y-auto bg-background">
+              <div className="min-h-full">
+                <div className="px-4 sm:px-6 py-4 sm:py-8">
+                  {children}
+                </div>
               </div>
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
-        </div>
+        
         <Toaster 
           position="bottom-right"
           toastOptions={{
