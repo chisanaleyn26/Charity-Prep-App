@@ -5,6 +5,7 @@ import { ARGenerator } from '@/features/reports/annual-return/components/ARGener
 import { fetchAnnualReturnData, getUserOrganization } from '@/features/reports/annual-return/services/annual-return.service'
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { FileText } from 'lucide-react'
 
 // Server Component that fetches data
 async function AnnualReturnContent() {
@@ -34,12 +35,22 @@ async function AnnualReturnContent() {
 
 export default function AnnualReturnPage() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Annual Return Generator</h1>
-        <p className="text-muted-foreground">
-          Prepare and export your charity&apos;s data for the Charity Commission Annual Return
-        </p>
+    <div className="container mx-auto py-6 space-y-8">
+      {/* Header Section with Consistent Pattern */}
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+            <FileText className="h-6 w-6 text-[#B1FA63]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">
+              Annual Return Generator
+            </h1>
+            <p className="text-base text-gray-700 leading-relaxed mt-2">
+              Prepare and export your charity&apos;s data for the Charity Commission Annual Return
+            </p>
+          </div>
+        </div>
       </div>
 
         <Suspense

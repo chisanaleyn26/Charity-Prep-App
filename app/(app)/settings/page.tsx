@@ -219,7 +219,7 @@ export default function SettingsPage() {
       description: 'Connect third-party services and manage API access',
       icon: Zap,
       href: '/settings/integrations',
-      badge: 'Coming Soon',
+      badge: 'Soon',
       badgeVariant: 'secondary',
       status: 'info',
       quickStats: [
@@ -269,7 +269,7 @@ export default function SettingsPage() {
   const getStatusIcon = (status?: string) => {
     switch (status) {
       case 'complete':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-emerald-600" />
       case 'incomplete':
         return <AlertCircle className="h-5 w-5 text-yellow-500" />
       case 'attention':
@@ -282,26 +282,32 @@ export default function SettingsPage() {
   const getCardClassName = (status?: string) => {
     return cn(
       "group hover:shadow-lg transition-all duration-300 border-2",
-      status === 'attention' && "border-red-200 hover:border-red-300",
-      status === 'incomplete' && "border-yellow-200 hover:border-yellow-300",
-      status === 'complete' && "border-gray-200 hover:border-green-300",
-      (!status || status === 'info') && "border-gray-200 hover:border-primary/30"
+      status === 'attention' && "border-red-200 hover:border-[#B1FA63]/30",
+      status === 'incomplete' && "border-yellow-200 hover:border-[#B1FA63]/30",
+      status === 'complete' && "border-gray-200 hover:border-[#B1FA63]/30",
+      (!status || status === 'info') && "border-gray-200 hover:border-[#B1FA63]/30"
     )
   }
 
   return (
     <div className="container max-w-6xl py-6 space-y-8">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your account, organization, and app preferences
-          </p>
-        </div>
-        
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2">
+      {/* Header Section with Consistent Pattern */}
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="h-12 w-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+              <Settings2 className="h-6 w-6 text-[#B1FA63]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">Settings</h1>
+              <p className="text-base text-gray-700 leading-relaxed mt-2">
+                Manage your account, organization, and app preferences
+              </p>
+            </div>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2">
           {!completionStatus?.isComplete && (
             <Button
               variant="outline"
@@ -328,6 +334,7 @@ export default function SettingsPage() {
               Fix Billing Issue
             </Button>
           )}
+          </div>
         </div>
       </div>
 
@@ -368,20 +375,8 @@ export default function SettingsPage() {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
-                      <div className={cn(
-                        "p-2 rounded-lg",
-                        section.status === 'attention' && "bg-red-100",
-                        section.status === 'incomplete' && "bg-yellow-100",
-                        section.status === 'complete' && "bg-green-100",
-                        (!section.status || section.status === 'info') && "bg-gray-100"
-                      )}>
-                        <SectionIcon className={cn(
-                          "h-5 w-5",
-                          section.status === 'attention' && "text-red-600",
-                          section.status === 'incomplete' && "text-yellow-600",
-                          section.status === 'complete' && "text-green-600",
-                          (!section.status || section.status === 'info') && "text-gray-600"
-                        )} />
+                      <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                        <SectionIcon className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
                       </div>
                       <div className="space-y-1 flex-1">
                         <CardTitle className="text-lg flex items-center gap-2">
@@ -393,13 +388,13 @@ export default function SettingsPage() {
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {section.badge && (
-                        <Badge variant={section.badgeVariant}>
+                        <Badge variant={section.badgeVariant} className="whitespace-nowrap">
                           {section.badge}
                         </Badge>
                       )}
-                      <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                      <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-[#B1FA63] transition-colors flex-shrink-0" />
                     </div>
                   </div>
                 </CardHeader>
@@ -411,7 +406,18 @@ export default function SettingsPage() {
                         const StatIcon = stat.icon
                         return (
                           <div key={index} className="flex items-center gap-2">
-                            {StatIcon && <StatIcon className="h-4 w-4 text-gray-500" />}
+                            {StatIcon && (
+                              <StatIcon className={`h-4 w-4 ${
+                                StatIcon === Crown ? 'text-amber-500' :
+                                StatIcon === CheckCircle ? 'text-emerald-600' :
+                                StatIcon === AlertCircle ? 'text-amber-500' :
+                                StatIcon === Lock ? 'text-emerald-600' :
+                                StatIcon === Clock ? 'text-blue-500' :
+                                StatIcon === Key ? 'text-purple-500' :
+                                StatIcon === Database ? 'text-slate-600' :
+                                'text-gray-500'
+                              }`} />
+                            )}
                             <div className="text-sm">
                               <span className="text-gray-500">{stat.label}:</span>{' '}
                               <span className="font-medium">{stat.value}</span>
@@ -496,8 +502,8 @@ export default function SettingsPage() {
       {/* Help Section */}
       <div className="border rounded-lg p-6 bg-gray-50">
         <div className="flex items-start gap-4">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Star className="h-6 w-6 text-primary" />
+          <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center flex-shrink-0">
+            <Star className="h-5 w-5 text-[#B1FA63]" />
           </div>
           <div className="flex-1">
             <h3 className="font-semibold mb-1">Need help with settings?</h3>

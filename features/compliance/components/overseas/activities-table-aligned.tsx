@@ -53,7 +53,9 @@ export function OverseasActivitiesTable({ initialActivities }: OverseasActivitie
           <CardDescription>Track international operations and compliance</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <Globe className="h-12 w-12 text-muted-foreground mb-4" />
+          <div className="h-16 w-16 bg-[#243837] rounded-xl flex items-center justify-center mb-4">
+            <Globe className="h-8 w-8 text-[#B1FA63]" />
+          </div>
           <h3 className="text-lg font-semibold mb-2">No overseas activities yet</h3>
           <p className="text-muted-foreground text-center mb-4">
             Start by recording your first overseas activity using the "Add New Activity" button above.
@@ -121,7 +123,7 @@ export function OverseasActivitiesTable({ initialActivities }: OverseasActivitie
       mobile: 'secondary',
       render: (_, activity: OverseasActivity) => (
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-muted-foreground" />
+          <Globe className="h-4 w-4 text-[#B1FA63]" />
           {getCountryName(activity.country_code)}
         </div>
       )

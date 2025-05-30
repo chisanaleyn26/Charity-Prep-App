@@ -187,12 +187,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 pb-8">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-gray-200 shadow-sm">
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-gray-900 leading-tight">
+          <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">
             Welcome back, {user?.email || 'User'}
           </h1>
-          <p className="text-base text-gray-600 leading-relaxed">
+          <p className="text-base text-gray-700 leading-relaxed">
             Managing {currentOrganization.name}
             {currentOrganization.charity_number && (
               <span className="text-sm text-gray-500"> • Charity #{currentOrganization.charity_number}</span>
@@ -205,7 +205,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-medium text-gray-900 leading-tight">Key Metrics</h2>
-          <Badge variant="outline" className="text-sm font-medium">
+          <Badge variant="outline" className="text-xs font-medium text-gray-600 border-[#B1FA63]/30 bg-[#B1FA63]/5">
             Last updated {new Date().toLocaleDateString()}
           </Badge>
         </div>
@@ -229,17 +229,17 @@ export default function DashboardPage() {
 
       {/* Welcome Banner for New Organizations - Show first */}
       {isNewOrganization && (
-        <Card className="bg-gradient-to-r from-[#B1FA63]/10 via-[#B1FA63]/5 to-transparent border border-gray-200 shadow-sm relative z-10">
+        <Card className="bg-gradient-to-r from-[#B1FA63]/10 via-[#B1FA63]/5 to-transparent border border-[#B1FA63]/20 shadow-sm relative z-10">
           <CardHeader className="pb-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-[#B1FA63]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Sparkles className="h-6 w-6 text-[#243837]" />
+              <div className="w-12 h-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-6 w-6 text-[#B1FA63]" />
               </div>
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-lg font-medium text-gray-900 leading-normal">
                   Welcome to Charity Prep! 🎉
                 </CardTitle>
-                <CardDescription className="text-gray-600 mt-1 text-base leading-relaxed">
+                <CardDescription className="text-sm text-gray-700 leading-relaxed mt-1">
                   Your organization is ready. Let's build your compliance foundation.
                 </CardDescription>
               </div>
@@ -277,11 +277,11 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-medium text-gray-900 leading-tight">Quick Actions</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-all duration-300 group">
+          <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm hover:border-[#B1FA63]/30 transition-all duration-300 group">
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                  <Shield className="h-5 w-5 text-green-600" />
+                <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                  <Shield className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg font-medium text-gray-900 leading-normal">Safeguarding</CardTitle>
@@ -289,13 +289,13 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <CardDescription className="text-gray-600 leading-relaxed mb-4">
+              <CardDescription className="text-sm text-gray-700 leading-relaxed mb-4">
                 Manage DBS checks, training records, and safeguarding policies for your organization
               </CardDescription>
               <Link href="/compliance/safeguarding">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-between h-10 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+                  className="w-full justify-between h-10 border-gray-200 hover:bg-[#B1FA63] hover:border-[#B1FA63] hover:text-[#243837] transition-all font-medium"
                 >
                   <span>Manage Records</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -304,11 +304,11 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-all duration-300 group">
+          <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm hover:border-[#B1FA63]/30 transition-all duration-300 group">
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                  <Globe className="h-5 w-5 text-blue-600" />
+                <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                  <Globe className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg font-medium text-gray-900 leading-normal">Overseas Activities</CardTitle>
@@ -316,13 +316,13 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <CardDescription className="text-gray-600 leading-relaxed mb-4">
+              <CardDescription className="text-sm text-gray-700 leading-relaxed mb-4">
                 Track international programs and overseas expenditure for compliance reporting
               </CardDescription>
               <Link href="/compliance/overseas-activities">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-between h-10 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+                  className="w-full justify-between h-10 border-gray-200 hover:bg-[#B1FA63] hover:border-[#B1FA63] hover:text-[#243837] transition-all font-medium"
                 >
                   <span>View Activities</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -331,11 +331,11 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-all duration-300 group">
+          <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm hover:border-[#B1FA63]/30 transition-all duration-300 group">
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                  <Sparkles className="h-5 w-5 text-purple-600" />
+                <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                  <Sparkles className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg font-medium text-gray-900 leading-normal">AI Assistant</CardTitle>
@@ -343,13 +343,13 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <CardDescription className="text-gray-600 leading-relaxed mb-4">
+              <CardDescription className="text-sm text-gray-700 leading-relaxed mb-4">
                 Get instant answers to compliance questions and regulatory guidance
               </CardDescription>
               <Link href="/compliance/chat">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-between h-10 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+                  className="w-full justify-between h-10 border-gray-200 hover:bg-[#B1FA63] hover:border-[#B1FA63] hover:text-[#243837] transition-all font-medium"
                 >
                   <span>Start Chat</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

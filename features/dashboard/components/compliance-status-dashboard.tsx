@@ -136,11 +136,11 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
       {/* Status & Actions Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Current Status Card */}
-        <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-all duration-300">
+        <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm hover:border-[#B1FA63]/20 transition-all duration-300">
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Current Status</h3>
+                <h3 className="text-lg font-medium text-gray-900 leading-normal">Current Status</h3>
                 {statistics.trends.change && (
                   <div className="flex items-center gap-1 text-sm">
                     {getTrendIcon()}
@@ -158,8 +158,8 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
               
               <div className="text-center py-4">
                 <div className={cn(
-                  "text-5xl font-light mb-2",
-                  status.color === 'green' ? 'text-green-600' :
+                  "text-5xl font-light mb-2 leading-none tracking-tight",
+                  status.color === 'green' ? 'text-[#B1FA63]' :
                   status.color === 'amber' ? 'text-amber-600' :
                   'text-red-600'
                 )}>
@@ -183,7 +183,7 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
                   </Badge>
                 </div>
                 
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700 leading-relaxed">
                   {statistics.overall.level} compliance level
                 </p>
               </div>
@@ -192,11 +192,11 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
         </Card>
 
         {/* Urgent Actions Card */}
-        <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-all duration-300">
+        <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm hover:border-[#B1FA63]/20 transition-all duration-300">
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Action Items</h3>
+                <h3 className="text-lg font-medium text-gray-900 leading-normal">Action Items</h3>
                 <Badge variant="secondary" className="bg-gray-100 text-gray-700">
                   {allActions} total
                 </Badge>
@@ -249,7 +249,7 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
               
               {allActions > 0 && (
                 <Link href="/compliance/score">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full hover:bg-[#B1FA63] hover:border-[#B1FA63] hover:text-[#243837] transition-all font-medium">
                     View All Actions
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -261,9 +261,9 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
       </div>
 
       {/* Category Breakdown */}
-      <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-all duration-300">
+      <Card className="bg-white border border-gray-200 rounded-2xl hover:shadow-sm hover:border-[#B1FA63]/20 transition-all duration-300">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-gray-900">Category Health</CardTitle>
+          <CardTitle className="text-lg font-medium text-gray-900 leading-normal">Category Health</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-4">
@@ -275,24 +275,14 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
                 <div key={key} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "h-8 w-8 rounded-lg flex items-center justify-center",
-                        key === 'safeguarding' ? 'bg-green-100' :
-                        key === 'overseas' ? 'bg-blue-100' :
-                        'bg-purple-100'
-                      )}>
-                        <IconComponent className={cn(
-                          "h-4 w-4",
-                          key === 'safeguarding' ? 'text-green-600' :
-                          key === 'overseas' ? 'text-blue-600' :
-                          'text-purple-600'
-                        )} />
+                      <div className="h-8 w-8 bg-[#243837] rounded-lg flex items-center justify-center">
+                        <IconComponent className="h-4 w-4 text-[#B1FA63]" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900 capitalize">
+                        <h4 className="text-sm font-medium text-gray-900 capitalize leading-normal">
                           {key === 'fundraising' ? 'Income & Fundraising' : key}
                         </h4>
-                        <p className="text-xs text-gray-500">{data.level}</p>
+                        <p className="text-xs text-gray-600 leading-normal">{data.level}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -304,7 +294,7 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
                     value={percentage} 
                     className={cn(
                       "h-2",
-                      percentage >= 90 ? '[&>div]:bg-green-500' :
+                      percentage >= 90 ? '[&>div]:bg-[#B1FA63]' :
                       percentage >= 70 ? '[&>div]:bg-amber-500' :
                       '[&>div]:bg-red-500'
                     )}
@@ -318,7 +308,7 @@ export function ComplianceStatusDashboard({ organizationId }: ComplianceStatusDa
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Need to improve?</span>
               <Link href="/compliance/score">
-                <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                <Button variant="ghost" size="sm" className="text-[#243837] hover:bg-[#B1FA63] hover:text-[#243837] transition-all font-medium">
                   <Target className="h-4 w-4 mr-2" />
                   View Details
                 </Button>

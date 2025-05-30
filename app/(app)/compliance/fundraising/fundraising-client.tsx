@@ -97,7 +97,7 @@ export default function FundraisingClient({
       <div className="flex gap-2 justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium border-[#B1FA63] hover:border-[#9FE851]">
               <DollarSign className="h-4 w-4 mr-2" />
               Add Income Record
             </Button>
@@ -115,22 +115,22 @@ export default function FundraisingClient({
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <Card key={index} className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <stat.icon className="h-4 w-4 text-gray-600" />
+          <Card key={index} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                <stat.icon className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
               </div>
             </div>
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider leading-tight">
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
                 {stat.title}
               </h3>
-              <p className="text-3xl font-extralight text-gray-900 tracking-tight leading-none">
+              <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
                 {stat.value}
               </p>
-              <p className="text-xs text-gray-600 font-medium tracking-wide">
+              <p className="text-sm text-gray-700 leading-relaxed">
                 {stat.description}
               </p>
             </div>

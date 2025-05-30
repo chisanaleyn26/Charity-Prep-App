@@ -37,15 +37,20 @@ async function OverseasActivitiesContent() {
 export default function OverseasActivitiesPage() {
   return (
       <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-          <div className="space-y-3">
-            <h1 className="text-5xl font-extralight text-gray-900 tracking-tight leading-none flex items-center gap-4">
-              <Globe className="h-12 w-12 text-gray-600" />
-              Overseas Activities
-            </h1>
-            <p className="text-lg text-gray-600 font-normal leading-relaxed tracking-wide">
-              Track and manage your charity&apos;s international operations and compliance.
-            </p>
+        {/* Header Section with Consistent Pattern */}
+        <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+              <Globe className="h-6 w-6 text-[#B1FA63]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">
+                Overseas Activities
+              </h1>
+              <p className="text-base text-gray-700 leading-relaxed mt-2">
+                Track and manage your charity&apos;s international operations and compliance.
+              </p>
+            </div>
           </div>
         </div>
 

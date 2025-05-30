@@ -27,6 +27,9 @@ interface AuthStore {
   login: (user: User, organization: Organization | null) => void
   logout: () => void
   updateProfile: (updates: Partial<User>) => void
+  
+  // Role utilities (simplified)
+  getCurrentUserRole: () => string | null
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -72,6 +75,15 @@ export const useAuthStore = create<AuthStore>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...updates } : null,
         })),
+
+      // Simple role implementation - returns 'member' by default
+      // TODO: Implement proper role management with organization membership
+      getCurrentUserRole: () => {
+        const state = get()
+        // For now, return 'member' as default role
+        // In a full implementation, this would check organization membership
+        return state.user ? 'member' : null
+      },
     }),
     {
       name: 'auth-store',

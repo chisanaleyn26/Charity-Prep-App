@@ -53,7 +53,9 @@ export function FundraisingTable({ initialActivities }: FundraisingTableProps) {
           <CardDescription>Track donations and income sources</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+          <div className="h-16 w-16 bg-[#243837] rounded-xl flex items-center justify-center mb-4">
+            <DollarSign className="h-8 w-8 text-[#B1FA63]" />
+          </div>
           <h3 className="text-lg font-semibold mb-2">No fundraising activities yet</h3>
           <p className="text-muted-foreground text-center mb-4">
             Start by recording your first donation or income source using the "Add New Record" button above.

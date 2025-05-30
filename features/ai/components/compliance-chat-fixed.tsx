@@ -448,11 +448,13 @@ What compliance topic would you like to explore today?`,
       <div className="lg:col-span-2 flex flex-col">
         <Card className="flex-1 flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-3 text-lg font-medium text-gray-900 leading-normal">
+              <div className="h-8 w-8 bg-[#243837] rounded-lg flex items-center justify-center flex-shrink-0">
+                <Bot className="h-4 w-4 text-[#B1FA63]" />
+              </div>
               Compliance Assistant
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm text-gray-700 leading-relaxed">
               Ask questions about charity compliance and regulations
             </CardDescription>
           </CardHeader>
@@ -468,13 +470,13 @@ What compliance topic would you like to explore today?`,
                     }`}
                   >
                     {message.role === 'assistant' && (
-                      <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                        <Sparkles className="h-4 w-4 text-primary" />
+                      <div className="h-8 w-8 bg-[#243837] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Sparkles className="h-4 w-4 text-[#B1FA63]" />
                       </div>
                     )}
                     <div className={`max-w-[80%] ${
                       message.role === 'user' 
-                        ? 'bg-primary text-primary-foreground rounded-lg px-4 py-2' 
+                        ? 'bg-[#B1FA63] text-[#243837] rounded-lg px-4 py-2 font-medium' 
                         : 'space-y-2'
                     }`}>
                       <div className={message.role === 'user' ? '' : 'prose prose-sm max-w-none'}>
@@ -504,8 +506,8 @@ What compliance topic would you like to explore today?`,
                 ))}
                 {isLoading && (
                   <div className="flex gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                      <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                    <div className="h-8 w-8 bg-[#243837] rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-4 w-4 text-[#B1FA63] animate-pulse" />
                     </div>
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-[200px]" />

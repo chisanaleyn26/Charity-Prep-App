@@ -170,19 +170,19 @@ export function KPICards({ stats, dashboardData }: KPICardsProps) {
       {kpiData.map((kpi, index) => (
         <div
           key={index}
-          className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 hover:shadow-md transition-all duration-300 group"
+          className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-              <kpi.icon className="h-5 w-5 text-gray-600" />
+            <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+              <kpi.icon className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
             </div>
           </div>
           
           <div className="space-y-2">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-relaxed">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
               {kpi.title}
             </h3>
-            <p className="text-3xl font-bold text-gray-900 leading-none tracking-tight">
+            <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
               {kpi.value}
             </p>
           </div>

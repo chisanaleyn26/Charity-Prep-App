@@ -80,28 +80,28 @@ async function ReportsContent() {
     <div className="space-y-6">
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Compliance Score</CardTitle>
+            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">Compliance Score</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Math.round(overallScore)}%</div>
+            <div className="text-3xl font-light text-gray-900 leading-none tracking-tight">{Math.round(overallScore)}%</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Reports Generated</CardTitle>
+            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">Reports Generated</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-3xl font-light text-gray-900 leading-none tracking-tight">12</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Next Annual Return</CardTitle>
+            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">Next Annual Return</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45 days</div>
+            <div className="text-3xl font-light text-gray-900 leading-none tracking-tight">45 days</div>
           </CardContent>
         </Card>
       </div>
@@ -111,32 +111,32 @@ async function ReportsContent() {
         {reportTypes.map((report) => {
           const Icon = report.icon
           return (
-            <Card key={report.href} className="relative overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={report.href} className="relative overflow-hidden bg-white border border-gray-200 rounded-xl hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="p-2 rounded-lg bg-gray-100">
-                    <Icon className="h-6 w-6 text-gray-700" />
+                  <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                    <Icon className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${report.statusColor}`}>
                     {report.status}
                   </span>
                 </div>
-                <CardTitle className="mt-4">{report.title}</CardTitle>
-                <CardDescription className="mt-2">
+                <CardTitle className="mt-4 text-lg font-medium text-gray-900 leading-normal">{report.title}</CardTitle>
+                <CardDescription className="mt-2 text-sm text-gray-700 leading-relaxed">
                   {report.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="text-sm text-muted-foreground space-y-1 mb-4">
+                <ul className="text-sm text-gray-700 space-y-1 mb-4">
                   {report.features.map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
+                      <span className="w-1.5 h-1.5 bg-[#B1FA63] rounded-full mr-2" />
                       {feature}
                     </li>
                   ))}
                 </ul>
                 <Link href={report.href}>
-                  <Button className="w-full group">
+                  <Button className="w-full bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium border-[#B1FA63] hover:border-[#9FE851] group">
                     Generate Report
                     <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
@@ -188,15 +188,20 @@ function ReportsSkeleton() {
 export default function ReportsPage() {
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-3">
-          <h1 className="text-5xl font-extralight text-gray-900 tracking-tight leading-none flex items-center gap-4">
-            <FileText className="h-12 w-12 text-gray-600" />
-            Reports & Analytics
-          </h1>
-          <p className="text-lg text-gray-600 font-normal leading-relaxed tracking-wide">
-            Generate compliance reports, board packs, and export your charity data.
-          </p>
+      {/* Header Section with Consistent Pattern */}
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+            <FileText className="h-6 w-6 text-[#B1FA63]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">
+              Reports & Analytics
+            </h1>
+            <p className="text-base text-gray-700 leading-relaxed mt-2">
+              Generate compliance reports, board packs, and export your charity data.
+            </p>
+          </div>
         </div>
       </div>
 

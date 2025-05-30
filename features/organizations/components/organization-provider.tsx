@@ -7,6 +7,7 @@ import type { Organization, OrganizationMember } from '@/lib/types/app.types'
 interface OrganizationContextType {
   organization: Organization | null
   currentOrganization: Organization | null // For backward compatibility
+  organizations: Organization[] // Array of organizations for backward compatibility
   isLoading: boolean
 }
 
@@ -39,6 +40,7 @@ export function OrganizationProvider({ children, initialOrganization }: Organiza
   const value: OrganizationContextType = {
     organization: currentOrganization,
     currentOrganization, // For backward compatibility
+    organizations: currentOrganization ? [currentOrganization] : [], // Simple array for backward compatibility
     isLoading,
   }
 
