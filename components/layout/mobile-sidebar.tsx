@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Logo } from '@/components/common/logo'
 import { MobileDrawer } from '@/components/ui/mobile-drawer'
 import { 
   LayoutDashboard, 
@@ -28,9 +27,9 @@ import {
   X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { signOutAction } from '@/lib/actions/auth'
 import { Tables } from '@/lib/types/database.types'
 import { OrganizationBadge } from './organization-badge'
+import { UserSection } from './user-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -95,6 +94,12 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
       badgeType: 'destructive' as const,
       description: 'Policies & certificates'
     },
+    {
+      name: 'Calendar',
+      href: '/calendar',
+      icon: Calendar,
+      description: 'Deadlines & reminders'
+    },
   ]
 
   const reportsSubItems = [
@@ -126,12 +131,6 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
       badge: 'NEW',
       badgeType: 'default' as const,
       description: 'AI compliance assistant'
-    },
-    {
-      name: 'Calendar',
-      href: '/calendar',
-      icon: Calendar,
-      description: 'Deadlines & reminders'
     }
   ]
 
@@ -179,10 +178,16 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
       size="md"
       className="flex flex-col"
       closeOnOverlayClick={true}
+      showCloseButton={false}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <Logo size="sm" />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-[#B1FA63] rounded-lg flex items-center justify-center">
+            <span className="text-[#243837] font-bold text-lg">C</span>
+          </div>
+          <span className="text-[#243837] font-semibold text-lg tracking-tight">Charity Prep</span>
+        </div>
         <Button
           variant="ghost"
           size="sm"
@@ -225,11 +230,6 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
                     <div className="font-medium text-sm">{item.name}</div>
                     <div className="text-xs text-gray-500 truncate">{item.description}</div>
                   </div>
-                  {item.badge && (
-                    <Badge variant={getBadgeVariant(item.badgeType)} size="sm">
-                      {item.badge}
-                    </Badge>
-                  )}
                 </Link>
               )
             })}
@@ -323,11 +323,6 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
                       <div className="font-medium text-sm">{item.name}</div>
                       <div className="text-xs text-gray-500 truncate">{item.description}</div>
                     </div>
-                    {item.badge && (
-                      <Badge variant={getBadgeVariant(item.badgeType)} size="sm">
-                        {item.badge}
-                      </Badge>
-                    )}
                   </Link>
                 )
               })}
@@ -361,37 +356,14 @@ export function MobileSidebar({ isOpen, onClose, organization }: MobileSidebarPr
                   <div className="font-medium text-sm">{item.name}</div>
                   <div className="text-xs text-gray-500 truncate">{item.description}</div>
                 </div>
-                {item.badge && (
-                  <Badge variant={getBadgeVariant(item.badgeType)} size="sm">
-                    {item.badge}
-                  </Badge>
-                )}
               </Link>
             )
           })}
         </div>
 
-        {/* User Menu */}
-        <div className="border-t border-gray-100 pt-4">
-          <div className="flex items-center gap-3 px-3 py-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-              JD
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm text-gray-900 truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">Trustee • {organization?.name}</p>
-            </div>
-          </div>
-          
-          <form action={signOutAction}>
-            <button 
-              type="submit"
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 active:bg-red-100 transition-all min-h-[48px] touch-manipulation"
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium text-sm">Sign Out</span>
-            </button>
-          </form>
+        {/* User Section */}
+        <div className="border-t border-gray-100">
+          <UserSection collapsed={false} />
         </div>
       </div>
     </MobileDrawer>

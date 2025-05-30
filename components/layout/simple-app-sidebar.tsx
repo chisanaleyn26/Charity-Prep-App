@@ -38,28 +38,32 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
   const pathname = usePathname()
   const notificationCount = useNotificationCount()
 
-  // Navigation data
+  // Navigation data with descriptions
   const mainNavigation = [
     {
       title: 'Dashboard',
       url: '/dashboard',
       icon: LayoutDashboard,
+      description: 'Overview & metrics'
     },
     {
       title: 'Search',
       url: '/search',
       icon: Search,
+      description: 'Search all content'
     },
     {
       title: 'Documents',
       url: '/documents',
       icon: FileText,
       badge: '2',
+      description: 'Policies & certificates'
     },
     {
       title: 'Calendar',
       url: '/calendar',
       icon: Calendar,
+      description: 'Deadlines & reminders'
     },
   ]
 
@@ -69,22 +73,26 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
       url: '/compliance/safeguarding',
       icon: Shield,
       badge: '3',
+      description: 'DBS checks & policies'
     },
     {
       title: 'Overseas Activities',
       url: '/compliance/overseas-activities',
       icon: Globe,
+      description: 'International activities'
     },
     {
       title: 'Fundraising',
       url: '/compliance/fundraising',
       icon: Coins,
       badge: '1',
+      description: 'Campaigns & compliance'
     },
     {
       title: 'Compliance Score',
       url: '/compliance/score',
       icon: BarChart3,
+      description: 'Overall compliance health'
     }
   ]
 
@@ -93,16 +101,19 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
       title: 'All Reports',
       url: '/reports',
       icon: FileText,
+      description: 'Generate annual returns'
     },
     {
       title: 'AI Reports',
       url: '/reports/ai',
       icon: Sparkles,
+      description: 'AI-powered insights'
     },
     {
       title: 'Export Data',
       url: '/reports/export',
       icon: Download,
+      description: 'Export compliance data'
     }
   ]
 
@@ -112,6 +123,7 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
       url: '/compliance/chat',
       icon: Bot,
       badge: 'NEW',
+      description: 'AI compliance assistant'
     }
   ]
 
@@ -163,7 +175,7 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300">
         {/* Main Navigation */}
         <div className="space-y-1">
           {mainNavigation.map((item) => {
@@ -184,13 +196,8 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
                   <item.icon className="h-4 w-4" />
                 ) : (
                   <>
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className="h-4 w-4 shrink-0" />
                     <span className="text-sm font-medium">{item.title}</span>
-                    {item.badge && (
-                      <Badge variant="destructive" className="ml-auto">
-                        {item.badge}
-                      </Badge>
-                    )}
                   </>
                 )}
               </Link>
@@ -212,13 +219,8 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
                 <Shield className="h-4 w-4" />
               ) : (
                 <>
-                  <Shield className="h-4 w-4" />
+                  <Shield className="h-4 w-4 shrink-0" />
                   <span className="text-sm font-medium">Compliance</span>
-                  {getTotalComplianceBadges() > 0 && (
-                    <Badge variant="destructive" className="ml-auto">
-                      {getTotalComplianceBadges()}
-                    </Badge>
-                  )}
                   <ChevronRight className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
                 </>
               )}
@@ -238,13 +240,8 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       )}
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span className="font-medium">{item.title}</span>
-                      {item.badge && (
-                        <Badge variant="destructive" className="ml-auto">
-                          {item.badge}
-                        </Badge>
-                      )}
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="text-sm font-medium">{item.title}</span>
                     </Link>
                   )
                 })}
@@ -267,7 +264,7 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
                 <FileText className="h-4 w-4" />
               ) : (
                 <>
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4 shrink-0" />
                   <span className="text-sm font-medium">Reports</span>
                   <ChevronRight className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
                 </>
@@ -288,8 +285,8 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       )}
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span className="font-medium">{item.title}</span>
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="text-sm font-medium">{item.title}</span>
                     </Link>
                   )
                 })}
@@ -324,13 +321,8 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
                     <item.icon className="h-4 w-4" />
                   ) : (
                     <>
-                      <item.icon className="h-4 w-4" />
-                      <span className="text-sm font-medium">{item.title}</span>
-                      {item.badge && (
-                        <Badge className="ml-auto">
-                          {item.badge}
-                        </Badge>
-                      )}
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="text-sm font-medium text-left">{item.title}</span>
                     </>
                   )}
                 </Link>
@@ -355,13 +347,8 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
               <Bell className="h-4 w-4" />
             ) : (
               <>
-                <Bell className="h-4 w-4" />
+                <Bell className="h-4 w-4 shrink-0" />
                 <span className="text-sm font-medium">Notifications</span>
-                {notificationCount > 0 && (
-                  <Badge className="ml-auto">
-                    {notificationCount}
-                  </Badge>
-                )}
               </>
             )}
           </Link>
@@ -376,7 +363,7 @@ export function SimpleAppSidebar({ collapsed = false, onToggle }: SimpleAppSideb
               <Settings className="h-4 w-4" />
             ) : (
               <>
-                <Settings className="h-4 w-4" />
+                <Settings className="h-4 w-4 shrink-0" />
                 <span className="text-sm font-medium">Settings</span>
               </>
             )}
