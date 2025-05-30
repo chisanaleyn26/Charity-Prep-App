@@ -53,8 +53,8 @@ export function AppLayoutClient({
     <OrganizationProvider initialOrganization={organization}>
       <ProfileCompletionProvider>
         <div className="flex h-screen bg-white touch-manipulation">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
+        {/* Desktop Sidebar - Fixed */}
+        <div className="hidden lg:flex">
           <Sidebar
             collapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -70,17 +70,19 @@ export function AppLayoutClient({
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile Header */}
           <MobileHeader
             onMenuToggle={() => setMobileSidebarOpen(true)}
             organization={organization}
           />
 
-          {/* Page Content */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
-              {children}
+          {/* Page Content - Single scroll context */}
+          <main className="flex-1 overflow-y-auto bg-background">
+            <div className="min-h-full">
+              <div className="px-4 sm:px-6 py-4 sm:py-8">
+                {children}
+              </div>
             </div>
           </main>
         </div>

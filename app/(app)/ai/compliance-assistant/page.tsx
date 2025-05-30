@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 // Loading component for the chat interface
 function ChatLoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-8rem)]">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Main chat skeleton */}
       <div className="lg:col-span-3">
         <Card className="h-full flex flex-col">

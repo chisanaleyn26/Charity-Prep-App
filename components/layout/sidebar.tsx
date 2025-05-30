@@ -33,6 +33,7 @@ import { Tables } from '@/lib/types/database.types'
 import { OrganizationBadge } from './organization-badge'
 import { UserSection } from './user-section'
 import { useNotificationCount } from '@/hooks/use-notification-count'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 type Organization = Tables<'organizations'>
 
@@ -151,37 +152,40 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
         collapsed ? 'w-20' : 'w-[280px]'
       )}
     >
-      {/* Header */}
-      <div className="p-6 flex items-center justify-between border-b border-gray-100">
-        <div className={cn(
-          'transition-opacity duration-300',
-          collapsed && 'opacity-0 w-0 overflow-hidden'
-        )}>
-          <Logo size="sm" />
+      {/* Fixed Header */}
+      <div className="flex-shrink-0">
+        <div className="p-6 flex items-center justify-between border-b border-gray-100">
+          <div className={cn(
+            'transition-opacity duration-300',
+            collapsed && 'opacity-0 w-0 overflow-hidden'
+          )}>
+            <Logo size="sm" />
+          </div>
+          <button
+            onClick={onToggle}
+            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? (
+              <Menu className="h-5 w-5 text-gray-600" />
+            ) : (
+              <ChevronLeft className="h-5 w-5 text-gray-600" />
+            )}
+          </button>
         </div>
-        <button
-          onClick={onToggle}
-          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? (
-            <Menu className="h-5 w-5 text-gray-600" />
-          ) : (
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
-          )}
-        </button>
+
+        {/* Organization Badge */}
+        {!collapsed && (
+          <div className="px-6 py-4 border-b border-gray-100">
+            <OrganizationBadge />
+          </div>
+        )}
       </div>
 
-      {/* Organization Badge */}
-      {!collapsed && (
-        <div className="px-6 py-4 border-b border-gray-100">
-          <OrganizationBadge />
-        </div>
-      )}
-
-      {/* Main Navigation */}
-      <nav className="flex-1 px-6 py-6">
-        <div className="space-y-2">
+      {/* Scrollable Navigation Area */}
+      <ScrollArea className="flex-1 min-h-0">
+        <nav className="px-6 py-6">
+          <div className="space-y-2">
           {mainNavigation.map((item) => {
             const isActive = pathname === item.href
             return (
@@ -346,10 +350,11 @@ export function Sidebar({ collapsed = false, onToggle, organization }: SidebarPr
             </div>
           </div>
         )}
-      </nav>
+        </nav>
+      </ScrollArea>
 
-      {/* Bottom Navigation */}
-      <div className="border-t border-gray-100 p-6">
+      {/* Fixed Bottom Navigation */}
+      <div className="flex-shrink-0 border-t border-gray-100 p-6">
         <div className="space-y-1 mb-6">
           {bottomNavigation.map((item) => (
             <Link
