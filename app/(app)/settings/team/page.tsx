@@ -215,20 +215,32 @@ export default function TeamSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Team Management</h1>
-          <p className="text-muted-foreground">
-            Manage your organization&apos;s team members and permissions
-          </p>
+    <div className="space-y-8">
+      {/* Header Section with Consistent Pattern */}
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="h-12 w-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+              <Users className="h-6 w-6 text-[#B1FA63]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">Team Management</h1>
+              <p className="text-base text-gray-700 leading-relaxed mt-2">
+                Manage your organization&apos;s team members and permissions
+              </p>
+            </div>
+          </div>
+          {isAdmin && (
+            <Button 
+              onClick={() => setInviteModalOpen(true)} 
+              disabled={atUserLimit}
+              className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium border-[#B1FA63] hover:border-[#9FE851]"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite Member
+            </Button>
+          )}
         </div>
-        {isAdmin && (
-          <Button onClick={() => setInviteModalOpen(true)} disabled={atUserLimit}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite Member
-          </Button>
-        )}
       </div>
 
       {atUserLimit && (
@@ -242,62 +254,73 @@ export default function TeamSettingsPage() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalMembers || 0}</div>
-            {userLimit !== null ? (
-              <p className="text-xs text-muted-foreground">
-                of {userLimit === -1 ? 'unlimited' : userLimit} allowed
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">unlimited</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeMembers || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Active in last 30 days
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+              <Users className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
+              Total Members
+            </h3>
+            <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
+              {stats?.totalMembers || 0}
+              {userLimit !== null && userLimit !== -1 && (
+                <span className="text-sm text-gray-500 font-normal">/{userLimit}</span>
+              )}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invites</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.pendingInvitations || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting acceptance
+        <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+              <Activity className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
+              Active Members
+            </h3>
+            <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
+              {stats?.activeMembers || 0}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.membersByRole.admin || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Full access users
+        <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+              <Mail className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
+              Pending Invites
+            </h3>
+            <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
+              {stats?.pendingInvitations || 0}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+              <Shield className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
+              Admins
+            </h3>
+            <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
+              {stats?.membersByRole.admin || 0}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Team Tabs */}

@@ -64,6 +64,18 @@ export default function SettingsPage() {
   const userRole = getCurrentUserRole()
   const isAdmin = userRole === 'admin'
 
+  // Helper function to format role display consistently
+  const formatRole = (role: string | null) => {
+    if (!role) return 'member'
+    return role.toLowerCase()
+  }
+
+  // Helper function to get display role consistently
+  const getDisplayRole = (role: string | null) => {
+    const formattedRole = formatRole(role)
+    return formattedRole.charAt(0).toUpperCase() + formattedRole.slice(1)
+  }
+
   // Profile completion badge
   const getProfileBadge = () => {
     if (!completionStatus) return null
@@ -166,7 +178,7 @@ export default function SettingsPage() {
         },
         {
           label: 'Your Role',
-          value: userRole || 'Member',
+          value: getDisplayRole(userRole),
           icon: Users
         }
       ]
@@ -188,7 +200,7 @@ export default function SettingsPage() {
         },
         {
           label: 'Your Role',
-          value: userRole || 'Member',
+          value: getDisplayRole(userRole),
           icon: Shield
         }
       ]
@@ -474,8 +486,8 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground">
                 {currentOrganization?.name || 'No organization'}
               </p>
-              <p className="text-xs text-muted-foreground capitalize">
-                Role: {userRole || 'Member'}
+              <p className="text-xs text-muted-foreground">
+                Role: {getDisplayRole(userRole)}
               </p>
             </div>
 

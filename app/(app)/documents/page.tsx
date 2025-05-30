@@ -93,104 +93,110 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="space-y-10">
-      {/* Enhanced Typography Header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-3">
-          <h1 className="text-5xl font-extralight text-gray-900 tracking-tight leading-none flex items-center gap-4">
-            <FileText className="h-12 w-12 text-gray-600" />
-            Documents
-          </h1>
-          <p className="text-lg text-gray-600 font-normal leading-relaxed tracking-wide">
-            Manage your organization&apos;s policies, certificates, and important documents.
-          </p>
+    <div className="space-y-8">
+      {/* Header Section with Consistent Pattern */}
+      <div className="bg-gradient-to-br from-[#B1FA63]/5 via-[#B1FA63]/3 to-transparent rounded-xl p-6 border border-[#B1FA63]/20 shadow-sm">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="h-12 w-12 bg-[#243837] rounded-xl flex items-center justify-center flex-shrink-0">
+              <FileText className="h-6 w-6 text-[#B1FA63]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-4xl font-light text-gray-900 leading-tight tracking-tight">
+                Documents
+              </h1>
+              <p className="text-base text-gray-700 leading-relaxed mt-2">
+                Manage your organization&apos;s policies, certificates, and important documents.
+              </p>
+            </div>
+          </div>
+          
+          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#B1FA63] hover:bg-[#9FE851] text-[#243837] font-medium border-[#B1FA63] hover:border-[#9FE851]">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Document
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold tracking-tight">Upload Document</DialogTitle>
+                <DialogDescription className="text-gray-600 font-medium">
+                  Upload a new document to your organization&apos;s library
+                </DialogDescription>
+              </DialogHeader>
+              <DocumentUploadForm onSuccess={handleUploadSuccess} />
+            </DialogContent>
+          </Dialog>
         </div>
-        
-        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-800 transition-all duration-300 flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200">
-              <Upload className="h-5 w-5" />
-              <span className="font-semibold tracking-wide">Upload Document</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold tracking-tight">Upload Document</DialogTitle>
-              <DialogDescription className="text-gray-600 font-medium">
-                Upload a new document to your organization&apos;s library
-              </DialogDescription>
-            </DialogHeader>
-            <DocumentUploadForm onSuccess={handleUploadSuccess} />
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <FileText className="h-4 w-4 text-gray-600" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                <FileText className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
               </div>
             </div>
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider leading-tight">
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
                 Total Documents
               </h3>
-              <p className="text-3xl font-extralight text-gray-900 tracking-tight leading-none">
+              <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
                 {stats.totalDocuments}
               </p>
             </div>
-          </Card>
+          </div>
 
-          <Card className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Calendar className="h-4 w-4 text-gray-600" />
+          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                <Calendar className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
               </div>
             </div>
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider leading-tight">
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
                 Expiring Soon
               </h3>
-              <p className="text-3xl font-extralight text-gray-900 tracking-tight leading-none">
+              <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
                 {stats.expiringSoon}
               </p>
             </div>
-          </Card>
+          </div>
 
-          <Card className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <FolderOpen className="h-4 w-4 text-gray-600" />
+          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                <FolderOpen className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
               </div>
             </div>
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider leading-tight">
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
                 Storage Used
               </h3>
-              <p className="text-3xl font-extralight text-gray-900 tracking-tight leading-none">
+              <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
                 {(stats.totalSizeBytes / 1024 / 1024).toFixed(1)}MB
               </p>
             </div>
-          </Card>
+          </div>
 
-          <Card className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Tag className="h-4 w-4 text-gray-600" />
+          <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#B1FA63]/30 hover:shadow-md transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-10 w-10 bg-[#243837] rounded-lg flex items-center justify-center group-hover:scale-105 group-hover:bg-[#B1FA63] transition-all duration-200 flex-shrink-0">
+                <Tag className="h-5 w-5 text-[#B1FA63] group-hover:text-[#243837]" />
               </div>
             </div>
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider leading-tight">
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide leading-normal">
                 Categories
               </h3>
-              <p className="text-3xl font-extralight text-gray-900 tracking-tight leading-none">
+              <p className="text-3xl font-light text-gray-900 leading-none tracking-tight">
                 {stats.categoriesCount}
               </p>
             </div>
-          </Card>
+          </div>
         </div>
       )}
 
